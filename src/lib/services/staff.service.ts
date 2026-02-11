@@ -18,6 +18,7 @@ export interface StaffMember {
     email: string;
     role?: string; // Derived from User if linked, else 'Staff'
     inviteStatus: 'pending' | 'accepted' | 'expired';
+    status: 'active' | 'inactive' | 'deactivated';
     permissions: StaffPermissions;
     avatar?: string;
     createdAt: string;
@@ -63,6 +64,18 @@ export const staffService = {
     // Remove staff
     removeStaff: async (id: string) => {
         const response = await api.delete(`/staff/${id}`);
+        return response.data;
+    },
+
+    // Deactivate staff
+    deactivateStaff: async (id: string) => {
+        const response = await api.put(`/staff/${id}/deactivate`);
+        return response.data;
+    },
+
+    // Reactivate staff
+    reactivateStaff: async (id: string) => {
+        const response = await api.put(`/staff/${id}/reactivate`);
         return response.data;
     }
 };

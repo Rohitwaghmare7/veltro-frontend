@@ -18,6 +18,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import EditIcon from '@mui/icons-material/Edit';
 import ShareIcon from '@mui/icons-material/Share';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DownloadIcon from '@mui/icons-material/Download';
 import { useState, useEffect } from 'react';
 import { formService, Form } from '@/lib/services/form.service';
 
@@ -63,6 +64,26 @@ export default function FormsPage() {
         const url = `${window.location.origin}/form/${id}`;
         navigator.clipboard.writeText(url);
         alert('Form link copied to clipboard!');
+    };
+
+    const handleExport = async (id: string, title: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        
+        try {
+            const blob = await formService.exportSubmissions(id);
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${title.replace(/[^a-z0-9]/gi, '_')}_submissions.csv`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error('Failed to export submissions', error);
+            alert('Failed to export submissions. Make sure there are submissions to export.');
+        }
     };
 
     if (loading) return <Box p={4} display="flex" justifyContent="center"><CircularProgress /></Box>;
@@ -116,6 +137,9 @@ export default function FormsPage() {
                                     <CardActions>
                                         <Button size="small" startIcon={<ShareIcon />} onClick={(e) => handleShare(form._id, e)}>
                                             Share
+                                        </Button>
+                                        <Button size="small" startIcon={<DownloadIcon />} onClick={(e) => handleExport(form._id, form.title, e)}>
+                                            Export
                                         </Button>
                                         <Box flexGrow={1} />
                                         <IconButton size="small" color="error" onClick={(e) => handleDelete(form._id, e)}>

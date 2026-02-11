@@ -21,8 +21,7 @@ import {
     List,
     ListItem,
     ListItemText,
-    ListItemIcon,
-    useTheme
+    ListItemIcon
 } from '@mui/material';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
@@ -34,70 +33,20 @@ import WarningIcon from '@mui/icons-material/Warning';
 import MessageIcon from '@mui/icons-material/Message';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import InventoryIcon from '@mui/icons-material/Inventory';
-import {
-    LineChart,
-    Line,
-    BarChart,
-    Bar,
-    PieChart,
-    Pie,
-    Cell,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-    ResponsiveContainer
-} from 'recharts';
 import api from '@/lib/api';
 import { dashboardService, DashboardStats, Alert } from '@/lib/services/dashboard.service';
 import RBACGuard from '@/components/dashboard/RBACGuard';
-import CalendarWidget from '@/components/dashboard/CalendarWidget';
-
-// Animated Counter Component
-function AnimatedCounter({ value, duration = 1000 }: { value: number; duration?: number }) {
-    const [count, setCount] = useState(0);
-
-    useEffect(() => {
-        let startTime: number;
-        let animationFrame: number;
-
-        const animate = (timestamp: number) => {
-            if (!startTime) startTime = timestamp;
-            const progress = Math.min((timestamp - startTime) / duration, 1);
-            
-            setCount(Math.floor(progress * value));
-
-            if (progress < 1) {
-                animationFrame = requestAnimationFrame(animate);
-            }
-        };
-
-        animationFrame = requestAnimationFrame(animate);
-
-        return () => {
-            if (animationFrame) {
-                cancelAnimationFrame(animationFrame);
-            }
-        };
-    }, [value, duration]);
-
-    return <>{count}</>;
-}
 
 export default function DashboardPage() {
     const router = useRouter();
-    const theme = useTheme();
     const [loading, setLoading] = useState(true);
     const [statsLoading, setStatsLoading] = useState(true);
-    const [activityLoading, setActivityLoading] = useState(true);
     const [user, setUser] = useState<any>(null);
     const [business, setBusiness] = useState<any>(null);
     const [bookingUrl, setBookingUrl] = useState('');
     const [snackbar, setSnackbar] = useState({ open: false, message: '' });
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [alerts, setAlerts] = useState<Alert[]>([]);
-    const [activityData, setActivityData] = useState<any>(null);
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -131,7 +80,7 @@ export default function DashboardPage() {
 
                 setLoading(false);
                 
-                // Fetch dashboard data
+                // Fetch dashboard stats
                 fetchDashboardData();
             } catch (e) {
                 console.error('Auth verification failed', e);
@@ -150,11 +99,10 @@ export default function DashboardPage() {
 
     const fetchDashboardData = async () => {
         try {
-            // Fetch stats, alerts, and activity in parallel
-            const [statsRes, alertsRes, activityRes] = await Promise.all([
+            // Fetch stats and alerts in parallel
+            const [statsRes, alertsRes] = await Promise.all([
                 dashboardService.getOverview(),
-                dashboardService.getAlerts(),
-                api.get('/dashboard/activity')
+                dashboardService.getAlerts()
             ]);
 
             if (statsRes.success) {
@@ -164,15 +112,10 @@ export default function DashboardPage() {
             if (alertsRes.success) {
                 setAlerts(alertsRes.data);
             }
-
-            if (activityRes.data.success) {
-                setActivityData(activityRes.data.data);
-            }
         } catch (error) {
             console.error('Failed to fetch dashboard data:', error);
         } finally {
             setStatsLoading(false);
-            setActivityLoading(false);
         }
     };
 
@@ -189,17 +132,8 @@ export default function DashboardPage() {
         );
     }
 
-    const AnimatedStatCard = ({ title, value, icon, color, loading }: any) => (
-        <Card 
-            sx={{ 
-                height: '100%',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: 4
-                }
-            }}
-        >
+    const StatCard = ({ title, value, icon, color, loading }: any) => (
+        <Card sx={{ height: '100%' }}>
             <CardContent>
                 <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
                     <Typography variant="subtitle2" color="textSecondary">
@@ -213,7 +147,7 @@ export default function DashboardPage() {
                     <CircularProgress size={32} />
                 ) : (
                     <Typography variant="h4" fontWeight="bold">
-                        <AnimatedCounter value={value} />
+                        {value}
                     </Typography>
                 )}
             </CardContent>
@@ -238,16 +172,6 @@ export default function DashboardPage() {
             default: return 'default';
         }
     };
-
-    // Chart colors
-    const COLORS = [
-        theme.palette.primary.main,
-        theme.palette.secondary.main,
-        theme.palette.success.main,
-        theme.palette.warning.main,
-        theme.palette.error.main,
-        theme.palette.info.main
-    ];
 
     return (
         <RBACGuard>
@@ -300,10 +224,10 @@ export default function DashboardPage() {
                     </Paper>
                 )}
 
-                {/* Animated Stats Cards */}
+                {/* Stats Cards */}
                 <Grid container spacing={3} mb={4}>
                     <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                        <AnimatedStatCard
+                        <StatCard
                             title="Today's Bookings"
                             value={stats?.bookings.today || 0}
                             icon={<CalendarTodayIcon />}
@@ -312,7 +236,7 @@ export default function DashboardPage() {
                         />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                        <AnimatedStatCard
+                        <StatCard
                             title="Upcoming Bookings"
                             value={stats?.bookings.upcoming || 0}
                             icon={<CalendarTodayIcon />}
@@ -321,7 +245,7 @@ export default function DashboardPage() {
                         />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                        <AnimatedStatCard
+                        <StatCard
                             title="New Leads (24h)"
                             value={stats?.leads.new24h || 0}
                             icon={<ContactsIcon />}
@@ -330,7 +254,7 @@ export default function DashboardPage() {
                         />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                        <AnimatedStatCard
+                        <StatCard
                             title="Open Conversations"
                             value={stats?.leads.openConversations || 0}
                             icon={<MessageIcon />}
@@ -340,111 +264,71 @@ export default function DashboardPage() {
                     </Grid>
                 </Grid>
 
-                {/* Charts Section */}
+                {/* Forms & Inventory Stats */}
                 <Grid container spacing={3} mb={4}>
-                    {/* Activity Line Chart */}
-                    <Grid size={{ xs: 12, lg: 8 }}>
-                        <Paper sx={{ p: 3 }}>
-                            <Typography variant="h6" mb={3}>📈 Activity (Last 7 Days)</Typography>
-                            {activityLoading ? (
-                                <Box display="flex" justifyContent="center" py={8}>
-                                    <CircularProgress />
-                                </Box>
-                            ) : (
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <LineChart data={activityData?.dailyActivity || []}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="day" />
-                                        <YAxis />
-                                        <Tooltip />
-                                        <Legend />
-                                        <Line 
-                                            type="monotone" 
-                                            dataKey="bookings" 
-                                            stroke={theme.palette.primary.main} 
-                                            strokeWidth={2}
-                                            name="Bookings"
-                                        />
-                                        <Line 
-                                            type="monotone" 
-                                            dataKey="contacts" 
-                                            stroke={theme.palette.success.main} 
-                                            strokeWidth={2}
-                                            name="New Contacts"
-                                        />
-                                        <Line 
-                                            type="monotone" 
-                                            dataKey="submissions" 
-                                            stroke={theme.palette.secondary.main} 
-                                            strokeWidth={2}
-                                            name="Form Submissions"
-                                        />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            )}
-                        </Paper>
+                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                        <Card>
+                            <CardContent>
+                                <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                                    Pending Forms
+                                </Typography>
+                                {statsLoading ? (
+                                    <CircularProgress size={24} />
+                                ) : (
+                                    <Typography variant="h5" fontWeight="bold">
+                                        {stats?.forms.pending || 0}
+                                    </Typography>
+                                )}
+                            </CardContent>
+                        </Card>
                     </Grid>
-
-                    {/* Booking Status Pie Chart */}
-                    <Grid size={{ xs: 12, lg: 4 }}>
-                        <Paper sx={{ p: 3 }}>
-                            <Typography variant="h6" mb={3}>📊 Booking Status</Typography>
-                            {activityLoading ? (
-                                <Box display="flex" justifyContent="center" py={8}>
-                                    <CircularProgress />
-                                </Box>
-                            ) : (
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <PieChart>
-                                        <Pie
-                                            data={activityData?.bookingStatus || []}
-                                            cx="50%"
-                                            cy="50%"
-                                            labelLine={false}
-                                            label={(entry) => `${entry.status}: ${entry.count}`}
-                                            outerRadius={80}
-                                            fill="#8884d8"
-                                            dataKey="count"
-                                        >
-                                            {(activityData?.bookingStatus || []).map((entry: any, index: number) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            )}
-                        </Paper>
+                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                        <Card>
+                            <CardContent>
+                                <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                                    Overdue Forms
+                                </Typography>
+                                {statsLoading ? (
+                                    <CircularProgress size={24} />
+                                ) : (
+                                    <Typography variant="h5" fontWeight="bold" color="error.main">
+                                        {stats?.forms.overdue || 0}
+                                    </Typography>
+                                )}
+                            </CardContent>
+                        </Card>
                     </Grid>
-                </Grid>
-
-                {/* Lead Sources Bar Chart & Calendar */}
-                <Grid container spacing={3} mb={4}>
-                    <Grid size={{ xs: 12, lg: 8 }}>
-                        <Paper sx={{ p: 3 }}>
-                            <Typography variant="h6" mb={3}>🎯 Lead Sources</Typography>
-                            {activityLoading ? (
-                                <Box display="flex" justifyContent="center" py={8}>
-                                    <CircularProgress />
-                                </Box>
-                            ) : (
-                                <ResponsiveContainer width="100%" height={250}>
-                                    <BarChart data={activityData?.leadSources || []}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="source" />
-                                        <YAxis />
-                                        <Tooltip />
-                                        <Legend />
-                                        <Bar dataKey="count" fill={theme.palette.primary.main} name="Leads" />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            )}
-                        </Paper>
+                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                        <Card>
+                            <CardContent>
+                                <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                                    Completed Forms
+                                </Typography>
+                                {statsLoading ? (
+                                    <CircularProgress size={24} />
+                                ) : (
+                                    <Typography variant="h5" fontWeight="bold" color="success.main">
+                                        {stats?.forms.completed || 0}
+                                    </Typography>
+                                )}
+                            </CardContent>
+                        </Card>
                     </Grid>
-
-                    {/* Calendar Widget */}
-                    <Grid size={{ xs: 12, lg: 4 }}>
-                        <CalendarWidget />
+                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                        <Card>
+                            <CardContent>
+                                <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                                    Low Stock Items
+                                </Typography>
+                                {statsLoading ? (
+                                    <CircularProgress size={24} />
+                                ) : (
+                                    <Typography variant="h5" fontWeight="bold" color="warning.main">
+                                        {stats?.inventory.lowStock.length || 0}
+                                    </Typography>
+                                )}
+                            </CardContent>
+                        </Card>
                     </Grid>
                 </Grid>
 

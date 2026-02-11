@@ -13,8 +13,11 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useThemeMode } from '@/contexts/ThemeContext';
 import BusinessSelector from './BusinessSelector';
 
 const drawerWidth = 240;
@@ -26,6 +29,7 @@ interface HeaderProps {
 export default function Header({ onDrawerToggle }: HeaderProps) {
     const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
     const router = useRouter();
+    const { mode, toggleTheme } = useThemeMode();
 
     const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorElUser(event.currentTarget);
@@ -69,6 +73,12 @@ export default function Header({ onDrawerToggle }: HeaderProps) {
                 <Box sx={{ flexGrow: 1 }} />
 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Tooltip title={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}>
+                        <IconButton size="large" color="inherit" onClick={toggleTheme}>
+                            {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+                        </IconButton>
+                    </Tooltip>
+
                     <IconButton size="large" color="inherit">
                         <NotificationsIcon />
                     </IconButton>

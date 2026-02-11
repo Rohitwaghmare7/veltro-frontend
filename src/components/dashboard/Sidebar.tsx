@@ -22,9 +22,11 @@ import PeopleIcon from '@mui/icons-material/People';
 import SettingsIcon from '@mui/icons-material/Settings';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AutoModeIcon from '@mui/icons-material/AutoMode';
+import IntegrationInstructionsIcon from '@mui/icons-material/IntegrationInstructions';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { staffService } from '@/lib/services/staff.service';
 
 const drawerWidth = 240;
@@ -46,6 +48,7 @@ const menuItems = [
 ];
 
 const secondaryItems = [
+    { text: 'Integrations', icon: <IntegrationInstructionsIcon />, path: '/dashboard/integrations' },
     { text: 'Settings', icon: <SettingsIcon />, path: '/dashboard/settings' },
 ];
 
@@ -91,52 +94,154 @@ export default function Sidebar({ mobileOpen, onDrawerToggle }: SidebarProps) {
     const filteredSecondaryItems = secondaryItems.filter(item => {
         if (!profile) return false;
         if (profile.role === 'owner') return true;
-        if (item.text === 'Settings') return false; // Only owners for now
-        return true;
+        // Both Integrations and Settings are owner-only
+        return false;
     });
 
     const drawerContent = (
         <div>
             <Toolbar>
-                <Box sx={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'primary.main' }}>
+                <Box
+                    component={motion.div}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3 }}
+                    sx={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'primary.main' }}
+                >
                     Veltro
                 </Box>
             </Toolbar>
             <Divider />
             <List>
-                {filteredMenuItems.map((item) => (
-                    <ListItem key={item.text} disablePadding>
-                        <ListItemButton
-                            component={Link}
-                            href={item.path}
-                            selected={pathname === item.path}
-                            onClick={isMobile ? onDrawerToggle : undefined}
-                        >
-                            <ListItemIcon sx={{ color: pathname === item.path ? 'primary.main' : 'inherit' }}>
-                                {item.icon}
-                            </ListItemIcon>
-                            <ListItemText primary={item.text} />
-                        </ListItemButton>
-                    </ListItem>
-                ))}
+                <AnimatePresence>
+                    {filteredMenuItems.map((item, index) => {
+                        const isActive = pathname === item.path;
+                        return (
+                            <motion.div
+                                key={item.text}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                transition={{ delay: index * 0.05 }}
+                            >
+                                <ListItem disablePadding sx={{ position: 'relative' }}>
+                                    {isActive && (
+                                        <motion.div
+                                            layoutId="activeTab"
+                                            style={{
+                                                position: 'absolute',
+                                                left: 0,
+                                                right: 0,
+                                                top: 0,
+                                                bottom: 0,
+                                                backgroundColor: 'rgba(79, 70, 229, 0.08)',
+                                                borderRadius: '8px',
+                                                margin: '4px 8px',
+                                            }}
+                                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                        />
+                                    )}
+                                    <ListItemButton
+                                        component={Link}
+                                        href={item.path}
+                                        selected={isActive}
+                                        onClick={isMobile ? onDrawerToggle : undefined}
+                                        sx={{
+                                            position: 'relative',
+                                            zIndex: 1,
+                                            mx: 1,
+                                            borderRadius: '8px',
+                                            '&.Mui-selected': {
+                                                backgroundColor: 'transparent',
+                                                '&:hover': {
+                                                    backgroundColor: 'rgba(79, 70, 229, 0.12)',
+                                                },
+                                            },
+                                        }}
+                                    >
+                                        <ListItemIcon sx={{ color: isActive ? 'primary.main' : 'inherit' }}>
+                                            {item.icon}
+                                        </ListItemIcon>
+                                        <ListItemText 
+                                            primary={item.text}
+                                            sx={{ 
+                                                '& .MuiTypography-root': { 
+                                                    fontWeight: isActive ? 600 : 400 
+                                                } 
+                                            }}
+                                        />
+                                    </ListItemButton>
+                                </ListItem>
+                            </motion.div>
+                        );
+                    })}
+                </AnimatePresence>
             </List>
             <Divider />
             <List>
-                {filteredSecondaryItems.map((item) => (
-                    <ListItem key={item.text} disablePadding>
-                        <ListItemButton
-                            component={Link}
-                            href={item.path}
-                            selected={pathname === item.path}
-                            onClick={isMobile ? onDrawerToggle : undefined}
-                        >
-                            <ListItemIcon sx={{ color: pathname === item.path ? 'primary.main' : 'inherit' }}>
-                                {item.icon}
-                            </ListItemIcon>
-                            <ListItemText primary={item.text} />
-                        </ListItemButton>
-                    </ListItem>
-                ))}
+                <AnimatePresence>
+                    {filteredSecondaryItems.map((item, index) => {
+                        const isActive = pathname === item.path;
+                        return (
+                            <motion.div
+                                key={item.text}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                transition={{ delay: (filteredMenuItems.length + index) * 0.05 }}
+                            >
+                                <ListItem disablePadding sx={{ position: 'relative' }}>
+                                    {isActive && (
+                                        <motion.div
+                                            layoutId="activeTab"
+                                            style={{
+                                                position: 'absolute',
+                                                left: 0,
+                                                right: 0,
+                                                top: 0,
+                                                bottom: 0,
+                                                backgroundColor: 'rgba(79, 70, 229, 0.08)',
+                                                borderRadius: '8px',
+                                                margin: '4px 8px',
+                                            }}
+                                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                        />
+                                    )}
+                                    <ListItemButton
+                                        component={Link}
+                                        href={item.path}
+                                        selected={isActive}
+                                        onClick={isMobile ? onDrawerToggle : undefined}
+                                        sx={{
+                                            position: 'relative',
+                                            zIndex: 1,
+                                            mx: 1,
+                                            borderRadius: '8px',
+                                            '&.Mui-selected': {
+                                                backgroundColor: 'transparent',
+                                                '&:hover': {
+                                                    backgroundColor: 'rgba(79, 70, 229, 0.12)',
+                                                },
+                                            },
+                                        }}
+                                    >
+                                        <ListItemIcon sx={{ color: isActive ? 'primary.main' : 'inherit' }}>
+                                            {item.icon}
+                                        </ListItemIcon>
+                                        <ListItemText 
+                                            primary={item.text}
+                                            sx={{ 
+                                                '& .MuiTypography-root': { 
+                                                    fontWeight: isActive ? 600 : 400 
+                                                } 
+                                            }}
+                                        />
+                                    </ListItemButton>
+                                </ListItem>
+                            </motion.div>
+                        );
+                    })}
+                </AnimatePresence>
             </List>
         </div>
     );

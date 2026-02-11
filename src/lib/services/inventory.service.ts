@@ -7,6 +7,9 @@ export interface InventoryItem {
     stock: number;
     unit: string;
     threshold: number;
+    vendorEmail?: string;
+    lastRestocked?: string;
+    alertSent?: boolean;
     updatedAt: string;
 }
 
@@ -16,6 +19,7 @@ export interface CreateInventoryData {
     stock?: number;
     unit?: string;
     threshold?: number;
+    vendorEmail?: string;
 }
 
 export const inventoryService = {

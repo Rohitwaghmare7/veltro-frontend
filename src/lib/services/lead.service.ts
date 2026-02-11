@@ -6,10 +6,15 @@ export interface Lead {
     name: string;
     email?: string;
     phone?: string;
-    source: 'contact_form' | 'booking' | 'manual';
+    source: 'contact_form' | 'booking' | 'manual' | 'form_submission';
     status: 'new' | 'contacted' | 'qualified' | 'booked' | 'closed';
     notes?: string;
     tags?: string[];
+    assignedTo?: {
+        _id: string;
+        name: string;
+        email: string;
+    } | string;
     createdAt: string;
     updatedAt: string;
 }
@@ -22,6 +27,7 @@ export interface CreateLeadData {
     status?: string;
     notes?: string;
     tags?: string[];
+    assignedTo?: string;
 }
 
 export const leadService = {

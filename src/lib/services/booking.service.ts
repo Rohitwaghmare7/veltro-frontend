@@ -11,7 +11,22 @@ export interface Booking {
     duration: number;
     status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no-show';
     notes?: string;
+    location?: string;
+    assignedTo?: {
+        _id: string;
+        name: string;
+        email: string;
+    };
+    contactId?: {
+        _id: string;
+        name: string;
+        email: string;
+        phone?: string;
+        source?: string;
+        status?: string;
+    };
     createdAt: string;
+    updatedAt: string;
 }
 
 export interface CreateBookingData {
@@ -39,8 +54,26 @@ export const bookingService = {
     },
 
     // Dashboard: Get all bookings
-    getAllBookings: async (filters?: { status?: string; from?: string; to?: string }) => {
+    getAllBookings: async (filters?: { 
+        status?: string; 
+        from?: string; 
+        to?: string;
+        serviceType?: string;
+        assignedTo?: string;
+    }) => {
         const response = await api.get('/bookings', { params: filters });
+        return response.data;
+    },
+
+    // Dashboard: Get single booking by ID
+    getBookingById: async (id: string) => {
+        const response = await api.get(`/bookings/${id}`);
+        return response.data;
+    },
+
+    // Dashboard: Update booking
+    updateBooking: async (id: string, data: Partial<Booking>) => {
+        const response = await api.put(`/bookings/${id}`, data);
         return response.data;
     },
 

@@ -2,7 +2,7 @@ import api from '@/lib/api';
 
 export interface FormField {
     id: string;
-    type: 'text' | 'textarea' | 'number' | 'email' | 'phone' | 'select' | 'checkbox' | 'date';
+    type: 'text' | 'textarea' | 'number' | 'email' | 'phone' | 'select' | 'checkbox' | 'date' | 'multiselect';
     label: string;
     placeholder?: string;
     required: boolean;
@@ -16,6 +16,10 @@ export interface Form {
     fields: FormField[];
     isActive: boolean;
     submissionsCount: number;
+    linkedServices?: string[];
+    isRequiredForBooking?: boolean;
+    autoSendAfterBooking?: boolean;
+    sendDelay?: number;
     createdAt: string;
     updatedAt: string;
 }
@@ -25,6 +29,10 @@ export interface CreateFormData {
     description?: string;
     fields: FormField[];
     isActive?: boolean;
+    linkedServices?: string[];
+    isRequiredForBooking?: boolean;
+    autoSendAfterBooking?: boolean;
+    sendDelay?: number;
 }
 
 export const formService = {
@@ -73,6 +81,20 @@ export const formService = {
     // Public: Submit form data
     submitForm: async (id: string, data: any) => {
         const response = await api.post(`/forms/public/${id}/submit`, { data });
+        return response.data;
+    },
+
+    // Export submissions as CSV
+    exportSubmissions: async (id: string) => {
+        const response = await api.get(`/forms/${id}/export`, {
+            responseType: 'blob'
+        });
+        return response.data;
+    },
+
+    // Get forms linked to a booking
+    getBookingForms: async (bookingId: string) => {
+        const response = await api.get(`/forms/booking/${bookingId}`);
         return response.data;
     }
 };

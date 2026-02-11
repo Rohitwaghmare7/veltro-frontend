@@ -6,6 +6,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Toolbar from '@mui/material/Toolbar';
 import Sidebar from '@/components/dashboard/Sidebar';
 import Header from '@/components/dashboard/Header';
+import PageTransition from '@/components/PageTransition';
 
 const drawerWidth = 240;
 
@@ -36,7 +37,9 @@ export default function DashboardLayout({
                 }}
             >
                 <Toolbar /> {/* Spacer for fixed AppBar */}
-                {children}
+                <PageTransition>
+                    {children}
+                </PageTransition>
             </Box>
         </Box>
     );
