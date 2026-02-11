@@ -1,3 +1,12 @@
+:root {
+  --font-poppins: 'Poppins', sans-serif;
+  --color-dark-navy: #061E29;
+  --color-medium-teal: #1D546D;
+  --color-light-teal: #5F9598;
+  --color-white: #ffffff;
+  --color-black: #000000;
+}
+
 * {
   box-sizing: border-box;
   padding: 0;
@@ -6,7 +15,8 @@
 
 body {
   background-color: #f8fafc;
-  /* Match theme default background */
+  font-family: var(--font-poppins);
+  color: var(--color-dark-navy);
 }
 
 a {

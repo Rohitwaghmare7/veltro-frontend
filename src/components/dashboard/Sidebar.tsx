@@ -34,6 +34,7 @@ const drawerWidth = 240;
 interface SidebarProps {
     mobileOpen: boolean;
     onDrawerToggle: () => void;
+    drawerWidth?: number;
 }
 
 const menuItems = [
@@ -52,10 +53,11 @@ const secondaryItems = [
     { text: 'Settings', icon: <SettingsIcon />, path: '/dashboard/settings' },
 ];
 
-export default function Sidebar({ mobileOpen, onDrawerToggle }: SidebarProps) {
+export default function Sidebar({ mobileOpen, onDrawerToggle, drawerWidth: customDrawerWidth }: SidebarProps) {
     const pathname = usePathname();
     const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
     const [profile, setProfile] = useState<any>(null);
+    const width = customDrawerWidth || drawerWidth;
 
     useEffect(() => {
         const fetchProfile = async () => {

@@ -1,11 +1,11 @@
 'use client';
 
 import { createTheme, PaletteMode } from '@mui/material/styles';
-import { Roboto } from 'next/font/google';
+import { Poppins } from 'next/font/google';
 
-const roboto = Roboto({
-    weight: ['300', '400', '500', '700'],
-    subsets: ['latin'],
+const poppins = Poppins({
+    weight: ['300', '400', '500', '600', '700'],
+    subsets: ['latin', 'devanagari'],
     display: 'swap',
 });
 
@@ -14,43 +14,77 @@ export const getTheme = (mode: PaletteMode) => createTheme({
         mode,
         ...(mode === 'light'
             ? {
-                // Light mode
+                // Light mode - Custom color palette
                 primary: {
-                    main: '#4f46e5', // Indigo 600
-                    light: '#818cf8', // Indigo 400
-                    dark: '#3730a3', // Indigo 800
+                    main: '#1D546D', // Medium teal
+                    light: '#5F9598', // Light teal
+                    dark: '#061E29', // Dark navy
+                    contrastText: '#ffffff',
+                },
+                secondary: {
+                    main: '#5F9598', // Light teal
+                    light: '#8AB5B8',
+                    dark: '#4A7A7D',
+                    contrastText: '#ffffff',
                 },
                 background: {
-                    default: '#f8fafc', // Slate 50
+                    default: '#f8fafc', // Very light gray
                     paper: '#ffffff',
                 },
                 text: {
-                    primary: '#0f172a', // Slate 900
-                    secondary: '#64748b', // Slate 500
+                    primary: '#061E29', // Dark navy for text
+                    secondary: '#1D546D', // Medium teal for secondary text
                 },
+                divider: '#e2e8f0',
             }
             : {
-                // Dark mode
+                // Dark mode - Custom color palette
                 primary: {
-                    main: '#818cf8', // Indigo 400
-                    light: '#a5b4fc', // Indigo 300
-                    dark: '#6366f1', // Indigo 500
+                    main: '#5F9598', // Light teal
+                    light: '#8AB5B8',
+                    dark: '#4A7A7D',
+                    contrastText: '#061E29',
+                },
+                secondary: {
+                    main: '#1D546D', // Medium teal
+                    light: '#5F9598',
+                    dark: '#061E29',
+                    contrastText: '#ffffff',
                 },
                 background: {
-                    default: '#0f172a', // Slate 900
-                    paper: '#1e293b', // Slate 800
+                    default: '#061E29', // Dark navy
+                    paper: '#0a2a3a', // Slightly lighter navy
                 },
                 text: {
-                    primary: '#f1f5f9', // Slate 100
-                    secondary: '#94a3b8', // Slate 400
+                    primary: '#ffffff', // White for text
+                    secondary: '#8AB5B8', // Light teal for secondary text
                 },
+                divider: '#1D546D',
             }),
     },
     typography: {
-        fontFamily: roboto.style.fontFamily,
+        fontFamily: poppins.style.fontFamily,
         button: {
             textTransform: 'none',
             fontWeight: 500,
+        },
+        h1: {
+            fontWeight: 700,
+        },
+        h2: {
+            fontWeight: 700,
+        },
+        h3: {
+            fontWeight: 600,
+        },
+        h4: {
+            fontWeight: 600,
+        },
+        h5: {
+            fontWeight: 600,
+        },
+        h6: {
+            fontWeight: 600,
         },
     },
     shape: {
@@ -63,7 +97,8 @@ export const getTheme = (mode: PaletteMode) => createTheme({
                 root: {
                     borderRadius: '8px',
                     boxShadow: 'none',
-                    padding: '8px 16px', // 8px grid
+                    padding: '8px 16px',
+                    fontWeight: 500,
                     '&:hover': {
                         boxShadow: 'none',
                     },
@@ -71,7 +106,17 @@ export const getTheme = (mode: PaletteMode) => createTheme({
                 contained: {
                     boxShadow: 'none',
                     '&:hover': {
-                        boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                        boxShadow: '0 2px 4px 0 rgba(6, 30, 41, 0.15)',
+                    },
+                },
+                containedPrimary: {
+                    background: mode === 'light' 
+                        ? 'linear-gradient(135deg, #1D546D 0%, #5F9598 100%)'
+                        : '#5F9598',
+                    '&:hover': {
+                        background: mode === 'light'
+                            ? 'linear-gradient(135deg, #061E29 0%, #1D546D 100%)'
+                            : '#8AB5B8',
                     },
                 },
             },
@@ -81,8 +126,9 @@ export const getTheme = (mode: PaletteMode) => createTheme({
                 root: {
                     borderRadius: '16px',
                     boxShadow: mode === 'light' 
-                        ? '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
-                        : '0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2)',
+                        ? '0 4px 6px -1px rgba(6, 30, 41, 0.1), 0 2px 4px -2px rgba(6, 30, 41, 0.06)'
+                        : '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2)',
+                    border: mode === 'light' ? '1px solid #e2e8f0' : '1px solid #1D546D',
                 },
             },
         },
@@ -91,6 +137,12 @@ export const getTheme = (mode: PaletteMode) => createTheme({
                 root: {
                     '& .MuiOutlinedInput-root': {
                         borderRadius: '8px',
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: mode === 'light' ? '#5F9598' : '#8AB5B8',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: mode === 'light' ? '#1D546D' : '#5F9598',
+                        },
                     },
                 },
             },
@@ -99,6 +151,39 @@ export const getTheme = (mode: PaletteMode) => createTheme({
             styleOverrides: {
                 root: {
                     backgroundImage: 'none',
+                },
+                elevation1: {
+                    boxShadow: mode === 'light'
+                        ? '0 1px 3px 0 rgba(6, 30, 41, 0.1), 0 1px 2px -1px rgba(6, 30, 41, 0.06)'
+                        : '0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.2)',
+                },
+            },
+        },
+        MuiChip: {
+            styleOverrides: {
+                root: {
+                    fontWeight: 500,
+                },
+                colorPrimary: {
+                    backgroundColor: mode === 'light' ? '#5F9598' : '#1D546D',
+                    color: '#ffffff',
+                },
+            },
+        },
+        MuiAppBar: {
+            styleOverrides: {
+                root: {
+                    boxShadow: mode === 'light'
+                        ? '0 1px 3px 0 rgba(6, 30, 41, 0.1)'
+                        : '0 1px 3px 0 rgba(0, 0, 0, 0.3)',
+                },
+            },
+        },
+        MuiDrawer: {
+            styleOverrides: {
+                paper: {
+                    backgroundColor: mode === 'light' ? '#ffffff' : '#061E29',
+                    borderRight: mode === 'light' ? '1px solid #e2e8f0' : '1px solid #1D546D',
                 },
             },
         },

@@ -10,22 +10,19 @@ import {
     Button,
     Chip,
     Alert,
-    CircularProgress,
     List,
     ListItem,
     ListItemText,
-    IconButton,
     Snackbar
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import WarningIcon from '@mui/icons-material/Warning';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import SettingsIcon from '@mui/icons-material/Settings';
 import EmailIcon from '@mui/icons-material/Email';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import RBACGuard from '@/components/dashboard/RBACGuard';
-import { integrationService, Integration as IntegrationStatus, FailedConnection } from '@/lib/services/integration.service';
+import { integrationService, FailedConnection } from '@/lib/services/integration.service';
 
 interface Integration {
     id: string;
@@ -266,14 +263,6 @@ export default function IntegrationsPage() {
                                                     >
                                                         Connect
                                                     </Button>
-                                                )}
-                                                {integration.configurable && integration.status === 'connected' && (
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => setConfigDialog(integration.id)}
-                                                    >
-                                                        <SettingsIcon fontSize="small" />
-                                                    </IconButton>
                                                 )}
                                             </Box>
                                         </Box>

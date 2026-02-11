@@ -1,9 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Box from '@mui/material/Box';
-import CssBaseline from '@mui/material/CssBaseline';
-import Toolbar from '@mui/material/Toolbar';
+import { Box, Toolbar } from '@mui/material';
 import Sidebar from '@/components/dashboard/Sidebar';
 import Header from '@/components/dashboard/Header';
 import PageTransition from '@/components/PageTransition';
@@ -22,21 +20,24 @@ export default function DashboardLayout({
     };
 
     return (
-        <Box sx={{ display: 'flex' }}>
-            <CssBaseline />
+        <Box sx={{ display: 'flex', minHeight: '100vh' }}>
             <Header onDrawerToggle={handleDrawerToggle} />
-            <Sidebar mobileOpen={mobileOpen} onDrawerToggle={handleDrawerToggle} />
+            <Sidebar
+                mobileOpen={mobileOpen}
+                onDrawerToggle={handleDrawerToggle}
+                drawerWidth={drawerWidth}
+            />
             <Box
                 component="main"
                 sx={{
                     flexGrow: 1,
                     p: 3,
                     width: { sm: `calc(100% - ${drawerWidth}px)` },
-                    minHeight: '100vh',
                     backgroundColor: 'background.default',
+                    minHeight: '100vh',
                 }}
             >
-                <Toolbar /> {/* Spacer for fixed AppBar */}
+                <Toolbar />
                 <PageTransition>
                     {children}
                 </PageTransition>
