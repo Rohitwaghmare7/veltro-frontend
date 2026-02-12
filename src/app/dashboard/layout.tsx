@@ -25,7 +25,6 @@ export default function DashboardLayout({
             <Sidebar
                 mobileOpen={mobileOpen}
                 onDrawerToggle={handleDrawerToggle}
-                drawerWidth={drawerWidth}
             />
             <Box
                 component="main"

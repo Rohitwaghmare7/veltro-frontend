@@ -251,7 +251,7 @@ export default function Sidebar({ mobileOpen, onDrawerToggle, drawerWidth: custo
     return (
         <Box
             component="nav"
-            sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+            sx={{ width: { sm: width }, flexShrink: { sm: 0 } }}
         >
             {/* Mobile Drawer */}
             <Drawer
@@ -261,7 +261,7 @@ export default function Sidebar({ mobileOpen, onDrawerToggle, drawerWidth: custo
                 ModalProps={{ keepMounted: true }}
                 sx={{
                     display: { xs: 'block', sm: 'none' },
-                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width },
                 }}
             >
                 {drawerContent}
@@ -272,7 +272,7 @@ export default function Sidebar({ mobileOpen, onDrawerToggle, drawerWidth: custo
                 variant="permanent"
                 sx={{
                     display: { xs: 'none', sm: 'block' },
-                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width },
                 }}
                 open
             >

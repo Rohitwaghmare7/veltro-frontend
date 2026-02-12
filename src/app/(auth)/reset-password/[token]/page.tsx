@@ -1,14 +1,26 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, TextField, Button, Typography, Paper, Alert, Container, InputAdornment, IconButton } from '@mui/material';
-import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
-import LockResetIcon from '@mui/icons-material/LockReset';
+import { AxiosError } from 'axios';
+import Link from 'next/link';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import LockIcon from '@mui/icons-material/Lock';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import api from '@/lib/api';
+import SplineBackground from '@/components/SplineBackground';
 
 export default function ResetPasswordPage() {
     const router = useRouter();
@@ -27,7 +39,6 @@ export default function ResetPasswordPage() {
         e.preventDefault();
         setError(null);
 
-        // Validation
         if (password.length < 6) {
             setError('Password must be at least 6 characters long');
             return;
@@ -42,163 +53,248 @@ export default function ResetPasswordPage() {
 
         try {
             const response = await api.post(`/auth/reset-password/${token}`, { password });
-            
+
             if (response.data.success) {
-                // Store tokens
-                localStorage.setItem('token', response.data.data.token);
-                localStorage.setItem('refreshToken', response.data.data.refreshToken);
-                
                 setSuccess(true);
-                
-                // Redirect to dashboard after 2 seconds
                 setTimeout(() => {
-                    router.push('/dashboard');
-                }, 2000);
+                    router.push('/login');
+                }, 3000);
             }
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to reset password. The link may be invalid or expired.');
+            let message = 'Failed to reset password. The link may be invalid or expired.';
+            if (err instanceof AxiosError) {
+                message = err.response?.data?.message || message;
+            }
+            setError(message);
         } finally {
             setLoading(false);
         }
     };
 
-    if (success) {
-        return (
-            <Container maxWidth="sm">
-                <Box
-                    display="flex"
-                    flexDirection="column"
-                    alignItems="center"
-                    justifyContent="center"
-                    minHeight="100vh"
-                >
-                    <Paper elevation={3} sx={{ p: 4, width: '100%', textAlign: 'center' }}>
-                        <Box
-                            sx={{
-                                width: 80,
-                                height: 80,
-                                borderRadius: '50%',
-                                bgcolor: 'success.light',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                margin: '0 auto 20px',
-                            }}
-                        >
-                            <CheckCircleIcon sx={{ fontSize: 40, color: 'success.main' }} />
-                        </Box>
+    const handleClickShowPassword = () => setShowPassword((show) => !show);
+    const handleClickShowConfirmPassword = () => setShowConfirmPassword((show) => !show);
 
-                        <Typography variant="h5" fontWeight="bold" gutterBottom>
-                            Password Reset Successful!
-                        </Typography>
-
-                        <Typography variant="body1" color="textSecondary" sx={{ mb: 3 }}>
-                            Your password has been reset successfully. Redirecting you to the dashboard...
-                        </Typography>
-                    </Paper>
-                </Box>
-            </Container>
-        );
-    }
+    const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+    };
 
     return (
-        <Container maxWidth="sm">
-            <Box
-                display="flex"
-                flexDirection="column"
-                alignItems="center"
-                justifyContent="center"
-                minHeight="100vh"
+        <Box
+            sx={{
+                minHeight: '100vh',
+                position: 'relative',
+                bgcolor: 'black',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                p: 2,
+                overflow: 'hidden'
+            }}
+        >
+            <SplineBackground scale="180%" opacity={0.8} />
+
+            <Card
+                sx={{
+                    width: '100%',
+                    maxWidth: 380,
+                    bgcolor: 'rgba(5, 5, 5, 0.0)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: 1,
+                    boxShadow: '0 0 80px rgba(0, 0, 0, 0.5)',
+                    position: 'relative',
+                    zIndex: 1
+                }}
             >
-                <Paper elevation={3} sx={{ p: 4, width: '100%' }}>
-                    <Box textAlign="center" mb={3}>
-                        <LockResetIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                        <Typography variant="h4" fontWeight="bold" gutterBottom>
-                            Reset Your Password
-                        </Typography>
-                        <Typography variant="body1" color="textSecondary">
-                            Enter your new password below.
-                        </Typography>
-                    </Box>
+                <CardContent sx={{ p: 4 }}>
+                    <Stack spacing={3}>
+                        {success ? (
+                            <Box sx={{ textAlign: 'center', py: 2 }}>
+                                <CheckCircleIcon sx={{ fontSize: 48, color: '#4CAF50', mb: 2 }} />
+                                <Typography variant="h5" fontWeight="700" sx={{ color: 'white', mb: 1 }}>
+                                    Success!
+                                </Typography>
+                                <Typography variant="body2" sx={{ color: '#666' }}>
+                                    Password reset successful. Redirecting you...
+                                </Typography>
+                            </Box>
+                        ) : (
+                            <>
+                                <Box sx={{ textAlign: 'center' }}>
+                                    <Typography
+                                        variant="h5"
+                                        component="h1"
+                                        fontWeight="700"
+                                        gutterBottom
+                                        sx={{
+                                            background: 'linear-gradient(to right, #FFFFFF, #00D2FF 100%)',
+                                            WebkitBackgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent',
+                                            mb: 0.5
+                                        }}
+                                    >
+                                        Reset Password
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>
+                                        Enter your new password below
+                                    </Typography>
+                                </Box>
 
-                    {error && (
-                        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
-                            {error}
-                        </Alert>
-                    )}
+                                <form onSubmit={handleSubmit}>
+                                    <Stack spacing={2.5}>
+                                        {error && (
+                                            <Typography color="error" variant="caption" align="center">
+                                                {error}
+                                            </Typography>
+                                        )}
+                                        <Box>
+                                            <Typography variant="caption" fontWeight="medium" sx={{ mb: 0.5, display: 'block', color: '#888' }}>
+                                                New Password
+                                            </Typography>
+                                            <TextField
+                                                fullWidth
+                                                size="small"
+                                                id="password"
+                                                type={showPassword ? 'text' : 'password'}
+                                                placeholder="••••••••"
+                                                variant="outlined"
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                autoFocus
+                                                sx={{
+                                                    '& .MuiOutlinedInput-root': {
+                                                        bgcolor: '#050505',
+                                                        color: 'white',
+                                                        borderRadius: 1,
+                                                        fontSize: '0.9rem',
+                                                        '& fieldset': { borderColor: '#222' },
+                                                        '&:hover fieldset': { borderColor: '#444' },
+                                                        '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
+                                                    },
+                                                }}
+                                                slotProps={{
+                                                    input: {
+                                                        startAdornment: (
+                                                            <InputAdornment position="start">
+                                                                <LockIcon sx={{ color: '#444', fontSize: 18 }} />
+                                                            </InputAdornment>
+                                                        ),
+                                                        endAdornment: (
+                                                            <InputAdornment position="end">
+                                                                <IconButton
+                                                                    size="small"
+                                                                    onClick={handleClickShowPassword}
+                                                                    onMouseDown={handleMouseDownPassword}
+                                                                    sx={{ color: '#666' }}
+                                                                >
+                                                                    {showPassword ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
+                                                                </IconButton>
+                                                            </InputAdornment>
+                                                        ),
+                                                    },
+                                                }}
+                                            />
+                                        </Box>
 
-                    <Box component="form" onSubmit={handleSubmit}>
-                        <TextField
-                            fullWidth
-                            label="New Password"
-                            type={showPassword ? 'text' : 'password'}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            autoFocus
-                            sx={{ mb: 2 }}
-                            disabled={loading}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            edge="end"
+                                        <Box>
+                                            <Typography variant="caption" fontWeight="medium" sx={{ mb: 0.5, display: 'block', color: '#888' }}>
+                                                Confirm Password
+                                            </Typography>
+                                            <TextField
+                                                fullWidth
+                                                size="small"
+                                                id="confirmPassword"
+                                                type={showConfirmPassword ? 'text' : 'password'}
+                                                placeholder="••••••••"
+                                                variant="outlined"
+                                                value={confirmPassword}
+                                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                                sx={{
+                                                    '& .MuiOutlinedInput-root': {
+                                                        bgcolor: '#050505',
+                                                        color: 'white',
+                                                        borderRadius: 1,
+                                                        fontSize: '0.9rem',
+                                                        '& fieldset': { borderColor: '#222' },
+                                                        '&:hover fieldset': { borderColor: '#444' },
+                                                        '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
+                                                    },
+                                                }}
+                                                slotProps={{
+                                                    input: {
+                                                        startAdornment: (
+                                                            <InputAdornment position="start">
+                                                                <LockIcon sx={{ color: '#444', fontSize: 18 }} />
+                                                            </InputAdornment>
+                                                        ),
+                                                        endAdornment: (
+                                                            <InputAdornment position="end">
+                                                                <IconButton
+                                                                    size="small"
+                                                                    onClick={handleClickShowConfirmPassword}
+                                                                    onMouseDown={handleMouseDownPassword}
+                                                                    sx={{ color: '#666' }}
+                                                                >
+                                                                    {showConfirmPassword ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
+                                                                </IconButton>
+                                                            </InputAdornment>
+                                                        ),
+                                                    },
+                                                }}
+                                            />
+                                        </Box>
+
+                                        <Button
+                                            fullWidth
+                                            variant="contained"
+                                            size="medium"
+                                            endIcon={!loading && <ArrowForwardIcon fontSize="small" />}
+                                            sx={{
+                                                fontWeight: '600',
+                                                mt: 1,
+                                                background: 'linear-gradient(180deg, #FFFFFF 0%, #E0E0E0 100%)',
+                                                color: 'black',
+                                                borderRadius: 1,
+                                                textTransform: 'none',
+                                                fontSize: '0.9rem',
+                                                height: 40,
+                                                boxShadow: '0 4px 12px rgba(255, 255, 255, 0.1)',
+                                                '&:hover': {
+                                                    background: 'linear-gradient(180deg, #FFFFFF 0%, #F5F5F5 100%)',
+                                                    boxShadow: '0 0 15px rgba(255, 255, 255, 0.3)',
+                                                    transform: 'translateY(-1px)'
+                                                },
+                                                '&.Mui-disabled': {
+                                                    background: 'linear-gradient(180deg, #EEEEEE 0%, #CCCCCC 100%)',
+                                                    color: 'rgba(0, 0, 0, 0.5)',
+                                                },
+                                                transition: 'all 0.2s ease-in-out'
+                                            }}
+                                            type="submit"
+                                            disabled={loading}
                                         >
-                                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            }}
-                            helperText="Must be at least 6 characters"
-                        />
+                                            {loading ? (
+                                                <CircularProgress size={20} sx={{ color: 'rgba(0, 0, 0, 0.5)' }} />
+                                            ) : (
+                                                'Update Password'
+                                            )}
+                                        </Button>
 
-                        <TextField
-                            fullWidth
-                            label="Confirm New Password"
-                            type={showConfirmPassword ? 'text' : 'password'}
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                            sx={{ mb: 3 }}
-                            disabled={loading}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                            edge="end"
-                                        >
-                                            {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
-
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            fullWidth
-                            size="large"
-                            disabled={loading || !password || !confirmPassword}
-                            sx={{ mb: 2 }}
-                        >
-                            {loading ? 'Resetting...' : 'Reset Password'}
-                        </Button>
-
-                        <Button
-                            variant="text"
-                            fullWidth
-                            component={Link}
-                            href="/login"
-                            disabled={loading}
-                        >
-                            Back to Login
-                        </Button>
-                    </Box>
-                </Paper>
-            </Box>
-        </Container>
+                                        <Typography variant="caption" sx={{ color: '#666' }} align="center">
+                                            Remember your password?{' '}
+                                            <Link href="/login" style={{ textDecoration: 'none' }}>
+                                                <Typography component="span" variant="caption" sx={{ color: 'white', textDecoration: 'underline' }} fontWeight="medium">
+                                                    Sign in
+                                                </Typography>
+                                            </Link>
+                                        </Typography>
+                                    </Stack>
+                                </form>
+                            </>
+                        )}
+                    </Stack>
+                </CardContent>
+            </Card>
+        </Box>
     );
 }

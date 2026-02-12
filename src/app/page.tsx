@@ -1,40 +1,129 @@
+'use client';
+
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Link from 'next/link';
+import SplineBackground from '../components/SplineBackground';
+import { motion } from 'framer-motion';
 
 export default function Home() {
   return (
     <Box
       sx={{
+        position: 'relative',
+        minHeight: '100vh',
+        overflow: 'hidden',
+        bgcolor: 'black',
         display: 'flex',
-        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: '100vh',
-        bgcolor: 'background.default',
       }}
     >
-      <Container maxWidth="md" sx={{ textAlign: 'center' }}>
-        <Typography variant="h2" component="h1" fontWeight="bold" gutterBottom>
-          Next.js + Material UI
-        </Typography>
-        <Typography variant="h5" color="text.secondary" paragraph>
-          A clean, light-themed authentication UI using Next.js 15 and Material UI v6.
-        </Typography>
+      {/* Background Layer */}
+      <Box
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 0,
+        }}
+      >
+        <SplineBackground />
+      </Box>
 
-        <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'center' }}>
-          <Link href="/login" passHref>
-            <Button variant="contained" size="large">
-              Go to Login
-            </Button>
-          </Link>
-          <Link href="/register" passHref>
-            <Button variant="outlined" size="large">
-              Go to Register
-            </Button>
-          </Link>
+      {/* Content Layer */}
+      <Container
+        maxWidth="sm"
+        sx={{
+          position: 'relative',
+          zIndex: 1,
+          textAlign: 'center',
+        }}
+      >
+        <Box
+          component={motion.div}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          {/* App Title */}
+          <Typography
+            variant="h1"
+            sx={{
+              fontWeight: 800,
+              fontSize: { xs: '4rem', md: '6rem', lg: '8rem' },
+              letterSpacing: '-0.02em',
+              background: 'linear-gradient(135deg, #FFFFFF 0%, #AAA 50%, #00F3FF 100%)', // Subtle neon touch
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              filter: 'drop-shadow(0 0 30px rgba(0, 243, 255, 0.3))', // Neon glow
+            }}
+          >
+            VELTRO
+          </Typography>
+
+          {/* Buttons */}
+          <Box sx={{ display: 'flex', gap: 3 }}>
+            <Link href="/login" passHref>
+              <Button
+                variant="contained"
+                size="medium"
+                sx={{
+                  px: 6,
+                  py: 1,
+                  borderRadius: 2,
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  background: 'white',
+                  color: 'black',
+                  fontFamily: 'var(--font-geist-sans)',
+                  boxShadow: '0 0 15px rgba(0, 243, 255, 0.5)', // Neon shadow
+                  '&:hover': {
+                    background: 'rgba(255,255,255,1)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 0 25px rgba(0, 243, 255, 0.8)', // Brighter glow on hover
+                  },
+                  transition: 'all 0.3s ease',
+                }}
+              >
+                Login
+              </Button>
+            </Link>
+            <Link href="/register" passHref>
+              <Button
+                variant="outlined"
+                size="medium"
+                sx={{
+                  px: 4,
+                  py: 1,
+                  borderRadius: 2,
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  background: 'white',
+                  color: 'black',
+                  fontFamily: 'var(--font-geist-sans)',
+                  boxShadow: '0 0 15px rgba(0, 243, 255, 0.5)', // Neon shadow
+                  '&:hover': {
+                    background: 'rgba(255,255,255,1)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 0 25px rgba(0, 243, 255, 0.8)', // Brighter glow on hover
+                  },
+                  transition: 'all 0.3s ease',
+                }}
+              >
+                Register
+              </Button>
+            </Link>
+          </Box>
         </Box>
       </Container>
     </Box>
