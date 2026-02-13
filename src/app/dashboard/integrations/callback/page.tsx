@@ -36,13 +36,31 @@ function CallbackContent() {
             try {
                 // Call backend with just the code - backend will get businessId from authenticated user
                 await api.get(`/integrations/google-calendar/callback?code=${encodeURIComponent(code)}`);
+
                 setStatus('success');
-                setMessage('Google Calendar connected successfully!');
-                setTimeout(() => router.push('/dashboard/integrations'), 2000);
+                setMessage('Google Account connected successfully!');
+
+                // Redirect based on onboarding status
+                const userStr = localStorage.getItem('user');
+                const user = userStr ? JSON.parse(userStr) : null;
+
+                if (user && !user.isOnboarded) {
+                    setTimeout(() => router.push('/onboarding'), 1500);
+                } else {
+                    setTimeout(() => router.push('/dashboard/integrations'), 2000);
+                }
             } catch (error: any) {
                 setStatus('error');
-                setMessage(error.response?.data?.message || 'Failed to connect Google Calendar');
-                setTimeout(() => router.push('/dashboard/integrations'), 3000);
+                setMessage(error.response?.data?.message || 'Failed to connect Google Account');
+
+                const userStr = localStorage.getItem('user');
+                const user = userStr ? JSON.parse(userStr) : null;
+
+                if (user && !user.isOnboarded) {
+                    setTimeout(() => router.push('/onboarding'), 2000);
+                } else {
+                    setTimeout(() => router.push('/dashboard/integrations'), 3000);
+                }
             }
         };
 

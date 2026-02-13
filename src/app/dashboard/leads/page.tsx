@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
     Box,
     Typography,
@@ -23,60 +23,119 @@ import {
     InputLabel,
     Select,
     Divider,
-    ToggleButtonGroup,
-    ToggleButton,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    TableSortLabel,
-    Paper,
     Autocomplete,
     Tooltip,
+    AvatarGroup,
+    useTheme,
+    Backdrop,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
-import ViewListIcon from '@mui/icons-material/ViewList';
-import PersonIcon from '@mui/icons-material/Person';
-import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import LinkIcon from '@mui/icons-material/Link';
+import FlagIcon from '@mui/icons-material/Flag';
+
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCorners, DragOverEvent, useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { leadService, Lead } from '@/lib/services/lead.service';
+import { Lead } from '@/lib/services/lead.service';
 import api from '@/lib/api';
 import RBACGuard from '@/components/dashboard/RBACGuard';
+import { useLeadsStore } from '@/store/leadsStore';
+import ConfirmMoveDialog from '@/components/leads/ConfirmMoveDialog';
+
+// Helper to generate mock data for UI visualization - REMOVED, now in store
 
 // Kanban stages
-const stages = [
-    { id: 'new', title: 'New Leads', color: '#2196f3' },
-    { id: 'contacted', title: 'Contacted', color: '#ff9800' },
-    { id: 'qualified', title: 'Qualified', color: '#4caf50' },
-    { id: 'closed', title: 'Closed', color: '#9e9e9e' },
+const getStages = (isDark: boolean) => [
+    { id: 'new', title: 'New Leads', color: '#3b82f6', countColor: isDark ? 'rgba(59, 130, 246, 0.2)' : '#dbeafe', countTextColor: '#3b82f6' },
+    { id: 'contacted', title: 'Contacted', color: '#f59e0b', countColor: isDark ? 'rgba(245, 158, 11, 0.2)' : '#fef3c7', countTextColor: '#f59e0b' },
+    { id: 'qualified', title: 'Qualified', color: '#10b981', countColor: isDark ? 'rgba(16, 185, 129, 0.2)' : '#d1fae5', countTextColor: '#10b981' },
+    { id: 'closed', title: 'Closed', color: '#6b7280', countColor: isDark ? 'rgba(107, 114, 128, 0.2)' : '#f3f4f6', countTextColor: '#6b7280' },
 ];
 
+const getPriorityColors = (isDark: boolean) => ({
+    High: { bg: isDark ? 'rgba(239, 68, 68, 0.2)' : '#fee2e2', text: '#ef4444' },
+    Medium: { bg: isDark ? 'rgba(245, 158, 11, 0.2)' : '#fef3c7', text: '#f59e0b' },
+    Low: { bg: isDark ? 'rgba(59, 130, 246, 0.2)' : '#dbeafe', text: '#3b82f6' },
+});
+
 // Droppable Column Component
-function DroppableColumn({ id, children }: { id: string; children: React.ReactNode }) {
+function DroppableColumn({ id, title, count, onAddClick, onMenuClick, children }: { id: string; title: string; count: number; onAddClick?: () => void; onMenuClick?: (e: React.MouseEvent<HTMLButtonElement>) => void; children: React.ReactNode }) {
     const { setNodeRef, isOver } = useDroppable({ id });
+    const theme = useTheme();
+    const isDark = theme.palette.mode === 'dark';
+    const stages = getStages(isDark);
+    const stage = stages.find(s => s.id === id);
+
+    // Theme colors
+    const bgColor = isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc';
+    const borderColor = isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0';
+    const textPrimary = isDark ? 'rgba(255,255,255,0.9)' : '#1e293b';
+    const textSecondary = isDark ? 'rgba(255,255,255,0.6)' : '#64748b';
 
     return (
         <Box
             ref={setNodeRef}
             sx={{
-                width: 320,
-                flexShrink: 0,
-                bgcolor: isOver ? 'action.hover' : 'grey.100',
+                flex: 1,
+                minWidth: 0,
+                bgcolor: isOver ? (isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9') : bgColor,
                 p: 2,
-                borderRadius: 2,
+                borderRadius: '16px',
                 display: 'flex',
                 flexDirection: 'column',
-                transition: 'background-color 0.2s',
+                height: '100%',
+                maxHeight: '100%',
+                border: `1px solid ${borderColor}`,
+                transition: 'all 0.2s'
             }}
         >
-            {children}
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} px={1}>
+                <Box display="flex" alignItems="center" gap={1.5}>
+                    <Box
+                        sx={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            bgcolor: stage?.color,
+                        }}
+                    />
+                    <Typography variant="subtitle1" fontWeight="700" color={textPrimary}>
+                        {title}
+                    </Typography>
+                    <Box
+                        sx={{
+                            bgcolor: stage?.countColor,
+                            color: stage?.countTextColor,
+                            borderRadius: '50%',
+                            width: 24,
+                            height: 24,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.75rem',
+                            fontWeight: 'bold',
+                        }}
+                    >
+                        {count}
+                    </Box>
+                </Box>
+                <Box display="flex" gap={0.5}>
+                    <IconButton size="small" onClick={onAddClick} sx={{ color: textSecondary }}>
+                        <AddIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton size="small" onClick={onMenuClick} sx={{ color: textSecondary }}>
+                        <MoreHorizIcon fontSize="small" />
+                    </IconButton>
+                </Box>
+            </Box>
+            <Box sx={{ flexGrow: 1, overflowY: 'auto', px: 1, pb: 2, '::-webkit-scrollbar': { display: 'none' } }}>
+                {children}
+            </Box>
         </Box>
     );
 }
@@ -84,12 +143,25 @@ function DroppableColumn({ id, children }: { id: string; children: React.ReactNo
 // Sortable Lead Card Component
 function SortableLeadCard({ lead, onMenuOpen }: { lead: Lead; onMenuOpen: (e: React.MouseEvent<HTMLButtonElement>, id: string) => void }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: lead._id });
+    const theme = useTheme();
+    const isDark = theme.palette.mode === 'dark';
+
+    // Theme colors
+    const bgColor = isDark ? 'rgba(255,255,255,0.05)' : '#ffffff';
+    const borderColor = isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0';
+    const textPrimary = isDark ? 'rgba(255,255,255,0.9)' : '#1e293b';
+    const textSecondary = isDark ? 'rgba(255,255,255,0.6)' : '#64748b';
+    const hoverBg = isDark ? 'rgba(255,255,255,0.08)' : '#f8fafc';
 
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-        opacity: isDragging ? 0.5 : 1,
+        opacity: isDragging ? 0.3 : 1,
     };
+
+    const priorityColors = getPriorityColors(isDark);
+    const priority = lead.priority || 'Low';
+    const pColor = priorityColors[priority];
 
     return (
         <Card
@@ -97,69 +169,143 @@ function SortableLeadCard({ lead, onMenuOpen }: { lead: Lead; onMenuOpen: (e: Re
             style={style}
             {...attributes}
             {...listeners}
-            variant="outlined"
+            elevation={0}
             sx={{
                 cursor: 'grab',
                 '&:active': { cursor: 'grabbing' },
                 mb: 2,
+                borderRadius: '16px',
+                border: `1px solid ${borderColor}`,
+                bgcolor: bgColor,
+                boxShadow: isDragging ? '0 10px 15px -3px rgba(0, 0, 0, 0.1)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                '&:hover': {
+                    boxShadow: isDark ? '0 4px 6px -1px rgba(0, 0, 0, 0.4)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                    borderColor: isDark ? 'rgba(255,255,255,0.2)' : '#cbd5e1'
+                }
             }}
         >
-            <CardContent sx={{ p: '16px !important' }}>
-                <Box display="flex" justifyContent="space-between" mb={1}>
-                    <Typography variant="subtitle2" fontWeight="bold">{lead.name}</Typography>
+            <CardContent sx={{ p: '20px !important' }}>
+                {/* Header: Priority & Menu */}
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                    <Box display="flex" alignItems="center" gap={1}>
+                        <Box
+                            sx={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: '50%',
+                                bgcolor: pColor?.text || '#3b82f6',
+                            }}
+                        />
+                        <Typography
+                            variant="caption"
+                            fontWeight="600"
+                            sx={{ color: pColor?.text || '#3b82f6' }}
+                        >
+                            {priority === 'Medium' ? 'In Research' : priority === 'High' ? 'High Priority' : 'Routine'}
+                        </Typography>
+                    </Box>
                     <IconButton
                         size="small"
                         onClick={(e) => {
                             e.stopPropagation();
                             onMenuOpen(e, lead._id);
                         }}
+                        sx={{ p: 0.5, color: textSecondary }}
                     >
                         <MoreHorizIcon fontSize="small" />
                     </IconButton>
                 </Box>
 
-                {lead.email && (
-                    <Typography variant="caption" color="textSecondary" display="block" mb={0.5}>
-                        {lead.email}
-                    </Typography>
+                {/* Title and Description */}
+                <Typography variant="subtitle1" fontWeight="700" color={textPrimary} gutterBottom>
+                    {lead.name}
+                </Typography>
+                <Typography variant="body2" color={textSecondary} sx={{ mb: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {lead.notes || `Potential client from ${lead.source}. Needs follow-up regarding services.`}
+                </Typography>
+
+                {/* Tags if any */}
+                {lead.tags && lead.tags.length > 0 && (
+                    <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
+                        {lead.tags.slice(0, 2).map((tag, idx) => (
+                            <Chip
+                                key={idx}
+                                label={tag}
+                                size="small"
+                                sx={{
+                                    height: 24,
+                                    fontSize: '0.7rem',
+                                    bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9',
+                                    color: textSecondary,
+                                    fontWeight: 500
+                                }}
+                            />
+                        ))}
+                    </Box>
                 )}
 
-                {lead.notes && (
-                    <Typography variant="body2" color="textSecondary" mb={1} noWrap>
-                        {lead.notes}
-                    </Typography>
-                )}
+                {/* Assignees and Due Date */}
+                <Typography variant="caption" color={textSecondary} fontWeight="500" display="block" mb={1}>
+                    Assignees :
+                </Typography>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2.5}>
+                    <AvatarGroup max={3} sx={{ '& .MuiAvatar-root': { width: 28, height: 28, fontSize: '0.75rem', borderColor: bgColor } }}>
+                        {lead.assignedTo ? (
+                            <Tooltip title={(lead.assignedTo as any).name || 'Staff'}>
+                                <Avatar src={(lead.assignedTo as any).avatar}>
+                                    {((lead.assignedTo as any).name || 'S').charAt(0)}
+                                </Avatar>
+                            </Tooltip>
+                        ) : (
+                            <Avatar>{lead.name.charAt(0)}</Avatar>
+                        )}
+                        {/* Fake extra assignee for visuals */}
+                        <Avatar sx={{ bgcolor: isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0', color: textSecondary }}>+1</Avatar>
+                    </AvatarGroup>
 
-                <Box display="flex" flexWrap="wrap" gap={0.5} mb={1}>
-                    {lead.tags && lead.tags.map((tag, idx) => (
-                        <Chip key={idx} label={tag} size="small" sx={{ height: 20, fontSize: '0.7rem' }} />
-                    ))}
-                </Box>
-
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Chip label={lead.source} size="small" variant="outlined" sx={{ fontSize: '0.7rem' }} />
-                    {lead.assignedTo ? (
-                        <Tooltip title={`Assigned to ${(lead.assignedTo as any).name || 'Staff'}`}>
-                            <Avatar sx={{ width: 24, height: 24, fontSize: '0.8rem', bgcolor: 'primary.main' }}>
-                                {((lead.assignedTo as any).name || 'S').charAt(0)}
-                            </Avatar>
-                        </Tooltip>
-                    ) : (
-                        <Avatar sx={{ width: 24, height: 24, fontSize: '0.8rem' }}>
-                            {lead.name.charAt(0)}
-                        </Avatar>
+                    {lead.dueDate && (
+                        <Chip
+                            icon={<FlagIcon sx={{ fontSize: '1rem !important' }} />}
+                            label={new Date(lead.dueDate).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
+                            size="small"
+                            sx={{
+                                bgcolor: pColor?.bg,
+                                color: pColor?.text,
+                                fontWeight: 600,
+                                borderRadius: '8px',
+                                border: 'none',
+                                '& .MuiChip-icon': { color: 'inherit' }
+                            }}
+                        />
                     )}
                 </Box>
+
+
             </CardContent>
         </Card>
     );
 }
 
 export default function LeadsPage() {
-    const [leads, setLeads] = useState<Lead[]>([]);
+    const theme = useTheme();
+    const isDark = theme.palette.mode === 'dark';
+    const stages = getStages(isDark);
+
+    // Zustand store
+    const { 
+        leads, 
+        loading, 
+        movingLeads, 
+        fetchLeads: fetchLeadsAction, 
+        updateLeadStatus, 
+        moveAllLeads: moveAllLeadsAction, 
+        createLead: createLeadAction, 
+        updateLead: updateLeadAction, 
+        deleteLead: deleteLeadAction 
+    } = useLeadsStore();
+
     const [staff, setStaff] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
+
     const [openDialog, setOpenDialog] = useState(false);
     const [editingLead, setEditingLead] = useState<Lead | null>(null);
     const [activeDragId, setActiveDragId] = useState<string | null>(null);
@@ -168,9 +314,17 @@ export default function LeadsPage() {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
-    // Table sorting
-    const [orderBy, setOrderBy] = useState<keyof Lead>('createdAt');
-    const [order, setOrder] = useState<'asc' | 'desc'>('desc');
+    // Column menu state
+    const [columnMenuAnchor, setColumnMenuAnchor] = useState<null | HTMLElement>(null);
+    const [selectedColumn, setSelectedColumn] = useState<string | null>(null);
+
+    // Confirm move dialog state
+    const [confirmMoveOpen, setConfirmMoveOpen] = useState(false);
+    const [moveSource, setMoveSource] = useState<string | null>(null);
+    const [moveTarget, setMoveTarget] = useState<string | null>(null);
+
+    // Background color
+    const pageBgColor = isDark ? '#0f1117' : '#F2F1EB';
 
     // Form state
     const [formData, setFormData] = useState({
@@ -182,19 +336,6 @@ export default function LeadsPage() {
         tags: [] as string[],
         assignedTo: '',
     });
-
-    const fetchLeads = async () => {
-        try {
-            const data = await leadService.getLeads();
-            if (data.success) {
-                setLeads(data.data);
-            }
-        } catch (error) {
-            console.error('Failed to fetch leads', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const fetchStaff = async () => {
         try {
@@ -208,9 +349,9 @@ export default function LeadsPage() {
     };
 
     useEffect(() => {
-        fetchLeads();
+        fetchLeadsAction();
         fetchStaff();
-    }, []);
+    }, [fetchLeadsAction]);
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>, id: string) => {
         setAnchorEl(event.currentTarget);
@@ -220,6 +361,64 @@ export default function LeadsPage() {
     const handleMenuClose = () => {
         setAnchorEl(null);
         setSelectedLeadId(null);
+    };
+
+    const handleColumnMenuOpen = (event: React.MouseEvent<HTMLButtonElement>, columnId: string) => {
+        setColumnMenuAnchor(event.currentTarget);
+        setSelectedColumn(columnId);
+    };
+
+    const handleColumnMenuClose = () => {
+        setColumnMenuAnchor(null);
+        setSelectedColumn(null);
+    };
+
+    const handleSelectAll = async () => {
+        if (!selectedColumn) return;
+        
+        const columnLeads = leads.filter(l => l.status === selectedColumn);
+        if (columnLeads.length === 0) {
+            handleColumnMenuClose();
+            return;
+        }
+
+        // For now, just show confirmation
+        console.log(`Selected ${columnLeads.length} leads from this column`);
+        handleColumnMenuClose();
+    };
+
+    const handleMoveAllTo = async (targetStatus: string) => {
+        if (!selectedColumn || selectedColumn === targetStatus) {
+            handleColumnMenuClose();
+            return;
+        }
+
+        const columnLeads = leads.filter(l => l.status === selectedColumn);
+        if (columnLeads.length === 0) {
+            handleColumnMenuClose();
+            return;
+        }
+
+        // Store source and target for confirmation dialog
+        setMoveSource(selectedColumn);
+        setMoveTarget(targetStatus);
+        setConfirmMoveOpen(true);
+        handleColumnMenuClose();
+    };
+
+    const handleConfirmMove = async () => {
+        if (!moveSource || !moveTarget) return;
+
+        setConfirmMoveOpen(false);
+
+        const result = await moveAllLeadsAction(moveSource, moveTarget);
+        
+        if (!result.success) {
+            console.error('Failed to move leads:', result.error);
+        }
+
+        setMoveSource(null);
+        setMoveTarget(null);
     };
 
     const handleOpenDialog = (lead?: Lead) => {
@@ -244,37 +443,22 @@ export default function LeadsPage() {
     const handleSaveLead = async () => {
         try {
             if (editingLead) {
-                await leadService.updateLead(editingLead._id, formData);
+                await updateLeadAction(editingLead._id, formData);
             } else {
-                await leadService.createLead(formData);
+                await createLeadAction(formData);
             }
             setOpenDialog(false);
             setEditingLead(null);
-            fetchLeads();
         } catch (error) {
             console.error('Failed to save lead', error);
-            alert('Failed to save lead');
-        }
-    };
-
-    const handleUpdateStatus = async (status: string) => {
-        if (!selectedLeadId) return;
-        try {
-            await leadService.updateStatus(selectedLeadId, status);
-            fetchLeads();
-            handleMenuClose();
-        } catch (error) {
-            console.error('Failed to update status', error);
         }
     };
 
     const handleDeleteLead = async () => {
         if (!selectedLeadId) return;
-        if (!confirm('Are you sure you want to delete this lead?')) return;
 
         try {
-            await leadService.deleteLead(selectedLeadId);
-            setLeads(prev => prev.filter(l => l._id !== selectedLeadId));
+            await deleteLeadAction(selectedLeadId);
             handleMenuClose();
         } catch (error) {
             console.error('Failed to delete lead', error);
@@ -286,10 +470,6 @@ export default function LeadsPage() {
         setActiveDragId(event.active.id as string);
     };
 
-    const handleDragOver = (event: DragOverEvent) => {
-        // Optional: provide visual feedback during drag
-    };
-
     const handleDragEnd = async (event: DragEndEvent) => {
         const { active, over } = event;
         setActiveDragId(null);
@@ -299,258 +479,143 @@ export default function LeadsPage() {
         const leadId = active.id as string;
         const overId = over.id as string;
 
-        // Check if we're dropping on a column (stage id) or another lead
         let newStatus = overId;
-        
-        // If dropped on another lead, get that lead's status
         const overLead = leads.find(l => l._id === overId);
         if (overLead) {
             newStatus = overLead.status;
         }
 
-        // Check if it's a valid stage
         const validStage = stages.find(s => s.id === newStatus);
         if (!validStage) return;
 
-        // Get the current lead
         const currentLead = leads.find(l => l._id === leadId);
         if (!currentLead || currentLead.status === newStatus) return;
 
-        // Optimistically update UI
-        setLeads(prev =>
-            prev.map(lead =>
-                lead._id === leadId ? { ...lead, status: newStatus as any } : lead
-            )
-        );
-
-        // Update on server
-        try {
-            await leadService.updateStatus(leadId, newStatus);
-        } catch (error) {
-            console.error('Failed to update lead status', error);
-            // Revert on error
-            fetchLeads();
-        }
+        // Use store action for optimistic update
+        await updateLeadStatus(leadId, newStatus);
     };
 
-    // Table sorting
-    const handleSort = (property: keyof Lead) => {
-        const isAsc = orderBy === property && order === 'asc';
-        setOrder(isAsc ? 'desc' : 'asc');
-        setOrderBy(property);
-    };
-
-    const sortedLeads = [...leads].sort((a, b) => {
-        const aValue = a[orderBy];
-        const bValue = b[orderBy];
-        if (aValue === undefined || bValue === undefined) return 0;
-        if (aValue < bValue) return order === 'asc' ? -1 : 1;
-        if (aValue > bValue) return order === 'asc' ? 1 : -1;
-        return 0;
-    });
+    const activeLead = useMemo(() => leads.find(l => l._id === activeDragId), [leads, activeDragId]);
 
     if (loading) {
-        return <Box display="flex" justifyContent="center" p={4}><CircularProgress /></Box>;
+        return <Box display="flex" justifyContent="center" height="100vh" alignItems="center"><CircularProgress /></Box>;
     }
-
-    const activeLead = leads.find(l => l._id === activeDragId);
 
     return (
         <RBACGuard permission="canViewLeads">
-            <Box>
-                {/* Header */}
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-                    <Typography variant="h4" fontWeight="bold">Leads Pipeline</Typography>
-                    <Box display="flex" gap={2}>
-                        <ToggleButtonGroup
-                            value={viewMode}
-                            exclusive
-                            onChange={(e, newMode) => newMode && setViewMode(newMode)}
-                            size="small"
-                        >
-                            <ToggleButton value="kanban">
-                                <ViewKanbanIcon />
-                            </ToggleButton>
-                            <ToggleButton value="table">
-                                <ViewListIcon />
-                            </ToggleButton>
-                        </ToggleButtonGroup>
-                        <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()}>
-                            Add Lead
-                        </Button>
-                    </Box>
-                </Box>
+            <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', bgcolor: pageBgColor }}>
+                {/* Centered Loading Spinner */}
+                <Backdrop 
+                    open={movingLeads} 
+                    sx={{ 
+                        zIndex: 9999,
+                        bgcolor: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.7)'
+                    }}
+                >
+                    <CircularProgress size={60} sx={{ color: '#8b5cf6' }} />
+                </Backdrop>
 
-                {/* Kanban View */}
-                {viewMode === 'kanban' && (
+                {/* Kanban Board Area */}
+                <Box sx={{ flexGrow: 1, overflowX: 'auto', overflowY: 'hidden', p: 4, display: 'flex', gap: 3 }}>
                     <DndContext
                         collisionDetection={closestCorners}
                         onDragStart={handleDragStart}
-                        onDragOver={handleDragOver}
                         onDragEnd={handleDragEnd}
                     >
-                        <Box display="flex" gap={3} sx={{ height: 'calc(100vh - 200px)', overflowX: 'auto' }}>
-                            {stages.map((stage) => {
-                                const stageLeads = leads.filter(l => l.status === stage.id);
-                                return (
-                                    <DroppableColumn key={stage.id} id={stage.id}>
-                                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                                            <Box display="flex" alignItems="center" gap={1}>
-                                                <Box
-                                                    sx={{
-                                                        width: 12,
-                                                        height: 12,
-                                                        borderRadius: '50%',
-                                                        bgcolor: stage.color,
-                                                    }}
-                                                />
-                                                <Typography variant="subtitle1" fontWeight="bold">
-                                                    {stage.title}
-                                                </Typography>
-                                            </Box>
-                                            <Chip label={stageLeads.length} size="small" />
-                                        </Box>
-
-                                        <SortableContext
-                                            items={stageLeads.map(l => l._id)}
-                                            strategy={verticalListSortingStrategy}
-                                        >
-                                            <Box sx={{ flexGrow: 1, overflowY: 'auto', minHeight: 100 }}>
-                                                {stageLeads.map((lead) => (
-                                                    <SortableLeadCard
-                                                        key={lead._id}
-                                                        lead={lead}
-                                                        onMenuOpen={handleMenuOpen}
-                                                    />
-                                                ))}
-                                                {stageLeads.length === 0 && (
-                                                    <Box
-                                                        sx={{
-                                                            p: 3,
-                                                            textAlign: 'center',
-                                                            color: 'text.secondary',
-                                                            fontSize: '0.875rem',
-                                                        }}
-                                                    >
-                                                        Drop leads here
-                                                    </Box>
-                                                )}
-                                            </Box>
-                                        </SortableContext>
-                                    </DroppableColumn>
-                                );
-                            })}
-                        </Box>
+                        {stages.map((stage) => {
+                            const stageLeads = leads.filter(l => l.status === stage.id);
+                            return (
+                                <DroppableColumn
+                                    key={stage.id}
+                                    id={stage.id}
+                                    title={stage.title}
+                                    count={stageLeads.length}
+                                    onAddClick={() => handleOpenDialog()}
+                                    onMenuClick={(e) => handleColumnMenuOpen(e, stage.id)}
+                                >
+                                    <SortableContext
+                                        items={stageLeads.map(l => l._id)}
+                                        strategy={verticalListSortingStrategy}
+                                    >
+                                        {stageLeads.map((lead) => (
+                                            <SortableLeadCard
+                                                key={lead._id}
+                                                lead={lead}
+                                                onMenuOpen={handleMenuOpen}
+                                            />
+                                        ))}
+                                    </SortableContext>
+                                </DroppableColumn>
+                            );
+                        })}
 
                         <DragOverlay>
-                            {activeLead && (
-                                <Card variant="outlined" sx={{ width: 300, opacity: 0.9 }}>
-                                    <CardContent>
-                                        <Typography variant="subtitle2" fontWeight="bold">
-                                            {activeLead.name}
-                                        </Typography>
-                                    </CardContent>
-                                </Card>
-                            )}
+                            {activeLead ? (
+                                <Box sx={{ transform: 'rotate(2deg)' }}>
+                                    <SortableLeadCard lead={activeLead} onMenuOpen={() => { }} />
+                                </Box>
+                            ) : null}
                         </DragOverlay>
                     </DndContext>
-                )}
+                </Box>
 
-                {/* Table View */}
-                {viewMode === 'table' && (
-                    <TableContainer component={Paper}>
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>
-                                        <TableSortLabel
-                                            active={orderBy === 'name'}
-                                            direction={orderBy === 'name' ? order : 'asc'}
-                                            onClick={() => handleSort('name')}
-                                        >
-                                            Name
-                                        </TableSortLabel>
-                                    </TableCell>
-                                    <TableCell>Email</TableCell>
-                                    <TableCell>Phone</TableCell>
-                                    <TableCell>
-                                        <TableSortLabel
-                                            active={orderBy === 'status'}
-                                            direction={orderBy === 'status' ? order : 'asc'}
-                                            onClick={() => handleSort('status')}
-                                        >
-                                            Status
-                                        </TableSortLabel>
-                                    </TableCell>
-                                    <TableCell>Source</TableCell>
-                                    <TableCell>Tags</TableCell>
-                                    <TableCell>Assigned To</TableCell>
-                                    <TableCell>
-                                        <TableSortLabel
-                                            active={orderBy === 'createdAt'}
-                                            direction={orderBy === 'createdAt' ? order : 'asc'}
-                                            onClick={() => handleSort('createdAt')}
-                                        >
-                                            Created
-                                        </TableSortLabel>
-                                    </TableCell>
-                                    <TableCell align="right">Actions</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {sortedLeads.map((lead) => (
-                                    <TableRow key={lead._id} hover>
-                                        <TableCell sx={{ fontWeight: 'bold' }}>{lead.name}</TableCell>
-                                        <TableCell>{lead.email || '-'}</TableCell>
-                                        <TableCell>{lead.phone || '-'}</TableCell>
-                                        <TableCell>
-                                            <Chip
-                                                label={lead.status}
-                                                size="small"
-                                                sx={{
-                                                    bgcolor: stages.find(s => s.id === lead.status)?.color,
-                                                    color: 'white',
-                                                }}
-                                            />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Chip label={lead.source} size="small" variant="outlined" />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Box display="flex" flexWrap="wrap" gap={0.5}>
-                                                {lead.tags && lead.tags.map((tag, idx) => (
-                                                    <Chip key={idx} label={tag} size="small" sx={{ height: 20 }} />
-                                                ))}
-                                            </Box>
-                                        </TableCell>
-                                        <TableCell>
-                                            {lead.assignedTo ? (
-                                                <Box display="flex" alignItems="center" gap={1}>
-                                                    <Avatar sx={{ width: 24, height: 24, fontSize: '0.8rem' }}>
-                                                        {((lead.assignedTo as any).name || 'S').charAt(0)}
-                                                    </Avatar>
-                                                    <Typography variant="body2">
-                                                        {(lead.assignedTo as any).name || 'Staff'}
-                                                    </Typography>
-                                                </Box>
-                                            ) : (
-                                                '-'
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {new Date(lead.createdAt).toLocaleDateString()}
-                                        </TableCell>
-                                        <TableCell align="right">
-                                            <IconButton size="small" onClick={(e) => handleMenuOpen(e, lead._id)}>
-                                                <MoreHorizIcon />
-                                            </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                )}
+                {/* Confirm Move Dialog */}
+                <ConfirmMoveDialog
+                    open={confirmMoveOpen}
+                    onClose={() => {
+                        setConfirmMoveOpen(false);
+                        setMoveSource(null);
+                        setMoveTarget(null);
+                    }}
+                    onConfirm={handleConfirmMove}
+                    count={moveSource ? leads.filter(l => l.status === moveSource).length : 0}
+                    fromColumn={moveSource ? stages.find(s => s.id === moveSource)?.title || '' : ''}
+                    toColumn={moveTarget ? stages.find(s => s.id === moveTarget)?.title || '' : ''}
+                />
+
+                {/* Column Actions Menu */}
+                <Menu 
+                    anchorEl={columnMenuAnchor} 
+                    open={Boolean(columnMenuAnchor)} 
+                    onClose={handleColumnMenuClose}
+                    slotProps={{
+                        paper: {
+                            sx: {
+                                borderRadius: '16px',
+                                boxShadow: isDark ? '0 10px 40px rgba(0,0,0,0.5)' : '0 10px 40px rgba(0,0,0,0.1)',
+                                minWidth: 220,
+                                mt: 1,
+                                border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
+                                bgcolor: isDark ? '#1a1d29' : '#ffffff'
+                            }
+                        }
+                    }}
+                >
+                    <MenuItem onClick={handleSelectAll}>
+                        <Typography variant="body2" fontWeight={600}>Select All</Typography>
+                    </MenuItem>
+                    <Divider sx={{ my: 1 }} />
+                    <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', color: 'text.secondary', fontWeight: 600 }}>
+                        Move All To:
+                    </Typography>
+                    {stages
+                        .filter(s => s.id !== selectedColumn)
+                        .map((stage) => (
+                            <MenuItem key={stage.id} onClick={() => handleMoveAllTo(stage.id)}>
+                                <Box display="flex" alignItems="center" gap={1.5}>
+                                    <Box
+                                        sx={{
+                                            width: 8,
+                                            height: 8,
+                                            borderRadius: '50%',
+                                            bgcolor: stage.color,
+                                        }}
+                                    />
+                                    <Typography variant="body2">{stage.title}</Typography>
+                                </Box>
+                            </MenuItem>
+                        ))}
+                </Menu>
 
                 {/* Actions Menu */}
                 <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
@@ -561,12 +626,6 @@ export default function LeadsPage() {
                     }}>
                         Edit
                     </MenuItem>
-                    <MenuItem disabled>Move to...</MenuItem>
-                    {stages.map(stage => (
-                        <MenuItem key={stage.id} onClick={() => handleUpdateStatus(stage.id)}>
-                            {stage.title}
-                        </MenuItem>
-                    ))}
                     <Divider />
                     <MenuItem onClick={handleDeleteLead} sx={{ color: 'error.main' }}>Delete</MenuItem>
                 </Menu>

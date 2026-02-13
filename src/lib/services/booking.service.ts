@@ -65,6 +65,12 @@ export const bookingService = {
         return response.data;
     },
 
+    // Dashboard: Create a new booking (internal)
+    createBooking: async (data: CreateBookingData) => {
+        const response = await api.post('/bookings', data);
+        return response.data;
+    },
+
     // Dashboard: Get single booking by ID
     getBookingById: async (id: string) => {
         const response = await api.get(`/bookings/${id}`);

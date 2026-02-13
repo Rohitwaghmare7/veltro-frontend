@@ -14,9 +14,17 @@ export interface Lead {
         _id: string;
         name: string;
         email: string;
+        avatar?: string;
     } | string;
     createdAt: string;
     updatedAt: string;
+    // UI Fields
+    priority?: 'Low' | 'Medium' | 'High';
+    dueDate?: string;
+    term?: string; // e.g., "Short-term", "Long-term"
+    commentsCount?: number;
+    linksCount?: number;
+    attachmentsCount?: number;
 }
 
 export interface CreateLeadData {

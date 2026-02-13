@@ -25,6 +25,11 @@ export interface Conversation {
         type: 'manual' | 'automated';
         sentAt: string;
     };
+    metadata?: {
+        gmailThreadId?: string;
+        subject?: string;
+        [key: string]: any;
+    };
 }
 
 export interface Message {

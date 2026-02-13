@@ -30,19 +30,20 @@ import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 
 const getNotificationIcon = (type: string) => {
+    const iconProps = { sx: { fontSize: 18 } };
     switch (type) {
         case 'booking':
-            return <BookingIcon />;
+            return <BookingIcon {...iconProps} />;
         case 'message':
-            return <MessageIcon />;
+            return <MessageIcon {...iconProps} />;
         case 'form':
-            return <FormIcon />;
+            return <FormIcon {...iconProps} />;
         case 'automation':
-            return <AutomationIcon />;
+            return <AutomationIcon {...iconProps} />;
         case 'staff':
-            return <PeopleIcon />;
+            return <PeopleIcon {...iconProps} />;
         default:
-            return <SystemIcon />;
+            return <SystemIcon {...iconProps} />;
     }
 };
 
@@ -144,9 +145,9 @@ export default function NotificationMenu() {
 
     return (
         <>
-            <IconButton size="large" color="inherit" onClick={handleClick}>
-                <Badge badgeContent={unreadCount} color="error">
-                    <NotificationsIcon />
+            <IconButton size="small" sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: 'white' } }} onClick={handleClick}>
+                <Badge badgeContent={unreadCount} color="error" sx={{ '& .MuiBadge-badge': { fontSize: '0.6rem', height: 16, minWidth: 16 } }}>
+                    <NotificationsIcon fontSize="small" />
                 </Badge>
             </IconButton>
 
@@ -156,79 +157,102 @@ export default function NotificationMenu() {
                 onClose={handleClose}
                 PaperProps={{
                     sx: {
-                        width: 400,
-                        maxHeight: 600,
+                        width: 340, // Reduced from 400
+                        maxHeight: 500,
+                        bgcolor: '#0A0A0A',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: 2,
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                        p: 0,
+                        mt: 1,
                     },
                 }}
                 transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                 anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
-                <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h6">Notifications</Typography>
+                <Box sx={{ p: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                    <Typography variant="subtitle2" fontWeight="700" sx={{ color: 'white' }}>Notifications</Typography>
                     {unreadCount > 0 && (
-                        <Button size="small" onClick={handleMarkAllRead}>
+                        <Button
+                            size="small"
+                            onClick={handleMarkAllRead}
+                            sx={{
+                                fontSize: '0.7rem',
+                                color: 'rgba(255, 255, 255, 0.6)',
+                                minWidth: 'auto',
+                                p: 0.5,
+                                '&:hover': { color: 'white', bgcolor: 'transparent' }
+                            }}
+                        >
                             Mark all read
                         </Button>
                     )}
                 </Box>
 
-                <Divider />
-
                 {loading ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                        <CircularProgress size={24} />
+                        <CircularProgress size={20} sx={{ color: 'rgba(255, 255, 255, 0.3)' }} />
                     </Box>
                 ) : notifications.length === 0 ? (
                     <Box sx={{ p: 3, textAlign: 'center' }}>
-                        <NotificationsIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
-                        <Typography color="text.secondary">No notifications</Typography>
+                        <NotificationsIcon sx={{ fontSize: 40, color: 'rgba(255, 255, 255, 0.1)', mb: 1 }} />
+                        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.4)' }}>No notifications</Typography>
                     </Box>
                 ) : (
-                    <List sx={{ p: 0, maxHeight: 400, overflow: 'auto' }}>
+                    <List sx={{ p: 0, maxHeight: 360, overflow: 'auto' }}>
                         {notifications.map((notification) => (
                             <ListItem
                                 key={notification._id}
                                 onClick={() => handleNotificationClick(notification)}
                                 sx={{
-                                    bgcolor: notification.read ? 'transparent' : 'action.hover',
+                                    bgcolor: notification.read ? 'transparent' : 'rgba(255, 255, 255, 0.03)',
                                     cursor: 'pointer',
+                                    borderBottom: '1px solid rgba(255, 255, 255, 0.03)',
+                                    py: 1.5,
+                                    px: 2,
                                     '&:hover': {
-                                        bgcolor: 'action.selected',
+                                        bgcolor: 'rgba(255, 255, 255, 0.05)',
                                     },
                                 }}
                             >
-                                <ListItemAvatar>
-                                    <Avatar sx={{ bgcolor: `${getNotificationColor(notification.type)}.main` }}>
+                                <ListItemAvatar sx={{ minWidth: 40 }}>
+                                    <Avatar sx={{
+                                        bgcolor: 'rgba(255, 255, 255, 0.05)',
+                                        color: 'rgba(255, 255, 255, 0.8)',
+                                        width: 32,
+                                        height: 32,
+                                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                                    }}>
                                         {getNotificationIcon(notification.type)}
                                     </Avatar>
                                 </ListItemAvatar>
                                 <ListItemText
                                     primary={
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <Typography variant="body2" fontWeight={notification.read ? 'normal' : 'bold'}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                                            <Typography variant="body2" sx={{ color: 'white', fontSize: '0.85rem', fontWeight: notification.read ? 400 : 600 }}>
                                                 {notification.title}
                                             </Typography>
                                             {!notification.read && (
                                                 <Box
                                                     sx={{
-                                                        width: 8,
-                                                        height: 8,
+                                                        width: 6,
+                                                        height: 6,
                                                         borderRadius: '50%',
-                                                        bgcolor: 'primary.main',
+                                                        bgcolor: '#00D2FF', // Keep neon only for status dot
                                                     }}
                                                 />
                                             )}
                                         </Box>
                                     }
                                     secondary={
-                                        <>
-                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                            <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.75rem', lineHeight: 1.3 }}>
                                                 {notification.message}
                                             </Typography>
-                                            <Typography variant="caption" color="text.secondary">
+                                            <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.3)', fontSize: '0.7rem' }}>
                                                 {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                                             </Typography>
-                                        </>
+                                        </Box>
                                     }
                                 />
                             </ListItem>
@@ -237,14 +261,20 @@ export default function NotificationMenu() {
                 )}
 
                 {notifications.length > 0 && (
-                    <>
-                        <Divider />
-                        <Box sx={{ p: 1, textAlign: 'center' }}>
-                            <Button size="small" onClick={() => { handleClose(); router.push('/dashboard/notifications'); }}>
-                                View all notifications
-                            </Button>
-                        </Box>
-                    </>
+                    <Box sx={{ p: 1, textAlign: 'center', borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                        <Button
+                            size="small"
+                            onClick={() => { handleClose(); router.push('/dashboard/notifications'); }}
+                            sx={{
+                                fontSize: '0.75rem',
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                textTransform: 'none',
+                                '&:hover': { color: 'white', bgcolor: 'transparent' }
+                            }}
+                        >
+                            View all notifications
+                        </Button>
+                    </Box>
                 )}
             </Menu>
         </>

@@ -79,8 +79,18 @@ export default function ProfileMenu() {
     return (
         <>
             <IconButton onClick={handleClick} sx={{ p: 0 }}>
-                <Avatar sx={{ bgcolor: 'primary.main' }}>
-                    {user ? getInitials(user.name) : <PersonIcon />}
+                <Avatar
+                    sx={{
+                        bgcolor: 'transparent',
+                        color: 'white',
+                        border: '1px solid #00D2FF', // Neon border
+                        width: 30, // Smaller size
+                        height: 30,
+                        fontSize: '0.85rem',
+                        fontWeight: 'bold'
+                    }}
+                >
+                    {user ? getInitials(user.name) : <PersonIcon sx={{ fontSize: 18 }} />}
                 </Avatar>
             </IconButton>
 
@@ -90,53 +100,79 @@ export default function ProfileMenu() {
                 onClose={handleClose}
                 PaperProps={{
                     sx: {
-                        width: 280,
-                        mt: 1.5,
+                        width: 220, // Reduced width
+                        mt: 1,
+                        bgcolor: '#0A0A0A',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: 2,
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                        p: 0.5, // Reduced container padding
+                        '& .MuiMenuItem-root': {
+                            borderRadius: 1,
+                            mb: 0.25,
+                            py: 1, // Reduced item padding
+                            '&:hover': {
+                                bgcolor: 'rgba(255, 255, 255, 0.05)'
+                            }
+                        }
                     },
                 }}
                 transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                 anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
                 {user && (
-                    <>
-                        <Box sx={{ px: 2, py: 1.5 }}>
-                            <Typography variant="subtitle1" fontWeight="bold">
-                                {user.name}
+                    <Box sx={{ px: 1.5, py: 1.5, mb: 0.5 }}>
+                        <Typography variant="subtitle2" fontWeight="700" sx={{ color: 'white', lineHeight: 1.2 }}>
+                            {user.name}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', mt: 0.25, display: 'block' }}>
+                            {user.email}
+                        </Typography>
+                        {user.role && (
+                            <Typography
+                                variant="caption"
+                                sx={{
+                                    display: 'inline-block',
+                                    mt: 0.5,
+                                    px: 0.75,
+                                    py: 0.1,
+                                    bgcolor: 'rgba(255, 255, 255, 0.1)',
+                                    color: 'white',
+                                    borderRadius: 0.5,
+                                    textTransform: 'capitalize',
+                                    fontSize: '0.6rem',
+                                    fontWeight: 600
+                                }}
+                            >
+                                {user.role}
                             </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                {user.email}
-                            </Typography>
-                            {user.role && (
-                                <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'capitalize' }}>
-                                    {user.role}
-                                </Typography>
-                            )}
-                        </Box>
-                        <Divider />
-                    </>
+                        )}
+                    </Box>
                 )}
 
+                <Divider sx={{ my: 0.5, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
+
                 <MenuItem onClick={handleProfile}>
-                    <ListItemIcon>
-                        <PersonIcon fontSize="small" />
+                    <ListItemIcon sx={{ minWidth: 32 }}>
+                        <PersonIcon fontSize="small" sx={{ fontSize: '1.1rem', color: 'rgba(255, 255, 255, 0.7)' }} />
                     </ListItemIcon>
-                    Profile
+                    <Typography variant="body2" sx={{ color: 'white', fontSize: '0.85rem' }}>Profile</Typography>
                 </MenuItem>
 
                 <MenuItem onClick={handleSettings}>
-                    <ListItemIcon>
-                        <SettingsIcon fontSize="small" />
+                    <ListItemIcon sx={{ minWidth: 32 }}>
+                        <SettingsIcon fontSize="small" sx={{ fontSize: '1.1rem', color: 'rgba(255, 255, 255, 0.7)' }} />
                     </ListItemIcon>
-                    Settings
+                    <Typography variant="body2" sx={{ color: 'white', fontSize: '0.85rem' }}>Settings</Typography>
                 </MenuItem>
 
-                <Divider />
+                <Divider sx={{ my: 0.5, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
 
-                <MenuItem onClick={handleLogout}>
-                    <ListItemIcon>
-                        <LogoutIcon fontSize="small" />
+                <MenuItem onClick={handleLogout} sx={{ '&:hover': { bgcolor: 'rgba(255, 50, 50, 0.1) !important' } }}>
+                    <ListItemIcon sx={{ minWidth: 32 }}>
+                        <LogoutIcon fontSize="small" sx={{ fontSize: '1.1rem', color: 'rgba(255, 50, 50, 0.8)' }} />
                     </ListItemIcon>
-                    Logout
+                    <Typography variant="body2" sx={{ color: '#ff6b6b', fontSize: '0.85rem' }}>Logout</Typography>
                 </MenuItem>
             </Menu>
         </>

@@ -59,37 +59,80 @@ export default function BusinessSelector() {
     if (businesses.length === 0) return null;
 
     return (
-        <Box sx={{ minWidth: 200 }}>
+        <Box sx={{ minWidth: 180 }}>
             <FormControl fullWidth size="small">
                 <Select
                     value={selectedId}
                     onChange={handleChange}
                     displayEmpty
+                    variant="standard"
+                    disableUnderline
+                    MenuProps={{
+                        PaperProps: {
+                            sx: {
+                                bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1a1d29' : '#ffffff',
+                                border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+                                borderRadius: 2,
+                                mt: 1,
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                                '& .MuiMenuItem-root': {
+                                    color: (theme) => theme.palette.mode === 'dark' ? 'white' : '#1a1d29',
+                                    fontSize: '0.875rem',
+                                    py: 1,
+                                    '&:hover': {
+                                        bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)'
+                                    },
+                                    '&.Mui-selected': {
+                                        bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(102, 126, 234, 0.15) !important' : 'rgba(102, 126, 234, 0.1) !important',
+                                        color: (theme) => theme.palette.mode === 'dark' ? 'white' : '#1a1d29'
+                                    }
+                                }
+                            }
+                        }
+                    }}
                     sx={{
                         borderRadius: 2,
-                        backgroundColor: 'rgba(0,0,0,0.02)',
+                        backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+                        border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+                        color: (theme) => theme.palette.mode === 'dark' ? 'white' : '#1a1d29',
+                        px: 1.5,
+                        py: 0.75,
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                            backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                            borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
+                        },
                         '& .MuiSelect-select': {
                             display: 'flex',
                             alignItems: 'center',
                             gap: 1,
-                            py: 0.5
+                            py: '0 !important',
+                            pr: '24px !important',
+                            fontSize: '0.875rem',
+                            fontWeight: 500
+                        },
+                        '& .MuiSvgIcon-root': {
+                            color: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)'
                         }
                     }}
                 >
                     {businesses.map((biz) => (
                         <MenuItem key={biz._id} value={biz._id}>
-                            <BusinessIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
-                            <Box sx={{ flexGrow: 1 }}>
-                                <Typography variant="body2" fontWeight="medium">
-                                    {biz.name}
-                                </Typography>
-                            </Box>
+                            <BusinessIcon sx={{ fontSize: 16, color: 'inherit', mr: 1, opacity: 0.7 }} />
+                            <Typography variant="body2" sx={{ flexGrow: 1, fontWeight: 'inherit' }}>
+                                {biz.name}
+                            </Typography>
                             <Chip
-                                label={biz.role.toUpperCase()}
+                                label={biz.role === 'owner' ? 'OWNER' : 'STAFF'}
                                 size="small"
-                                color={biz.role === 'owner' ? 'primary' : 'default'}
-                                variant="outlined"
-                                sx={{ height: 18, fontSize: '0.65rem' }}
+                                sx={{
+                                    height: 16,
+                                    fontSize: '0.6rem',
+                                    bgcolor: 'rgba(255, 255, 255, 0.1)',
+                                    color: 'rgba(255, 255, 255, 0.8)',
+                                    border: 'none',
+                                    ml: 1
+                                }}
                             />
                         </MenuItem>
                     ))}

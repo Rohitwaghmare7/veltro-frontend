@@ -4,50 +4,39 @@ import { useState, useEffect } from 'react';
 import {
     Box,
     Typography,
-    Paper,
-    List,
-    ListItem,
-    ListItemText,
-    ListItemSecondaryAction,
-    Switch,
-    Divider,
+    Backdrop,
     CircularProgress,
+    useTheme,
+    Snackbar,
     Alert,
-    Chip,
     Tabs,
     Tab,
+    Paper,
     Table,
     TableBody,
     TableCell,
     TableContainer,
     TableHead,
     TableRow,
-    Card,
-    CardContent,
+    Chip,
+    Button,
     FormControl,
     InputLabel,
     Select,
     MenuItem,
-    Button,
-    TextField
+    TextField,
+    Card,
+    CardContent,
 } from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import EmailIcon from '@mui/icons-material/Email';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import InventoryIcon from '@mui/icons-material/Inventory';
-import EventIcon from '@mui/icons-material/Event';
-import ErrorIcon from '@mui/icons-material/Error';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { automationService, AutomationSettings } from '@/lib/services/automation.service';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import SettingsIcon from '@mui/icons-material/Settings';
+import { useAutomationsStore } from '@/store/automationsStore';
 import RBACGuard from '@/components/dashboard/RBACGuard';
-
-const automationIcons: Record<string, any> = {
-    NEW_CONTACT: EmailIcon,
-    BOOKING_CREATED: CheckCircleIcon,
-    BOOKING_REMINDER: EventIcon,
-    FORM_PENDING: NotificationsIcon,
-    INVENTORY_LOW: InventoryIcon,
-};
+import AutomationCard from '@/components/automations/AutomationCard';
+import TemplateEditorDialog from '@/components/automations/TemplateEditorDialog';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -65,17 +54,36 @@ function TabPanel(props: TabPanelProps) {
 }
 
 export default function AutomationsPage() {
+    const theme = useTheme();
+    const isDark = theme.palette.mode === 'dark';
+    const pageBgColor = isDark ? '#0f1117' : '#F2F1EB';
+    const textPrimary = isDark ? 'rgba(255,255,255,0.9)' : '#1e293b';
+    const textSecondary = isDark ? 'rgba(255,255,255,0.6)' : '#64748b';
+
+    const { 
+        settings, 
+        logs, 
+        stats, 
+        loading, 
+        logsLoading, 
+        statsLoading, 
+        processing,
+        fetchSettings, 
+        updateAutomation,
+        updateTemplate,
+        fetchLogs, 
+        fetchStats 
+    } = useAutomationsStore();
+
     const [tabValue, setTabValue] = useState(0);
-    const [settings, setSettings] = useState<AutomationSettings | null>(null);
-    const [logs, setLogs] = useState<any[]>([]);
-    const [stats, setStats] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-    const [logsLoading, setLogsLoading] = useState(false);
-    const [statsLoading, setStatsLoading] = useState(false);
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [successMessage, setSuccessMessage] = useState<string | null>(null);
-    
+    const [openTemplateEditor, setOpenTemplateEditor] = useState(false);
+    const [selectedAutomationKey, setSelectedAutomationKey] = useState<string>('');
+    const [toast, setToast] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+        open: false,
+        message: '',
+        severity: 'success',
+    });
+
     // Log filters
     const [triggerFilter, setTriggerFilter] = useState<string>('');
     const [successFilter, setSuccessFilter] = useState<string>('');
@@ -83,398 +91,201 @@ export default function AutomationsPage() {
 
     useEffect(() => {
         fetchSettings();
-    }, []);
+    }, [fetchSettings]);
 
     useEffect(() => {
-        if (tabValue === 2) {
-            fetchLogs();
-        } else if (tabValue === 3) {
+        if (tabValue === 1) {
+            fetchLogs({ trigger: triggerFilter, success: successFilter ? successFilter === 'true' : undefined, limit: limitFilter });
+        } else if (tabValue === 2) {
             fetchStats();
         }
     }, [tabValue]);
 
-    const fetchSettings = async () => {
-        try {
-            setLoading(true);
-            const data = await automationService.getSettings();
-            if (data.success) {
-                setSettings(data.data);
-            }
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to load automation settings');
-        } finally {
-            setLoading(false);
+    const handleToggle = async (automationKey: string, enabled: boolean) => {
+        const result = await updateAutomation(automationKey, enabled);
+        if (result.success) {
+            const automationName = settings?.automations[automationKey as keyof typeof settings.automations]?.name;
+            setToast({ 
+                open: true, 
+                message: `${automationName} ${enabled ? 'enabled' : 'disabled'}`, 
+                severity: 'success' 
+            });
+        } else {
+            setToast({ open: true, message: result.error || 'Failed to update automation', severity: 'error' });
         }
     };
 
-    const fetchLogs = async () => {
-        try {
-            setLogsLoading(true);
-            const filters: any = { limit: limitFilter };
-            if (triggerFilter) filters.trigger = triggerFilter;
-            if (successFilter) filters.success = successFilter === 'true';
-            
-            const data = await automationService.getLogs(filters);
-            if (data.success) {
-                setLogs(data.data);
-            }
-        } catch (err: any) {
-            console.error('Failed to load logs', err);
-        } finally {
-            setLogsLoading(false);
+    const handleCardClick = (automationKey: string) => {
+        setSelectedAutomationKey(automationKey);
+        setOpenTemplateEditor(true);
+    };
+
+    const handleSaveTemplate = async (key: string, subject: string, template: string) => {
+        const result = await updateTemplate(key, subject, template);
+        if (result.success) {
+            setToast({ open: true, message: 'Template saved successfully', severity: 'success' });
+            setOpenTemplateEditor(false);
+        } else {
+            setToast({ open: true, message: result.error || 'Failed to save template', severity: 'error' });
         }
     };
 
-    const fetchStats = async () => {
-        try {
-            setStatsLoading(true);
-            const data = await automationService.getStats();
-            if (data.success) {
-                setStats(data.data);
-            }
-        } catch (err: any) {
-            console.error('Failed to load stats', err);
-        } finally {
-            setStatsLoading(false);
-        }
-    };
-
-    const handleToggle = async (automationKey: string, currentValue: boolean) => {
-        if (!settings) return;
-
-        try {
-            setSaving(true);
-            setError(null);
-            setSuccessMessage(null);
-
-            const updatedAutomations = {
-                ...settings.automations,
-                [automationKey]: {
-                    ...settings.automations[automationKey as keyof typeof settings.automations],
-                    enabled: !currentValue,
-                },
-            };
-
-            const data = await automationService.updateSettings(updatedAutomations);
-            
-            if (data.success) {
-                setSettings(data.data);
-                setSuccessMessage(`${settings.automations[automationKey as keyof typeof settings.automations].name} ${!currentValue ? 'enabled' : 'disabled'}`);
-                setTimeout(() => setSuccessMessage(null), 3000);
-            }
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to update automation');
-        } finally {
-            setSaving(false);
-        }
+    const handleRefreshLogs = () => {
+        fetchLogs({ 
+            trigger: triggerFilter, 
+            success: successFilter ? successFilter === 'true' : undefined, 
+            limit: limitFilter 
+        });
     };
 
     const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleString();
+        if (!dateString) return 'N/A';
+        
+        try {
+            const date = new Date(dateString);
+            
+            // Check if date is valid
+            if (isNaN(date.getTime())) {
+                return 'Invalid Date';
+            }
+            
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            });
+        } catch (error) {
+            return 'Invalid Date';
+        }
     };
 
-    if (loading) {
+    if (loading && !settings) {
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-                <CircularProgress />
-            </Box>
+            <Backdrop
+                open={true}
+                sx={{
+                    color: '#8b5cf6',
+                    zIndex: (theme) => theme.zIndex.drawer + 1,
+                    bgcolor: isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                }}
+            >
+                <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
+                    <CircularProgress size={48} thickness={4} sx={{ color: '#8b5cf6' }} />
+                    <Typography variant="body1" sx={{ color: textPrimary, fontWeight: 600 }}>
+                        Loading automations...
+                    </Typography>
+                </Box>
+            </Backdrop>
         );
     }
 
-    if (!settings) {
-        return (
-            <Alert severity="error">Failed to load automation settings</Alert>
-        );
-    }
-
-    const automationEntries = Object.entries(settings.automations);
+    const automationEntries = settings ? Object.entries(settings.automations) : [];
 
     return (
         <RBACGuard permission="canManageAutomations">
-            <Box>
-                <Box mb={3}>
-                    <Typography variant="h4" fontWeight="bold" gutterBottom>
+            <Box
+                sx={{
+                    minHeight: '100vh',
+                    bgcolor: pageBgColor,
+                    p: { xs: 2, sm: 3, md: 4 },
+                }}
+            >
+                {/* Header */}
+                <Box mb={4}>
+                    <Typography variant="h4" fontWeight={800} color={textPrimary} sx={{ mb: 0.5 }}>
                         Automations
                     </Typography>
-                    <Typography variant="body1" color="textSecondary">
-                        Manage automated actions, view execution logs, and track performance.
+                    <Typography variant="body2" color={textSecondary} fontWeight={500}>
+                        Manage automated actions, view execution logs, and track performance
                     </Typography>
                 </Box>
 
-                {error && (
-                    <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
-                        {error}
-                    </Alert>
-                )}
-
-                {successMessage && (
-                    <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccessMessage(null)}>
-                        {successMessage}
-                    </Alert>
-                )}
-
-                <Paper>
-                    <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)}>
-                        <Tab label="Settings" />
-                        <Tab label="Templates" />
-                        <Tab label="Logs" />
-                        <Tab label="Statistics" />
+                {/* Tabs */}
+                <Paper
+                    sx={{
+                        borderRadius: '16px',
+                        bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
+                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
+                        overflow: 'hidden',
+                    }}
+                >
+                    <Tabs
+                        value={tabValue}
+                        onChange={(_, newValue) => setTabValue(newValue)}
+                        sx={{
+                            borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
+                            px: 2,
+                            '& .MuiTab-root': {
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                fontSize: '0.95rem',
+                                minHeight: 56,
+                            },
+                            '& .Mui-selected': {
+                                color: '#8b5cf6',
+                            },
+                            '& .MuiTabs-indicator': {
+                                bgcolor: '#8b5cf6',
+                                height: 3,
+                                borderRadius: '3px 3px 0 0',
+                            },
+                        }}
+                    >
+                        <Tab icon={<SettingsIcon />} iconPosition="start" label="Settings" />
+                        <Tab label="Execution Logs" />
+                        <Tab icon={<BarChartIcon />} iconPosition="start" label="Statistics" />
                     </Tabs>
 
                     {/* Settings Tab */}
                     <TabPanel value={tabValue} index={0}>
-                        <List>
-                            {automationEntries.map(([key, automation], index) => {
-                                const Icon = automationIcons[key] || NotificationsIcon;
-                                
-                                return (
-                                    <div key={key}>
-                                        <ListItem sx={{ py: 2.5 }}>
-                                            <Box
-                                                sx={{
-                                                    mr: 2,
-                                                    p: 1.5,
-                                                    bgcolor: automation.enabled ? 'primary.light' : 'grey.200',
-                                                    borderRadius: 1,
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                }}
-                                            >
-                                                <Icon sx={{ color: automation.enabled ? 'primary.main' : 'grey.500' }} />
-                                            </Box>
-                                            <ListItemText
-                                                primary={
-                                                    <Box display="flex" alignItems="center" gap={1}>
-                                                        <Typography variant="h6">{automation.name}</Typography>
-                                                        {automation.enabled && (
-                                                            <Chip label="Active" size="small" color="success" />
-                                                        )}
-                                                    </Box>
-                                                }
-                                                secondary={
-                                                    <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5 }}>
-                                                        {automation.description}
-                                                    </Typography>
-                                                }
-                                            />
-                                            <ListItemSecondaryAction>
-                                                <Switch
-                                                    checked={automation.enabled}
-                                                    onChange={() => handleToggle(key, automation.enabled)}
-                                                    color="primary"
-                                                    disabled={saving}
-                                                />
-                                            </ListItemSecondaryAction>
-                                        </ListItem>
-                                        {index < automationEntries.length - 1 && <Divider />}
-                                    </div>
-                                );
-                            })}
-                        </List>
-
-                        <Box p={3} bgcolor="grey.50">
-                            <Alert severity="info">
+                        <Box p={3}>
+                            <Alert
+                                severity="info"
+                                sx={{
+                                    mb: 3,
+                                    borderRadius: '12px',
+                                    bgcolor: isDark ? 'rgba(59, 130, 246, 0.1)' : '#dbeafe',
+                                    border: `1px solid ${isDark ? 'rgba(59, 130, 246, 0.2)' : '#93c5fd'}`,
+                                }}
+                            >
                                 <Typography variant="body2" fontWeight="bold" gutterBottom>
                                     How Automations Work
                                 </Typography>
-                                <Typography variant="body2" component="div">
-                                    • Automations run automatically when specific events occur<br />
-                                    • You can enable or disable any automation at any time<br />
-                                    • When staff manually replies to a contact, automation is paused for that conversation<br />
-                                    • View logs and statistics to monitor automation performance
-                                </Typography>
-                            </Alert>
-                        </Box>
-                    </TabPanel>
-
-                    {/* Templates Tab */}
-                    <TabPanel value={tabValue} index={1}>
-                        <Box p={3}>
-                            <Alert severity="info" sx={{ mb: 3 }}>
-                                <Typography variant="body2" fontWeight="bold" gutterBottom>
-                                    Available Variables
-                                </Typography>
-                                <Typography variant="body2" component="div">
-                                    Use these placeholders in your templates:<br />
-                                    • <code>{'{{contactName}}'}</code> - Contact's name<br />
-                                    • <code>{'{{businessName}}'}</code> - Your business name<br />
-                                    • <code>{'{{serviceType}}'}</code> - Service/booking type<br />
-                                    • <code>{'{{date}}'}</code> - Booking date<br />
-                                    • <code>{'{{timeSlot}}'}</code> - Booking time<br />
-                                    • <code>{'{{formName}}'}</code> - Form title<br />
-                                    • <code>{'{{formLink}}'}</code> - Link to form<br />
-                                    • <code>{'{{itemName}}'}</code> - Inventory item name<br />
-                                    • <code>{'{{currentStock}}'}</code> - Current stock level<br />
-                                    • <code>{'{{threshold}}'}</code> - Stock threshold
+                                <Typography variant="body2">
+                                    Automations run automatically when specific events occur. Toggle them on/off anytime. Click a card to edit email templates.
                                 </Typography>
                             </Alert>
 
-                            {automationEntries.map(([key, automation]) => {
-                                // Sample data for preview
-                                const previewData: Record<string, string> = {
-                                    contactName: 'John Doe',
-                                    businessName: 'Acme Business',
-                                    serviceType: 'Consultation',
-                                    date: 'Monday, February 12, 2026',
-                                    timeSlot: '10:00 AM',
-                                    duration: '60',
-                                    location: '123 Main St',
-                                    formName: 'Client Intake Form',
-                                    formLink: 'https://example.com/form/123',
-                                    itemName: 'Office Supplies',
-                                    currentStock: '5',
-                                    threshold: '10',
-                                };
-
-                                // Replace variables in preview
-                                const replaceVars = (text: string) => {
-                                    let result = text;
-                                    Object.entries(previewData).forEach(([varKey, value]) => {
-                                        result = result.replace(new RegExp(`{{${varKey}}}`, 'g'), value);
-                                    });
-                                    return result;
-                                };
-
-                                const previewSubject = replaceVars(settings.automations[key as keyof typeof settings.automations].emailSubject || '');
-                                const previewBody = replaceVars(settings.automations[key as keyof typeof settings.automations].emailTemplate || '');
-
-                                return (
-                                    <Paper key={key} variant="outlined" sx={{ mb: 3, p: 3 }}>
-                                        <Typography variant="h6" gutterBottom>
-                                            {automation.name}
-                                        </Typography>
-                                        <Typography variant="body2" color="textSecondary" gutterBottom>
-                                            {automation.description}
-                                        </Typography>
-
-                                        <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }} gap={3} mt={2}>
-                                            {/* Editor */}
-                                            <Box>
-                                                <Typography variant="subtitle2" gutterBottom fontWeight="bold">
-                                                    Template Editor
-                                                </Typography>
-                                                <TextField
-                                                    fullWidth
-                                                    label="Email Subject"
-                                                    value={settings.automations[key as keyof typeof settings.automations].emailSubject || ''}
-                                                    onChange={(e) => {
-                                                        const updated = {
-                                                            ...settings,
-                                                            automations: {
-                                                                ...settings.automations,
-                                                                [key]: {
-                                                                    ...settings.automations[key as keyof typeof settings.automations],
-                                                                    emailSubject: e.target.value,
-                                                                },
-                                                            },
-                                                        };
-                                                        setSettings(updated);
-                                                    }}
-                                                    sx={{ mb: 2 }}
-                                                    helperText="Use {{variables}} for dynamic content"
-                                                />
-
-                                                <TextField
-                                                    fullWidth
-                                                    multiline
-                                                    rows={8}
-                                                    label="Email Template"
-                                                    value={settings.automations[key as keyof typeof settings.automations].emailTemplate || ''}
-                                                    onChange={(e) => {
-                                                        const updated = {
-                                                            ...settings,
-                                                            automations: {
-                                                                ...settings.automations,
-                                                                [key]: {
-                                                                    ...settings.automations[key as keyof typeof settings.automations],
-                                                                    emailTemplate: e.target.value,
-                                                                },
-                                                            },
-                                                        };
-                                                        setSettings(updated);
-                                                    }}
-                                                    helperText="HTML supported. Use {{variables}} for dynamic content"
-                                                />
-
-                                                <Box mt={2} display="flex" gap={2}>
-                                                    <Button
-                                                        variant="contained"
-                                                        onClick={async () => {
-                                                            try {
-                                                                setSaving(true);
-                                                                const data = await automationService.updateSettings(settings.automations);
-                                                                if (data.success) {
-                                                                    setSuccessMessage(`${automation.name} template saved`);
-                                                                    setTimeout(() => setSuccessMessage(null), 3000);
-                                                                }
-                                                            } catch (err: any) {
-                                                                setError(err.response?.data?.message || 'Failed to save template');
-                                                            } finally {
-                                                                setSaving(false);
-                                                            }
-                                                        }}
-                                                        disabled={saving}
-                                                    >
-                                                        Save Template
-                                                    </Button>
-                                                    <Button
-                                                        variant="outlined"
-                                                        onClick={() => {
-                                                            // Reset to default
-                                                            fetchSettings();
-                                                        }}
-                                                    >
-                                                        Reset to Default
-                                                    </Button>
-                                                </Box>
-                                            </Box>
-
-                                            {/* Live Preview */}
-                                            <Box>
-                                                <Typography variant="subtitle2" gutterBottom fontWeight="bold">
-                                                    Live Preview
-                                                </Typography>
-                                                <Paper variant="outlined" sx={{ p: 2, bgcolor: 'grey.50', minHeight: 400 }}>
-                                                    <Box sx={{ mb: 2, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-                                                        <Typography variant="caption" color="textSecondary">
-                                                            Subject:
-                                                        </Typography>
-                                                        <Typography variant="body1" fontWeight="bold">
-                                                            {previewSubject || '(No subject)'}
-                                                        </Typography>
-                                                    </Box>
-                                                    <Box sx={{ 
-                                                        bgcolor: 'white', 
-                                                        p: 2, 
-                                                        borderRadius: 1,
-                                                        border: '1px solid',
-                                                        borderColor: 'divider',
-                                                        minHeight: 300,
-                                                        '& p': { margin: '8px 0' },
-                                                        '& h2': { margin: '12px 0 8px' },
-                                                        '& strong': { fontWeight: 'bold' },
-                                                        '& a': { color: 'primary.main', textDecoration: 'underline' }
-                                                    }}>
-                                                        <div dangerouslySetInnerHTML={{ __html: previewBody || '<p style="color: #999;">(No content)</p>' }} />
-                                                    </Box>
-                                                    <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-                                                        <Typography variant="caption" color="textSecondary" fontStyle="italic">
-                                                            Preview uses sample data. Actual emails will use real contact information.
-                                                        </Typography>
-                                                    </Box>
-                                                </Paper>
-                                            </Box>
-                                        </Box>
-                                    </Paper>
-                                );
-                            })}
+                            <Box
+                                sx={{
+                                    display: 'grid',
+                                    gridTemplateColumns: {
+                                        xs: '1fr',
+                                        sm: 'repeat(2, 1fr)',
+                                        lg: 'repeat(3, 1fr)',
+                                    },
+                                    gap: 3,
+                                }}
+                            >
+                                {automationEntries.map(([key, automation]) => (
+                                    <AutomationCard
+                                        key={key}
+                                        automationKey={key}
+                                        automation={automation}
+                                        onToggle={handleToggle}
+                                        onCardClick={handleCardClick}
+                                        disabled={processing}
+                                    />
+                                ))}
+                            </Box>
                         </Box>
                     </TabPanel>
 
                     {/* Logs Tab */}
-                    <TabPanel value={tabValue} index={2}>
+                    <TabPanel value={tabValue} index={1}>
                         <Box p={3}>
                             <Box display="flex" gap={2} mb={3} flexWrap="wrap">
                                 <FormControl size="small" sx={{ minWidth: 200 }}>
@@ -483,6 +294,7 @@ export default function AutomationsPage() {
                                         value={triggerFilter}
                                         label="Trigger Type"
                                         onChange={(e) => setTriggerFilter(e.target.value)}
+                                        sx={{ borderRadius: '12px' }}
                                     >
                                         <MenuItem value="">All Triggers</MenuItem>
                                         <MenuItem value="NEW_CONTACT">New Contact</MenuItem>
@@ -499,6 +311,7 @@ export default function AutomationsPage() {
                                         value={successFilter}
                                         label="Status"
                                         onChange={(e) => setSuccessFilter(e.target.value)}
+                                        sx={{ borderRadius: '12px' }}
                                     >
                                         <MenuItem value="">All</MenuItem>
                                         <MenuItem value="true">Success</MenuItem>
@@ -512,70 +325,124 @@ export default function AutomationsPage() {
                                     label="Limit"
                                     value={limitFilter}
                                     onChange={(e) => setLimitFilter(Number(e.target.value))}
-                                    sx={{ width: 100 }}
+                                    sx={{ 
+                                        width: 100,
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: '12px',
+                                        }
+                                    }}
                                 />
 
                                 <Button
                                     variant="contained"
                                     startIcon={<RefreshIcon />}
-                                    onClick={fetchLogs}
+                                    onClick={handleRefreshLogs}
                                     disabled={logsLoading}
+                                    sx={{
+                                        borderRadius: '12px',
+                                        textTransform: 'none',
+                                        fontWeight: 600,
+                                        bgcolor: '#8b5cf6',
+                                        '&:hover': {
+                                            bgcolor: '#7c3aed',
+                                        }
+                                    }}
                                 >
                                     Refresh
                                 </Button>
                             </Box>
 
                             {logsLoading ? (
-                                <Box display="flex" justifyContent="center" py={4}>
-                                    <CircularProgress />
+                                <Box display="flex" justifyContent="center" py={8}>
+                                    <CircularProgress sx={{ color: '#8b5cf6' }} />
                                 </Box>
                             ) : logs.length === 0 ? (
-                                <Alert severity="info">No automation logs found. Automations will appear here once they run.</Alert>
+                                <Box
+                                    display="flex"
+                                    flexDirection="column"
+                                    alignItems="center"
+                                    justifyContent="center"
+                                    py={8}
+                                >
+                                    <Typography variant="h6" color={textSecondary} sx={{ mb: 1 }}>
+                                        No logs found
+                                    </Typography>
+                                    <Typography variant="body2" color={textSecondary}>
+                                        Automation logs will appear here once they run
+                                    </Typography>
+                                </Box>
                             ) : (
-                                <TableContainer>
+                                <TableContainer
+                                    sx={{
+                                        borderRadius: '12px',
+                                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
+                                    }}
+                                >
                                     <Table>
                                         <TableHead>
-                                            <TableRow sx={{ bgcolor: 'grey.50' }}>
-                                                <TableCell><strong>Date & Time</strong></TableCell>
-                                                <TableCell><strong>Trigger</strong></TableCell>
-                                                <TableCell><strong>Contact</strong></TableCell>
-                                                <TableCell><strong>Status</strong></TableCell>
-                                                <TableCell><strong>Details</strong></TableCell>
+                                            <TableRow sx={{ bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc' }}>
+                                                <TableCell sx={{ fontWeight: 700, color: textPrimary }}>Date & Time</TableCell>
+                                                <TableCell sx={{ fontWeight: 700, color: textPrimary }}>Trigger</TableCell>
+                                                <TableCell sx={{ fontWeight: 700, color: textPrimary }}>Contact</TableCell>
+                                                <TableCell sx={{ fontWeight: 700, color: textPrimary }}>Status</TableCell>
+                                                <TableCell sx={{ fontWeight: 700, color: textPrimary }}>Details</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
                                             {logs.map((log) => (
-                                                <TableRow key={log._id} hover>
-                                                    <TableCell>{formatDate(log.executedAt)}</TableCell>
-                                                    <TableCell>
-                                                        <Chip 
-                                                            label={log.trigger.replace(/_/g, ' ')} 
-                                                            size="small" 
-                                                            variant="outlined"
-                                                        />
+                                                <TableRow 
+                                                    key={log._id || Math.random()} 
+                                                    hover
+                                                    sx={{
+                                                        '&:hover': {
+                                                            bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
+                                                        }
+                                                    }}
+                                                >
+                                                    <TableCell sx={{ color: textPrimary }}>
+                                                        {formatDate(log.executedAt || log.createdAt || log.timestamp)}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {log.contactId?.name || log.contactId?.email || 'N/A'}
+                                                        <Chip
+                                                            label={(log.trigger || 'UNKNOWN').replace(/_/g, ' ')}
+                                                            size="small"
+                                                            sx={{
+                                                                bgcolor: isDark ? 'rgba(139, 92, 246, 0.15)' : '#ede9fe',
+                                                                color: '#8b5cf6',
+                                                                fontWeight: 600,
+                                                            }}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell sx={{ color: textPrimary }}>
+                                                        {log.contactId?.name || log.contactId?.email || log.contact?.name || log.contact?.email || 'N/A'}
                                                     </TableCell>
                                                     <TableCell>
                                                         {log.success ? (
-                                                            <Chip 
-                                                                icon={<CheckCircleIcon />}
-                                                                label="Success" 
-                                                                color="success" 
-                                                                size="small" 
+                                                            <Chip
+                                                                icon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
+                                                                label="Success"
+                                                                size="small"
+                                                                sx={{
+                                                                    bgcolor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#d1fae5',
+                                                                    color: '#10b981',
+                                                                    fontWeight: 600,
+                                                                }}
                                                             />
                                                         ) : (
-                                                            <Chip 
-                                                                icon={<ErrorIcon />}
-                                                                label="Failed" 
-                                                                color="error" 
-                                                                size="small" 
+                                                            <Chip
+                                                                icon={<ErrorIcon sx={{ fontSize: 16 }} />}
+                                                                label="Failed"
+                                                                size="small"
+                                                                sx={{
+                                                                    bgcolor: isDark ? 'rgba(239, 68, 68, 0.15)' : '#fee2e2',
+                                                                    color: '#ef4444',
+                                                                    fontWeight: 600,
+                                                                }}
                                                             />
                                                         )}
                                                     </TableCell>
                                                     <TableCell>
-                                                        <Typography variant="body2" color="textSecondary">
+                                                        <Typography variant="body2" color={textSecondary}>
                                                             {log.error || log.details || 'Executed successfully'}
                                                         </Typography>
                                                     </TableCell>
@@ -589,54 +456,96 @@ export default function AutomationsPage() {
                     </TabPanel>
 
                     {/* Statistics Tab */}
-                    <TabPanel value={tabValue} index={3}>
+                    <TabPanel value={tabValue} index={2}>
                         <Box p={3}>
                             {statsLoading ? (
-                                <Box display="flex" justifyContent="center" py={4}>
-                                    <CircularProgress />
+                                <Box display="flex" justifyContent="center" py={8}>
+                                    <CircularProgress sx={{ color: '#8b5cf6' }} />
                                 </Box>
                             ) : !stats ? (
-                                <Alert severity="info">No statistics available yet.</Alert>
+                                <Box
+                                    display="flex"
+                                    flexDirection="column"
+                                    alignItems="center"
+                                    justifyContent="center"
+                                    py={8}
+                                >
+                                    <Typography variant="h6" color={textSecondary} sx={{ mb: 1 }}>
+                                        No statistics available
+                                    </Typography>
+                                    <Typography variant="body2" color={textSecondary}>
+                                        Statistics will appear once automations start running
+                                    </Typography>
+                                </Box>
                             ) : (
                                 <>
-                                    <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' }} gap={3} mb={4}>
-                                        <Card>
+                                    <Box
+                                        display="grid"
+                                        gridTemplateColumns={{ xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }}
+                                        gap={3}
+                                        mb={4}
+                                    >
+                                        <Card
+                                            sx={{
+                                                borderRadius: '16px',
+                                                bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
+                                                border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
+                                            }}
+                                        >
                                             <CardContent>
-                                                <Typography color="textSecondary" gutterBottom>
+                                                <Typography variant="caption" color={textSecondary} fontWeight={600} gutterBottom>
                                                     Total Executions
                                                 </Typography>
-                                                <Typography variant="h4" fontWeight="bold">
+                                                <Typography variant="h4" fontWeight={700} color={textPrimary}>
                                                     {stats.totalExecutions || 0}
                                                 </Typography>
                                             </CardContent>
                                         </Card>
-                                        <Card>
+                                        <Card
+                                            sx={{
+                                                borderRadius: '16px',
+                                                bgcolor: isDark ? 'rgba(16, 185, 129, 0.1)' : '#d1fae5',
+                                                border: `1px solid ${isDark ? 'rgba(16, 185, 129, 0.2)' : '#a7f3d0'}`,
+                                            }}
+                                        >
                                             <CardContent>
-                                                <Typography color="textSecondary" gutterBottom>
+                                                <Typography variant="caption" color={textSecondary} fontWeight={600} gutterBottom>
                                                     Successful
                                                 </Typography>
-                                                <Typography variant="h4" fontWeight="bold" color="success.main">
+                                                <Typography variant="h4" fontWeight={700} sx={{ color: '#10b981' }}>
                                                     {stats.successCount || 0}
                                                 </Typography>
                                             </CardContent>
                                         </Card>
-                                        <Card>
+                                        <Card
+                                            sx={{
+                                                borderRadius: '16px',
+                                                bgcolor: isDark ? 'rgba(239, 68, 68, 0.1)' : '#fee2e2',
+                                                border: `1px solid ${isDark ? 'rgba(239, 68, 68, 0.2)' : '#fecaca'}`,
+                                            }}
+                                        >
                                             <CardContent>
-                                                <Typography color="textSecondary" gutterBottom>
+                                                <Typography variant="caption" color={textSecondary} fontWeight={600} gutterBottom>
                                                     Failed
                                                 </Typography>
-                                                <Typography variant="h4" fontWeight="bold" color="error.main">
+                                                <Typography variant="h4" fontWeight={700} sx={{ color: '#ef4444' }}>
                                                     {stats.failureCount || 0}
                                                 </Typography>
                                             </CardContent>
                                         </Card>
-                                        <Card>
+                                        <Card
+                                            sx={{
+                                                borderRadius: '16px',
+                                                bgcolor: isDark ? 'rgba(139, 92, 246, 0.1)' : '#ede9fe',
+                                                border: `1px solid ${isDark ? 'rgba(139, 92, 246, 0.2)' : '#ddd6fe'}`,
+                                            }}
+                                        >
                                             <CardContent>
-                                                <Typography color="textSecondary" gutterBottom>
+                                                <Typography variant="caption" color={textSecondary} fontWeight={600} gutterBottom>
                                                     Success Rate
                                                 </Typography>
-                                                <Typography variant="h4" fontWeight="bold">
-                                                    {stats.totalExecutions > 0 
+                                                <Typography variant="h4" fontWeight={700} sx={{ color: '#8b5cf6' }}>
+                                                    {stats.totalExecutions > 0
                                                         ? Math.round((stats.successCount / stats.totalExecutions) * 100)
                                                         : 0}%
                                                 </Typography>
@@ -644,25 +553,47 @@ export default function AutomationsPage() {
                                         </Card>
                                     </Box>
 
-                                    <Typography variant="h6" gutterBottom>
+                                    <Typography variant="h6" fontWeight={700} color={textPrimary} gutterBottom>
                                         Executions by Trigger Type
                                     </Typography>
-                                    <TableContainer component={Paper} variant="outlined">
+                                    <TableContainer
+                                        sx={{
+                                            borderRadius: '12px',
+                                            border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
+                                        }}
+                                    >
                                         <Table>
                                             <TableHead>
-                                                <TableRow sx={{ bgcolor: 'grey.50' }}>
-                                                    <TableCell><strong>Trigger</strong></TableCell>
-                                                    <TableCell align="right"><strong>Count</strong></TableCell>
+                                                <TableRow sx={{ bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc' }}>
+                                                    <TableCell sx={{ fontWeight: 700, color: textPrimary }}>Trigger</TableCell>
+                                                    <TableCell align="right" sx={{ fontWeight: 700, color: textPrimary }}>Count</TableCell>
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
                                                 {stats.byTrigger && Object.entries(stats.byTrigger).map(([trigger, count]: [string, any]) => (
-                                                    <TableRow key={trigger}>
+                                                    <TableRow 
+                                                        key={trigger}
+                                                        sx={{
+                                                            '&:hover': {
+                                                                bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
+                                                            }
+                                                        }}
+                                                    >
                                                         <TableCell>
-                                                            <Chip label={trigger.replace(/_/g, ' ')} size="small" variant="outlined" />
+                                                            <Chip
+                                                                label={trigger.replace(/_/g, ' ')}
+                                                                size="small"
+                                                                sx={{
+                                                                    bgcolor: isDark ? 'rgba(139, 92, 246, 0.15)' : '#ede9fe',
+                                                                    color: '#8b5cf6',
+                                                                    fontWeight: 600,
+                                                                }}
+                                                            />
                                                         </TableCell>
                                                         <TableCell align="right">
-                                                            <Typography variant="h6">{count}</Typography>
+                                                            <Typography variant="h6" fontWeight={700} color={textPrimary}>
+                                                                {count}
+                                                            </Typography>
                                                         </TableCell>
                                                     </TableRow>
                                                 ))}
@@ -674,6 +605,37 @@ export default function AutomationsPage() {
                         </Box>
                     </TabPanel>
                 </Paper>
+
+                {/* Template Editor Dialog */}
+                {settings && selectedAutomationKey && (
+                    <TemplateEditorDialog
+                        open={openTemplateEditor}
+                        onClose={() => setOpenTemplateEditor(false)}
+                        automationKey={selectedAutomationKey}
+                        automation={settings.automations[selectedAutomationKey as keyof typeof settings.automations]}
+                        onSave={handleSaveTemplate}
+                        processing={processing}
+                    />
+                )}
+
+                {/* Toast Notifications */}
+                <Snackbar
+                    open={toast.open}
+                    autoHideDuration={4000}
+                    onClose={() => setToast({ ...toast, open: false })}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                >
+                    <Alert
+                        onClose={() => setToast({ ...toast, open: false })}
+                        severity={toast.severity}
+                        sx={{
+                            borderRadius: '12px',
+                            boxShadow: isDark ? '0px 8px 24px rgba(0,0,0,0.4)' : '0px 8px 24px rgba(0,0,0,0.1)',
+                        }}
+                    >
+                        {toast.message}
+                    </Alert>
+                </Snackbar>
             </Box>
         </RBACGuard>
     );

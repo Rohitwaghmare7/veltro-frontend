@@ -73,12 +73,12 @@ export default function CalendarWidget() {
         const startingDayOfWeek = firstDay.getDay();
 
         const days = [];
-        
+
         // Add empty cells for days before month starts
         for (let i = 0; i < startingDayOfWeek; i++) {
             days.push(null);
         }
-        
+
         // Add days of month
         for (let day = 1; day <= daysInMonth; day++) {
             days.push(day);
@@ -155,32 +155,78 @@ export default function CalendarWidget() {
     };
 
     return (
-        <Paper sx={{ p: 3, height: '100%' }}>
+        <Paper sx={{
+            p: 1.5,
+            height: '100%',
+            bgcolor: 'rgba(255, 255, 255, 0.02)',
+            border: '1px solid rgba(255, 255, 255, 0.06)',
+            borderRadius: 1.5,
+            display: 'flex',
+            flexDirection: 'column'
+        }}>
             {/* Header */}
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6">📅 Calendar</Typography>
-                <Box display="flex" gap={1}>
-                    <IconButton size="small" onClick={handleToday}>
-                        <TodayIcon fontSize="small" />
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                <Typography variant="h6" sx={{ fontSize: '0.95rem', fontWeight: 500, color: 'white' }}>
+                    📅 Calendar
+                </Typography>
+                <Box display="flex" gap={0.25}>
+                    <IconButton 
+                        size="small" 
+                        onClick={handleToday} 
+                        sx={{ 
+                            color: 'rgba(255, 255, 255, 0.5)', 
+                            p: 0.5,
+                            '&:hover': { color: '#00F3FF', bgcolor: 'rgba(0, 243, 255, 0.1)' } 
+                        }}
+                    >
+                        <TodayIcon sx={{ fontSize: 16 }} />
                     </IconButton>
-                    <IconButton size="small" onClick={handlePreviousMonth}>
-                        <ChevronLeftIcon />
+                    <IconButton 
+                        size="small" 
+                        onClick={handlePreviousMonth} 
+                        sx={{ 
+                            color: 'rgba(255, 255, 255, 0.5)', 
+                            p: 0.5,
+                            '&:hover': { color: '#00F3FF', bgcolor: 'rgba(0, 243, 255, 0.1)' } 
+                        }}
+                    >
+                        <ChevronLeftIcon sx={{ fontSize: 16 }} />
                     </IconButton>
-                    <IconButton size="small" onClick={handleNextMonth}>
-                        <ChevronRightIcon />
+                    <IconButton 
+                        size="small" 
+                        onClick={handleNextMonth} 
+                        sx={{ 
+                            color: 'rgba(255, 255, 255, 0.5)', 
+                            p: 0.5,
+                            '&:hover': { color: '#00F3FF', bgcolor: 'rgba(0, 243, 255, 0.1)' } 
+                        }}
+                    >
+                        <ChevronRightIcon sx={{ fontSize: 16 }} />
                     </IconButton>
                 </Box>
             </Box>
 
-            <Typography variant="subtitle2" align="center" mb={2} fontWeight="bold">
+            <Typography variant="subtitle2" align="center" mb={1} sx={{ fontWeight: 500, color: 'white', fontSize: '0.85rem' }}>
                 {monthName}
             </Typography>
 
-            <Divider sx={{ mb: 2 }} />
+            <Divider sx={{ mb: 1, borderColor: 'rgba(255, 255, 255, 0.06)' }} />
 
             {loading ? (
-                <Box display="flex" justifyContent="center" py={4}>
-                    <CircularProgress size={32} />
+                <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" py={6} flexGrow={1} gap={1.5}>
+                    <CircularProgress 
+                        size={28} 
+                        thickness={4}
+                        sx={{ 
+                            color: '#00F3FF',
+                            '& .MuiCircularProgress-circle': {
+                                strokeLinecap: 'round',
+                            }
+                        }} 
+                    />
+                    <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.3)' }}>
+                        Loading calendar...
+                    </Typography>
                 </Box>
             ) : (
                 <>
@@ -189,8 +235,8 @@ export default function CalendarWidget() {
                         sx={{
                             display: 'grid',
                             gridTemplateColumns: 'repeat(7, 1fr)',
-                            gap: 0.5,
-                            mb: 2
+                            gap: 0.4,
+                            mb: 1.5
                         }}
                     >
                         {/* Week day headers */}
@@ -199,10 +245,10 @@ export default function CalendarWidget() {
                                 key={day}
                                 sx={{
                                     textAlign: 'center',
-                                    py: 0.5,
-                                    fontSize: '0.75rem',
-                                    fontWeight: 'bold',
-                                    color: 'text.secondary'
+                                    py: 0.4,
+                                    fontSize: '0.65rem',
+                                    fontWeight: 500,
+                                    color: 'rgba(255, 255, 255, 0.4)'
                                 }}
                             >
                                 {day}
@@ -217,6 +263,8 @@ export default function CalendarWidget() {
 
                             const dayBookings = getBookingsForDate(day);
                             const hasBookings = dayBookings.length > 0;
+                            const isSelectedDay = isSelected(day);
+                            const isTodayDay = isToday(day);
 
                             return (
                                 <Box
@@ -228,21 +276,26 @@ export default function CalendarWidget() {
                                         flexDirection: 'column',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        border: 1,
-                                        borderColor: isSelected(day) ? 'primary.main' : 'divider',
+                                        border: '1px solid',
+                                        borderColor: isSelectedDay ? '#00F3FF' : 'rgba(255, 255, 255, 0.04)',
                                         borderRadius: 1,
                                         cursor: 'pointer',
-                                        bgcolor: isToday(day) ? 'primary.light' : 'background.paper',
+                                        bgcolor: isTodayDay ? 'rgba(0, 243, 255, 0.08)' : 'rgba(255, 255, 255, 0.01)',
                                         '&:hover': {
-                                            bgcolor: 'action.hover'
+                                            bgcolor: 'rgba(255, 255, 255, 0.04)',
+                                            borderColor: 'rgba(255, 255, 255, 0.15)'
                                         },
-                                        position: 'relative'
+                                        position: 'relative',
+                                        transition: 'all 0.2s'
                                     }}
                                 >
                                     <Typography
                                         variant="body2"
-                                        fontWeight={isToday(day) ? 'bold' : 'normal'}
-                                        color={isToday(day) ? 'primary.main' : 'text.primary'}
+                                        sx={{
+                                            fontWeight: isTodayDay ? 600 : 400,
+                                            color: isTodayDay ? '#00F3FF' : 'rgba(255, 255, 255, 0.7)',
+                                            fontSize: '0.7rem'
+                                        }}
                                     >
                                         {day}
                                     </Typography>
@@ -251,10 +304,10 @@ export default function CalendarWidget() {
                                             sx={{
                                                 position: 'absolute',
                                                 bottom: 2,
-                                                width: 4,
-                                                height: 4,
+                                                width: 3,
+                                                height: 3,
                                                 borderRadius: '50%',
-                                                bgcolor: 'primary.main'
+                                                bgcolor: isTodayDay ? '#00F3FF' : '#5F9598'
                                             }}
                                         />
                                     )}
@@ -265,57 +318,62 @@ export default function CalendarWidget() {
 
                     {/* Selected Date Bookings */}
                     {selectedDate && (
-                        <>
-                            <Divider sx={{ my: 2 }} />
-                            <Typography variant="subtitle2" gutterBottom>
+                        <Box sx={{ flexGrow: 1, overflow: 'auto', mt: 0.5 }}>
+                            <Divider sx={{ mb: 1, borderColor: 'rgba(255, 255, 255, 0.06)' }} />
+                            <Typography variant="body2" sx={{ color: 'white', fontWeight: 500, mb: 0.75, fontSize: '0.85rem' }}>
                                 {selectedDate.toLocaleDateString('en-US', {
-                                    weekday: 'long',
-                                    month: 'long',
+                                    weekday: 'short',
+                                    month: 'short',
                                     day: 'numeric'
                                 })}
                             </Typography>
                             {selectedDateBookings.length === 0 ? (
-                                <Typography variant="body2" color="text.secondary" py={2}>
-                                    No bookings for this date
+                                <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.3)', display: 'block', textAlign: 'center', py: 2, fontSize: '0.75rem' }}>
+                                    No bookings
                                 </Typography>
                             ) : (
-                                <List dense>
+                                <List dense disablePadding>
                                     {selectedDateBookings.map(booking => (
                                         <ListItem
                                             key={booking._id}
                                             sx={{
-                                                border: 1,
-                                                borderColor: 'divider',
+                                                border: '1px solid rgba(255, 255, 255, 0.04)',
                                                 borderRadius: 1,
-                                                mb: 1
+                                                mb: 0.5,
+                                                p: 0.75,
+                                                bgcolor: 'rgba(255, 255, 255, 0.01)'
                                             }}
                                         >
-                                            <EventIcon fontSize="small" sx={{ mr: 1, color: 'primary.main' }} />
+                                            <EventIcon sx={{ mr: 0.75, color: '#00F3FF', fontSize: 14 }} />
                                             <ListItemText
                                                 primary={
-                                                    <Box display="flex" alignItems="center" gap={1}>
-                                                        <Typography variant="body2" fontWeight="medium">
+                                                    <Box display="flex" alignItems="center" gap={0.75}>
+                                                        <Typography variant="body2" fontWeight="400" sx={{ color: 'white', fontSize: '0.75rem' }}>
                                                             {booking.timeSlot}
                                                         </Typography>
                                                         <Chip
                                                             label={booking.status}
                                                             size="small"
-                                                            color={getStatusColor(booking.status) as any}
+                                                            sx={{
+                                                                height: 14,
+                                                                fontSize: '0.55rem',
+                                                                bgcolor: booking.status === 'confirmed' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(255, 255, 255, 0.08)',
+                                                                color: booking.status === 'confirmed' ? '#22C55E' : 'rgba(255, 255, 255, 0.5)'
+                                                            }}
                                                         />
                                                     </Box>
                                                 }
                                                 secondary={
-                                                    <>
-                                                        {booking.serviceType}
-                                                        {booking.contactId && ` • ${booking.contactId.name}`}
-                                                    </>
+                                                    <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '0.65rem' }}>
+                                                        {booking.serviceType} • {booking.contactId?.name}
+                                                    </Typography>
                                                 }
                                             />
                                         </ListItem>
                                     ))}
                                 </List>
                             )}
-                        </>
+                        </Box>
                     )}
                 </>
             )}

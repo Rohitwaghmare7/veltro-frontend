@@ -4,465 +4,398 @@ import {
     Box,
     Typography,
     Button,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Paper,
-    Chip,
-    IconButton,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    TextField,
+    Backdrop,
     CircularProgress,
-    Switch,
-    Tooltip,
     Menu,
     MenuItem,
-    Alert
+    useTheme,
+    Snackbar,
+    Alert,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import PendingIcon from '@mui/icons-material/Pending';
 import BlockIcon from '@mui/icons-material/Block';
-import ErrorIcon from '@mui/icons-material/Error';
+import DeleteIcon from '@mui/icons-material/Delete';
+import GroupIcon from '@mui/icons-material/Group';
 import { useState, useEffect } from 'react';
-import { staffService, StaffMember, StaffPermissions } from '@/lib/services/staff.service';
+import { useTeamStore } from '@/store/teamStore';
+import { StaffMember } from '@/lib/services/staff.service';
 import RBACGuard from '@/components/dashboard/RBACGuard';
-
-const defaultPermissions: StaffPermissions = {
-    canViewBookings: true,
-    canEditBookings: false,
-    canViewLeads: true,
-    canEditLeads: false,
-    canViewInbox: true,
-    canSendEmails: false,
-    canManageInventory: false,
-    canViewReports: false,
-    canManageAutomations: false,
-};
+import TeamMemberCard from '@/components/team/TeamMemberCard';
+import InviteStaffDialog from '@/components/team/InviteStaffDialog';
+import PermissionsDialog from '@/components/team/PermissionsDialog';
+import ConfirmActionDialog from '@/components/team/ConfirmActionDialog';
 
 export default function TeamPage() {
-    const [staff, setStaff] = useState<StaffMember[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [openInvite, setOpenInvite] = useState(false);
-    const [inviteData, setInviteData] = useState({ name: '', email: '' });
-    const [permissionData, setPermissionData] = useState<StaffPermissions>(defaultPermissions);
-    const [processing, setProcessing] = useState(false);
-    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
+    const theme = useTheme();
+    const isDark = theme.palette.mode === 'dark';
+    const pageBgColor = isDark ? '#0f1117' : '#F2F1EB';
+    const textPrimary = isDark ? 'rgba(255,255,255,0.9)' : '#1e293b';
+    const textSecondary = isDark ? 'rgba(255,255,255,0.6)' : '#64748b';
 
-    const fetchStaff = async () => {
-        try {
-            const data = await staffService.getStaff();
-            if (data.success) {
-                setStaff(data.data);
-            }
-        } catch (error) {
-            console.error('Failed to load staff', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const { staff, loading, processing, fetchStaff, inviteStaff, updatePermissions, deactivateStaff, reactivateStaff, removeStaff } = useTeamStore();
+
+    const [openInvite, setOpenInvite] = useState(false);
+    const [openPermissions, setOpenPermissions] = useState(false);
+    const [openConfirm, setOpenConfirm] = useState(false);
+    const [confirmAction, setConfirmAction] = useState<'deactivate' | 'reactivate' | 'remove' | null>(null);
+    const [selectedMember, setSelectedMember] = useState<StaffMember | null>(null);
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [toast, setToast] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+        open: false,
+        message: '',
+        severity: 'success',
+    });
 
     useEffect(() => {
         fetchStaff();
-    }, []);
-
-    const handleInvite = async () => {
-        if (!inviteData.name || !inviteData.email) {
-            alert('Please fill in all fields');
-            return;
-        }
-
-        setProcessing(true);
-        try {
-            await staffService.inviteStaff({
-                ...inviteData,
-                permissions: permissionData
-            });
-            setOpenInvite(false);
-            setInviteData({ name: '', email: '' });
-            setPermissionData(defaultPermissions);
-            fetchStaff();
-        } catch (error: any) {
-            console.error('Failed to invite staff', error);
-            alert(error.response?.data?.message || 'Failed to invite staff member');
-        } finally {
-            setProcessing(false);
-        }
-    };
+    }, [fetchStaff]);
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, member: StaffMember) => {
         setAnchorEl(event.currentTarget);
-        setSelectedStaff(member);
+        setSelectedMember(member);
     };
 
     const handleMenuClose = () => {
         setAnchorEl(null);
-        setSelectedStaff(null);
     };
 
-    const handleDeactivate = async () => {
-        if (!selectedStaff) return;
-        if (!confirm(`Deactivate ${selectedStaff.name}? They will lose access to the system.`)) return;
+    const handleCardClick = (member: StaffMember) => {
+        setSelectedMember(member);
+        setOpenPermissions(true);
+    };
 
-        try {
-            await staffService.deactivateStaff(selectedStaff._id);
-            fetchStaff();
-        } catch (error) {
-            console.error('Failed to deactivate staff', error);
+    const handleInvite = async (data: { name: string; email: string; permissions: any }) => {
+        const result = await inviteStaff(data);
+        if (result.success) {
+            setToast({ open: true, message: 'Invitation sent successfully!', severity: 'success' });
+        } else {
+            setToast({ open: true, message: result.error || 'Failed to send invitation', severity: 'error' });
         }
+    };
+
+    const handleUpdatePermissions = async (memberId: string, permissions: any) => {
+        const result = await updatePermissions(memberId, permissions);
+        if (result.success) {
+            setToast({ open: true, message: 'Permissions updated successfully!', severity: 'success' });
+        } else {
+            setToast({ open: true, message: result.error || 'Failed to update permissions', severity: 'error' });
+        }
+    };
+
+    const handleConfirmAction = async () => {
+        if (!selectedMember || !confirmAction) return;
+
+        let result;
+        if (confirmAction === 'deactivate') {
+            result = await deactivateStaff(selectedMember._id);
+            if (result.success) {
+                setToast({ open: true, message: `${selectedMember.name} has been deactivated`, severity: 'success' });
+            }
+        } else if (confirmAction === 'reactivate') {
+            result = await reactivateStaff(selectedMember._id);
+            if (result.success) {
+                setToast({ open: true, message: `${selectedMember.name} has been reactivated`, severity: 'success' });
+            }
+        } else if (confirmAction === 'remove') {
+            result = await removeStaff(selectedMember._id);
+            if (result.success) {
+                setToast({ open: true, message: `${selectedMember.name} has been removed`, severity: 'success' });
+            }
+        }
+
+        if (result && !result.success) {
+            setToast({ open: true, message: result.error || 'Action failed', severity: 'error' });
+        }
+
+        setOpenConfirm(false);
+        setConfirmAction(null);
         handleMenuClose();
     };
 
-    const handleReactivate = async () => {
-        if (!selectedStaff) return;
-
-        try {
-            await staffService.reactivateStaff(selectedStaff._id);
-            fetchStaff();
-        } catch (error) {
-            console.error('Failed to reactivate staff', error);
-        }
+    const openConfirmDialog = (action: 'deactivate' | 'reactivate' | 'remove') => {
+        setConfirmAction(action);
+        setOpenConfirm(true);
         handleMenuClose();
     };
 
-    const handleRemove = async () => {
-        if (!selectedStaff) return;
-        if (!confirm(`Permanently remove ${selectedStaff.name}? This cannot be undone.`)) return;
+    const getConfirmDialogProps = () => {
+        if (!selectedMember || !confirmAction) return null;
 
-        try {
-            await staffService.removeStaff(selectedStaff._id);
-            fetchStaff();
-        } catch (error) {
-            console.error('Failed to remove staff', error);
-        }
-        handleMenuClose();
+        const configs = {
+            deactivate: {
+                title: 'Deactivate Staff Member',
+                message: `Are you sure you want to deactivate ${selectedMember.name}? They will lose access to the system but can be reactivated later.`,
+                confirmText: 'Deactivate',
+                type: 'warning' as const,
+            },
+            reactivate: {
+                title: 'Reactivate Staff Member',
+                message: `Are you sure you want to reactivate ${selectedMember.name}? They will regain access to the system with their previous permissions.`,
+                confirmText: 'Reactivate',
+                type: 'warning' as const,
+            },
+            remove: {
+                title: 'Remove Staff Member',
+                message: `Are you sure you want to permanently remove ${selectedMember.name}? This action cannot be undone and all their data will be deleted.`,
+                confirmText: 'Remove Permanently',
+                type: 'danger' as const,
+            },
+        };
+
+        return configs[confirmAction];
     };
 
-    const handlePermissionToggle = async (memberId: string, permission: keyof StaffPermissions, currentValue: boolean) => {
-        try {
-            const updatedPermissions = staff.find(s => s._id === memberId)?.permissions;
-            if (!updatedPermissions) return;
+    const confirmDialogProps = getConfirmDialogProps();
 
-            await staffService.updateStaff(memberId, {
-                ...updatedPermissions,
-                [permission]: !currentValue
-            });
-            
-            // Update local state
-            setStaff(staff.map(s => 
-                s._id === memberId 
-                    ? { ...s, permissions: { ...s.permissions, [permission]: !currentValue } }
-                    : s
-            ));
-        } catch (error) {
-            console.error('Failed to update permission', error);
-        }
-    };
-
-    const getStatusChip = (member: StaffMember) => {
-        if (member.status === 'deactivated') {
-            return <Chip icon={<BlockIcon />} label="Deactivated" color="error" size="small" />;
-        }
-        if (member.inviteStatus === 'expired') {
-            return <Chip icon={<ErrorIcon />} label="Invite Expired" color="warning" size="small" />;
-        }
-        if (member.inviteStatus === 'pending') {
-            return <Chip icon={<PendingIcon />} label="Invite Pending" color="warning" size="small" />;
-        }
-        if (member.status === 'active') {
-            return <Chip icon={<CheckCircleIcon />} label="Active" color="success" size="small" />;
-        }
-        return <Chip label="Inactive" size="small" />;
-    };
-
-    const getPermissionSummary = (permissions: StaffPermissions) => {
-        const active = Object.entries(permissions).filter(([_, value]) => value).length;
-        const total = Object.keys(permissions).length;
-        return `${active}/${total}`;
-    };
-
-    if (loading) {
+    if (loading && staff.length === 0) {
         return (
-            <Box p={4} display="flex" justifyContent="center">
-                <CircularProgress />
-            </Box>
+            <Backdrop
+                open={true}
+                sx={{
+                    color: '#8b5cf6',
+                    zIndex: (theme) => theme.zIndex.drawer + 1,
+                    bgcolor: isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                }}
+            >
+                <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
+                    <CircularProgress size={48} thickness={4} sx={{ color: '#8b5cf6' }} />
+                    <Typography variant="body1" sx={{ color: textPrimary, fontWeight: 600 }}>
+                        Loading team members...
+                    </Typography>
+                </Box>
+            </Backdrop>
         );
     }
 
     return (
         <RBACGuard requireOwner>
-            <Box>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                    <Typography variant="h4" fontWeight="bold">Team Members</Typography>
-                    <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpenInvite(true)}>
+            <Box
+                sx={{
+                    minHeight: '100vh',
+                    bgcolor: pageBgColor,
+                    p: { xs: 2, sm: 3, md: 4 },
+                }}
+            >
+                {/* Header */}
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+                    <Box>
+                        <Typography variant="h4" fontWeight={800} color={textPrimary} sx={{ mb: 0.5 }}>
+                            Team Members
+                        </Typography>
+                        <Typography variant="body2" color={textSecondary} fontWeight={500}>
+                            Manage your team and their permissions
+                        </Typography>
+                    </Box>
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={() => setOpenInvite(true)}
+                        sx={{
+                            borderRadius: '12px',
+                            textTransform: 'none',
+                            fontWeight: 700,
+                            px: 3,
+                            py: 1.5,
+                            bgcolor: '#8b5cf6',
+                            color: 'white',
+                            boxShadow: '0 4px 14px 0 rgba(139, 92, 246, 0.39)',
+                            '&:hover': {
+                                bgcolor: '#7c3aed',
+                                boxShadow: '0 6px 20px rgba(139, 92, 246, 0.5)',
+                            }
+                        }}
+                    >
                         Invite Staff
                     </Button>
                 </Box>
 
-                <Alert severity="info" sx={{ mb: 3 }}>
-                    Invite tokens expire after 48 hours. Toggle permissions inline for quick updates.
-                </Alert>
-
-                <TableContainer component={Paper} variant="outlined">
-                    <Table>
-                        <TableHead>
-                            <TableRow sx={{ bgcolor: 'grey.50' }}>
-                                <TableCell><strong>Name</strong></TableCell>
-                                <TableCell><strong>Email</strong></TableCell>
-                                <TableCell align="center"><strong>Status</strong></TableCell>
-                                <TableCell align="center"><strong>Permissions</strong></TableCell>
-                                <TableCell align="center"><strong>View Bookings</strong></TableCell>
-                                <TableCell align="center"><strong>Edit Bookings</strong></TableCell>
-                                <TableCell align="center"><strong>View Leads</strong></TableCell>
-                                <TableCell align="center"><strong>Edit Leads</strong></TableCell>
-                                <TableCell align="center"><strong>Inbox</strong></TableCell>
-                                <TableCell align="center"><strong>Inventory</strong></TableCell>
-                                <TableCell align="center"><strong>Reports</strong></TableCell>
-                                <TableCell align="center"><strong>Automations</strong></TableCell>
-                                <TableCell align="center"><strong>Actions</strong></TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {staff.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={13} align="center" sx={{ py: 4 }}>
-                                        <Typography color="textSecondary">
-                                            No staff members yet. Click "Invite Staff" to get started.
-                                        </Typography>
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                staff.map((member) => (
-                                    <TableRow key={member._id} hover>
-                                        <TableCell>
-                                            <Typography variant="body2" fontWeight="medium">
-                                                {member.name}
-                                            </Typography>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Typography variant="body2" color="textSecondary">
-                                                {member.email}
-                                            </Typography>
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            {getStatusChip(member)}
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <Chip 
-                                                label={getPermissionSummary(member.permissions)} 
-                                                size="small" 
-                                                variant="outlined"
-                                            />
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <Switch
-                                                checked={member.permissions.canViewBookings}
-                                                onChange={() => handlePermissionToggle(member._id, 'canViewBookings', member.permissions.canViewBookings)}
-                                                size="small"
-                                                disabled={member.status === 'deactivated'}
-                                            />
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <Switch
-                                                checked={member.permissions.canEditBookings}
-                                                onChange={() => handlePermissionToggle(member._id, 'canEditBookings', member.permissions.canEditBookings)}
-                                                size="small"
-                                                disabled={member.status === 'deactivated'}
-                                            />
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <Switch
-                                                checked={member.permissions.canViewLeads}
-                                                onChange={() => handlePermissionToggle(member._id, 'canViewLeads', member.permissions.canViewLeads)}
-                                                size="small"
-                                                disabled={member.status === 'deactivated'}
-                                            />
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <Switch
-                                                checked={member.permissions.canEditLeads}
-                                                onChange={() => handlePermissionToggle(member._id, 'canEditLeads', member.permissions.canEditLeads)}
-                                                size="small"
-                                                disabled={member.status === 'deactivated'}
-                                            />
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <Switch
-                                                checked={member.permissions.canViewInbox}
-                                                onChange={() => handlePermissionToggle(member._id, 'canViewInbox', member.permissions.canViewInbox)}
-                                                size="small"
-                                                disabled={member.status === 'deactivated'}
-                                            />
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <Switch
-                                                checked={member.permissions.canManageInventory}
-                                                onChange={() => handlePermissionToggle(member._id, 'canManageInventory', member.permissions.canManageInventory)}
-                                                size="small"
-                                                disabled={member.status === 'deactivated'}
-                                            />
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <Switch
-                                                checked={member.permissions.canViewReports}
-                                                onChange={() => handlePermissionToggle(member._id, 'canViewReports', member.permissions.canViewReports)}
-                                                size="small"
-                                                disabled={member.status === 'deactivated'}
-                                            />
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <Switch
-                                                checked={member.permissions.canManageAutomations}
-                                                onChange={() => handlePermissionToggle(member._id, 'canManageAutomations', member.permissions.canManageAutomations)}
-                                                size="small"
-                                                disabled={member.status === 'deactivated'}
-                                            />
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <IconButton
-                                                size="small"
-                                                onClick={(e) => handleMenuOpen(e, member)}
-                                            >
-                                                <MoreVertIcon />
-                                            </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
+                {/* Empty State */}
+                {staff.length === 0 ? (
+                    <Box
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="center"
+                        justifyContent="center"
+                        sx={{
+                            minHeight: '60vh',
+                            textAlign: 'center',
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                width: 120,
+                                height: 120,
+                                borderRadius: '50%',
+                                bgcolor: isDark ? 'rgba(139, 92, 246, 0.15)' : '#ede9fe',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                mb: 3,
+                            }}
+                        >
+                            <GroupIcon sx={{ fontSize: 64, color: '#8b5cf6' }} />
+                        </Box>
+                        <Typography variant="h5" fontWeight={700} color={textPrimary} sx={{ mb: 1 }}>
+                            No Team Members Yet
+                        </Typography>
+                        <Typography variant="body1" color={textSecondary} sx={{ mb: 3, maxWidth: 400 }}>
+                            Start building your team by inviting staff members. They'll receive an email with instructions to join.
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            startIcon={<AddIcon />}
+                            onClick={() => setOpenInvite(true)}
+                            sx={{
+                                borderRadius: '12px',
+                                textTransform: 'none',
+                                fontWeight: 700,
+                                px: 4,
+                                py: 1.5,
+                                bgcolor: '#8b5cf6',
+                                color: 'white',
+                                boxShadow: '0 4px 14px 0 rgba(139, 92, 246, 0.39)',
+                                '&:hover': {
+                                    bgcolor: '#7c3aed',
+                                    boxShadow: '0 6px 20px rgba(139, 92, 246, 0.5)',
+                                }
+                            }}
+                        >
+                            Invite Your First Staff Member
+                        </Button>
+                    </Box>
+                ) : (
+                    /* Team Grid */
+                    <Box
+                        sx={{
+                            display: 'grid',
+                            gridTemplateColumns: {
+                                xs: '1fr',
+                                sm: 'repeat(2, 1fr)',
+                                md: 'repeat(3, 1fr)',
+                                lg: 'repeat(4, 1fr)',
+                            },
+                            gap: 3,
+                        }}
+                    >
+                        {staff.map((member) => (
+                            <TeamMemberCard
+                                key={member._id}
+                                member={member}
+                                onMenuClick={(e) => handleMenuOpen(e, member)}
+                                onCardClick={() => handleCardClick(member)}
+                            />
+                        ))}
+                    </Box>
+                )}
 
                 {/* Actions Menu */}
                 <Menu
                     anchorEl={anchorEl}
                     open={Boolean(anchorEl)}
                     onClose={handleMenuClose}
+                    slotProps={{
+                        paper: {
+                            sx: {
+                                borderRadius: '12px',
+                                bgcolor: isDark ? '#1a1d29' : '#ffffff',
+                                boxShadow: isDark ? '0px 8px 24px rgba(0,0,0,0.4)' : '0px 8px 24px rgba(0,0,0,0.1)',
+                                minWidth: 200,
+                            }
+                        }
+                    }}
                 >
-                    {selectedStaff?.status === 'deactivated' ? (
-                        <MenuItem onClick={handleReactivate}>
-                            <CheckCircleIcon fontSize="small" sx={{ mr: 1 }} />
+                    {selectedMember?.status === 'deactivated' ? (
+                        <MenuItem
+                            onClick={() => openConfirmDialog('reactivate')}
+                            sx={{
+                                py: 1.5,
+                                px: 2,
+                                color: textPrimary,
+                                '&:hover': {
+                                    bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc',
+                                }
+                            }}
+                        >
+                            <CheckCircleIcon fontSize="small" sx={{ mr: 1.5, color: '#10b981' }} />
                             Reactivate
                         </MenuItem>
                     ) : (
-                        <MenuItem onClick={handleDeactivate}>
-                            <BlockIcon fontSize="small" sx={{ mr: 1 }} />
+                        <MenuItem
+                            onClick={() => openConfirmDialog('deactivate')}
+                            sx={{
+                                py: 1.5,
+                                px: 2,
+                                color: textPrimary,
+                                '&:hover': {
+                                    bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc',
+                                }
+                            }}
+                        >
+                            <BlockIcon fontSize="small" sx={{ mr: 1.5, color: '#f59e0b' }} />
                             Deactivate
                         </MenuItem>
                     )}
-                    <MenuItem onClick={handleRemove} sx={{ color: 'error.main' }}>
-                        <ErrorIcon fontSize="small" sx={{ mr: 1 }} />
+                    <MenuItem
+                        onClick={() => openConfirmDialog('remove')}
+                        sx={{
+                            py: 1.5,
+                            px: 2,
+                            color: '#ef4444',
+                            '&:hover': {
+                                bgcolor: isDark ? 'rgba(239, 68, 68, 0.1)' : '#fee2e2',
+                            }
+                        }}
+                    >
+                        <DeleteIcon fontSize="small" sx={{ mr: 1.5 }} />
                         Remove Permanently
                     </MenuItem>
                 </Menu>
 
-                {/* Invite Dialog */}
-                <Dialog open={openInvite} onClose={() => setOpenInvite(false)} maxWidth="sm" fullWidth>
-                    <DialogTitle>Invite New Staff Member</DialogTitle>
-                    <DialogContent>
-                        <Box display="flex" flexDirection="column" gap={2} mt={1}>
-                            <TextField
-                                label="Name"
-                                fullWidth
-                                value={inviteData.name}
-                                onChange={(e) => setInviteData({ ...inviteData, name: e.target.value })}
-                            />
-                            <TextField
-                                label="Email Address"
-                                type="email"
-                                fullWidth
-                                value={inviteData.email}
-                                onChange={(e) => setInviteData({ ...inviteData, email: e.target.value })}
-                            />
+                {/* Dialogs */}
+                <InviteStaffDialog
+                    open={openInvite}
+                    onClose={() => setOpenInvite(false)}
+                    onInvite={handleInvite}
+                    processing={processing}
+                />
 
-                            <Alert severity="info" sx={{ mt: 1 }}>
-                                Invite link will expire in 48 hours. You can set permissions now or adjust them later.
-                            </Alert>
+                <PermissionsDialog
+                    open={openPermissions}
+                    onClose={() => setOpenPermissions(false)}
+                    member={selectedMember}
+                    onUpdate={handleUpdatePermissions}
+                    processing={processing}
+                />
 
-                            <Typography variant="subtitle2" sx={{ mt: 2 }}>Initial Permissions</Typography>
-                            <Box display="grid" gridTemplateColumns="1fr 1fr" gap={1}>
-                                <Box display="flex" alignItems="center" justifyContent="space-between">
-                                    <Typography variant="body2">View Bookings</Typography>
-                                    <Switch
-                                        checked={permissionData.canViewBookings}
-                                        onChange={() => setPermissionData({ ...permissionData, canViewBookings: !permissionData.canViewBookings })}
-                                        size="small"
-                                    />
-                                </Box>
-                                <Box display="flex" alignItems="center" justifyContent="space-between">
-                                    <Typography variant="body2">Edit Bookings</Typography>
-                                    <Switch
-                                        checked={permissionData.canEditBookings}
-                                        onChange={() => setPermissionData({ ...permissionData, canEditBookings: !permissionData.canEditBookings })}
-                                        size="small"
-                                    />
-                                </Box>
-                                <Box display="flex" alignItems="center" justifyContent="space-between">
-                                    <Typography variant="body2">View Leads</Typography>
-                                    <Switch
-                                        checked={permissionData.canViewLeads}
-                                        onChange={() => setPermissionData({ ...permissionData, canViewLeads: !permissionData.canViewLeads })}
-                                        size="small"
-                                    />
-                                </Box>
-                                <Box display="flex" alignItems="center" justifyContent="space-between">
-                                    <Typography variant="body2">Edit Leads</Typography>
-                                    <Switch
-                                        checked={permissionData.canEditLeads}
-                                        onChange={() => setPermissionData({ ...permissionData, canEditLeads: !permissionData.canEditLeads })}
-                                        size="small"
-                                    />
-                                </Box>
-                                <Box display="flex" alignItems="center" justifyContent="space-between">
-                                    <Typography variant="body2">View Inbox</Typography>
-                                    <Switch
-                                        checked={permissionData.canViewInbox}
-                                        onChange={() => setPermissionData({ ...permissionData, canViewInbox: !permissionData.canViewInbox })}
-                                        size="small"
-                                    />
-                                </Box>
-                                <Box display="flex" alignItems="center" justifyContent="space-between">
-                                    <Typography variant="body2">Manage Inventory</Typography>
-                                    <Switch
-                                        checked={permissionData.canManageInventory}
-                                        onChange={() => setPermissionData({ ...permissionData, canManageInventory: !permissionData.canManageInventory })}
-                                        size="small"
-                                    />
-                                </Box>
-                                <Box display="flex" alignItems="center" justifyContent="space-between">
-                                    <Typography variant="body2">View Reports</Typography>
-                                    <Switch
-                                        checked={permissionData.canViewReports}
-                                        onChange={() => setPermissionData({ ...permissionData, canViewReports: !permissionData.canViewReports })}
-                                        size="small"
-                                    />
-                                </Box>
-                                <Box display="flex" alignItems="center" justifyContent="space-between">
-                                    <Typography variant="body2">Manage Automations</Typography>
-                                    <Switch
-                                        checked={permissionData.canManageAutomations}
-                                        onChange={() => setPermissionData({ ...permissionData, canManageAutomations: !permissionData.canManageAutomations })}
-                                        size="small"
-                                    />
-                                </Box>
-                            </Box>
-                        </Box>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={() => setOpenInvite(false)}>Cancel</Button>
-                        <Button variant="contained" onClick={handleInvite} disabled={processing}>
-                            {processing ? <CircularProgress size={20} /> : 'Send Invite'}
-                        </Button>
-                    </DialogActions>
-                </Dialog>
+                {confirmDialogProps && (
+                    <ConfirmActionDialog
+                        open={openConfirm}
+                        onClose={() => setOpenConfirm(false)}
+                        onConfirm={handleConfirmAction}
+                        processing={processing}
+                        {...confirmDialogProps}
+                    />
+                )}
+
+                {/* Toast Notifications */}
+                <Snackbar
+                    open={toast.open}
+                    autoHideDuration={4000}
+                    onClose={() => setToast({ ...toast, open: false })}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                >
+                    <Alert
+                        onClose={() => setToast({ ...toast, open: false })}
+                        severity={toast.severity}
+                        sx={{
+                            borderRadius: '12px',
+                            boxShadow: isDark ? '0px 8px 24px rgba(0,0,0,0.4)' : '0px 8px 24px rgba(0,0,0,0.1)',
+                        }}
+                    >
+                        {toast.message}
+                    </Alert>
+                </Snackbar>
             </Box>
         </RBACGuard>
     );
