@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AxiosError } from 'axios';
 import Link from 'next/link';
@@ -25,7 +25,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import api from '@/lib/api';
 import SplineBackground from '@/components/SplineBackground';
 
-export default function LoginPage() {
+function LoginForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -320,5 +320,25 @@ export default function LoginPage() {
                 </CardContent>
             </Card>
         </Box>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <Box
+                sx={{
+                    minHeight: '100vh',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    bgcolor: 'black'
+                }}
+            >
+                <CircularProgress sx={{ color: 'white' }} />
+            </Box>
+        }>
+            <LoginForm />
+        </Suspense>
     );
 }

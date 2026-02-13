@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Box, CircularProgress, Typography, Alert } from '@mui/material';
 import api from '@/lib/api';
 
-export default function GmailCallbackPage() {
+function GmailCallbackContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [error, setError] = useState<string | null>(null);
@@ -88,5 +88,25 @@ export default function GmailCallbackPage() {
                 </>
             )}
         </Box>
+    );
+}
+
+export default function GmailCallbackPage() {
+    return (
+        <Suspense fallback={
+            <Box
+                display="flex"
+                flexDirection="column"
+                alignItems="center"
+                justifyContent="center"
+                minHeight="100vh"
+                gap={3}
+            >
+                <CircularProgress size={60} />
+                <Typography variant="h6">Loading...</Typography>
+            </Box>
+        }>
+            <GmailCallbackContent />
+        </Suspense>
     );
 }
