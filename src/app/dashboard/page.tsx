@@ -81,11 +81,13 @@ export default function DashboardPage() {
         };
 
         initDashboard();
-    }, [router, setStats, setAlerts, setLoading]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [router]);
 
     // Fetch leads separately
     useEffect(() => {
         fetchLeads();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Transform alerts to ActivityItem format
