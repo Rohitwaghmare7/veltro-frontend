@@ -45,30 +45,7 @@ export default function WeeklyActivityChart({
 
         const now = new Date();
 
-        if (period === 'Day') {
-            // Show last 24 hours by hour
-            const data = [];
-            for (let i = 23; i >= 0; i--) {
-                const hour = new Date(now);
-                hour.setHours(now.getHours() - i, 0, 0, 0);
-
-                const count = bookings.filter((b: Booking) => {
-                    if (!b.date) return false;
-                    const bookingDate = new Date(b.date);
-                    if (isNaN(bookingDate.getTime())) return false;
-
-                    return bookingDate.toISOString().split('T')[0] === hour.toISOString().split('T')[0] &&
-                        bookingDate.getHours() === hour.getHours();
-                }).length;
-
-                data.push({
-                    day: `${hour.getHours()}:00`,
-                    value: count,
-                    highlight: i === 0 // Highlight current hour
-                });
-            }
-            return data.filter((_, i) => i % 4 === 0); // Show every 4 hours for readability
-        } else if (period === 'Week') {
+        if (period === 'Week') {
             // Show last 7 days
             const data = [];
             for (let i = 6; i >= 0; i--) {
@@ -131,9 +108,7 @@ export default function WeeklyActivityChart({
 
         const now = new Date();
 
-        if (period === 'Day') {
-            return now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        } else if (period === 'Week') {
+        if (period === 'Week') {
             const weekAgo = new Date(now);
             weekAgo.setDate(now.getDate() - 6);
             return `${weekAgo.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
