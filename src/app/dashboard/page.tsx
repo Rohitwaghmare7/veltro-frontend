@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Box, Grid, CircularProgress, Typography, useTheme } from '@mui/material';
 import HotelIcon from '@mui/icons-material/Hotel';
@@ -11,6 +11,7 @@ import api from '@/lib/api';
 import RBACGuard from '@/components/dashboard/RBACGuard';
 import { dashboardService } from '@/lib/services/dashboard.service';
 import { useDashboardStore } from '@/store/dashboardStore';
+import { useLeadsStore } from '@/store/leadsStore';
 
 // Components
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
@@ -27,7 +28,7 @@ export default function DashboardPage() {
     const router = useRouter();
     const theme = useTheme();
 
-    // Zustand store
+    // Zustand stores
     const {
         stats,
         alerts,
@@ -37,6 +38,11 @@ export default function DashboardPage() {
         setLoading,
         setError
     } = useDashboardStore();
+
+    const { leads, fetchLeads } = useLeadsStore();
+
+    // State for weekly activity data (not used anymore, can be removed)
+    // const [weeklyActivity, setWeeklyActivity] = useState<any>(null);
 
     useEffect(() => {
         const initDashboard = async () => {
@@ -66,6 +72,9 @@ export default function DashboardPage() {
                 if (statsRes.success) setStats(statsRes.data);
                 if (alertsRes.success) setAlerts(alertsRes.data);
 
+                // 3. Fetch Leads Data
+                await fetchLeads();
+
                 setLoading(false);
             } catch (error) {
                 console.error('Dashboard initialization failed', error);
@@ -92,11 +101,12 @@ export default function DashboardPage() {
 
     // Transform low stock items to match LowStockItem interface
     const lowStockItems = useMemo(() => {
+        console.log('📦 Low Stock Data from API:', stats?.inventory?.lowStock);
         return (stats?.inventory?.lowStock || []).map((item: any) => ({
             _id: item._id,
             name: item.name,
-            quantity: item.currentStock || item.quantity || 0,
-            threshold: item.minStock || item.threshold || 0,
+            quantity: item.quantity || 0,
+            threshold: item.threshold || 0,
             unit: item.unit || 'units'
         }));
     }, [stats?.inventory?.lowStock]);
@@ -112,6 +122,17 @@ export default function DashboardPage() {
 
     const pageBgColor = theme.palette.mode === 'light' ? '#F2F1EB' : '#0f1117';
 
+    // Calculate leads stats from leads data
+    const leadsStats = useMemo(() => {
+        const total = leads.length;
+        const newLeads = leads.filter(l => l.status === 'new').length;
+        const contacted = leads.filter(l => l.status === 'contacted').length;
+        const qualified = leads.filter(l => l.status === 'qualified').length;
+        const closed = leads.filter(l => l.status === 'closed').length;
+        
+        return { total, new: newLeads, contacted, qualified, closed };
+    }, [leads]);
+
     // Prepare quick stats data
     const quickStats = [
         {
@@ -125,8 +146,8 @@ export default function DashboardPage() {
         {
             icon: <PeopleIcon sx={{ fontSize: 24 }} />,
             label: 'Total Leads',
-            value: (stats?.leads?.new24h || 0) + (stats?.leads?.openConversations || 0),
-            trend: 8,
+            value: leadsStats.total,
+            trend: stats?.leads?.new24h || 0,
             color: '#22c55e',
             link: '/dashboard/leads'
         },
@@ -141,28 +162,10 @@ export default function DashboardPage() {
         {
             icon: <LocalHospitalIcon sx={{ fontSize: 24 }} />,
             label: 'Services',
-            value: '38',
+            value: stats?.services?.count?.toString() || '0',
             color: '#ef4444',
             link: '/dashboard/settings'
         }
-    ];
-
-    // Prepare calendar bookings data
-    const calendarBookings = [
-        { date: new Date().toISOString().split('T')[0], count: 3 },
-        { date: new Date(Date.now() + 86400000).toISOString().split('T')[0], count: 5 },
-        { date: new Date(Date.now() + 172800000).toISOString().split('T')[0], count: 2 }
-    ];
-
-    // Prepare weekly activity data
-    const weeklyData = [
-        { day: 'Mon', value: stats?.bookings?.today || 0, highlight: false },
-        { day: 'Tue', value: Math.floor((stats?.bookings?.upcoming || 0) / 7), highlight: false },
-        { day: 'Wed', value: Math.floor((stats?.bookings?.upcoming || 0) / 6), highlight: false },
-        { day: 'Thu', value: Math.floor((stats?.bookings?.upcoming || 0) / 5), highlight: true },
-        { day: 'Fri', value: Math.floor((stats?.bookings?.upcoming || 0) / 8), highlight: false },
-        { day: 'Sat', value: Math.floor((stats?.bookings?.upcoming || 0) / 4), highlight: false },
-        { day: 'Sun', value: Math.floor((stats?.bookings?.upcoming || 0) / 9), highlight: false }
     ];
 
     return (
@@ -200,11 +203,12 @@ export default function DashboardPage() {
                     <Grid size={{ xs: 12, lg: 5 }}>
                         <PendingMessagesCard
                             title="Leads Overview"
-                            total={stats?.leads?.new24h || 0}
+                            total={leadsStats.total}
                             data={[
-                                { name: 'New', value: stats?.leads?.new24h || 0, color: '#22c55e' },
-                                { name: 'Open', value: stats?.leads?.openConversations || 0, color: '#3b82f6' },
-                                { name: 'Unanswered', value: stats?.leads?.unanswered || 0, color: '#ef4444' }
+                                { name: 'New', value: leadsStats.new, color: '#3b82f6' },
+                                { name: 'Contacted', value: leadsStats.contacted, color: '#f59e0b' },
+                                { name: 'Qualified', value: leadsStats.qualified, color: '#10b981' },
+                                { name: 'Closed', value: leadsStats.closed, color: '#6b7280' }
                             ]}
                         />
                     </Grid>
@@ -214,14 +218,14 @@ export default function DashboardPage() {
                 <Grid container spacing={2} mb={2}>
                     {/* Compact Calendar */}
                     <Grid size={{ xs: 12, md: 7 }}>
-                        <CompactCalendar bookings={calendarBookings} />
+                        <CompactCalendar />
                     </Grid>
 
                     {/* Wave Chart */}
                     <Grid size={{ xs: 12, md: 5 }}>
                         <WaveStatCard
                             title="Total Interactions"
-                            value={(stats?.leads?.new24h || 0) + (stats?.leads?.openConversations || 0) + (stats?.leads?.unanswered || 0)}
+                            value={stats?.leads?.openConversations || 0}
                             color="#7c3aed"
                             bgColor="#7c3aed"
                         />
@@ -231,14 +235,7 @@ export default function DashboardPage() {
                 {/* ROW 3: Weekly Activity Chart */}
                 <Grid container spacing={2} mb={2}>
                     <Grid size={{ xs: 12 }}>
-                        <WeeklyActivityChart
-                            title="Booking Activity"
-                            metric="Bookings"
-                            value={stats?.bookings?.today || 0}
-                            dateRange={`${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(Date.now() + 604800000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
-                            data={weeklyData}
-                            color="#667eea"
-                        />
+                        <WeeklyActivityChart />
                     </Grid>
                 </Grid>
 

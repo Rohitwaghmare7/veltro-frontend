@@ -53,6 +53,14 @@ export const bookingService = {
         return response.data;
     },
 
+    // Public: Get available slots for a date
+    getPublicAvailableSlots: async (slug: string, date: string, serviceType?: string, duration?: number) => {
+        const response = await api.get(`/public/book/${slug}/available-slots`, {
+            params: { date, serviceType, duration }
+        });
+        return response.data;
+    },
+
     // Dashboard: Get all bookings
     getAllBookings: async (filters?: { 
         status?: string; 

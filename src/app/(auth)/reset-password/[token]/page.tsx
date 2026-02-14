@@ -127,7 +127,7 @@ export default function ResetPasswordPage() {
                                         fontWeight="700"
                                         gutterBottom
                                         sx={{
-                                            background: 'linear-gradient(to right, #FFFFFF, #00D2FF 100%)',
+                                            background: 'linear-gradient(to right, #FFFFFF, #FF6B4A 100%)',
                                             WebkitBackgroundClip: 'text',
                                             WebkitTextFillColor: 'transparent',
                                             mb: 0.5
@@ -252,16 +252,16 @@ export default function ResetPasswordPage() {
                                             sx={{
                                                 fontWeight: '600',
                                                 mt: 1,
-                                                background: 'linear-gradient(180deg, #FFFFFF 0%, #E0E0E0 100%)',
-                                                color: 'black',
+                                                background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A4D 100%)',
+                                                color: 'white',
                                                 borderRadius: 1,
                                                 textTransform: 'none',
                                                 fontSize: '0.9rem',
                                                 height: 40,
-                                                boxShadow: '0 4px 12px rgba(255, 255, 255, 0.1)',
+                                                boxShadow: '0 4px 12px rgba(255, 107, 74, 0.3)',
                                                 '&:hover': {
-                                                    background: 'linear-gradient(180deg, #FFFFFF 0%, #F5F5F5 100%)',
-                                                    boxShadow: '0 0 15px rgba(255, 255, 255, 0.3)',
+                                                    background: 'linear-gradient(135deg, #FF8A4D 0%, #FF6B4A 100%)',
+                                                    boxShadow: '0 0 15px rgba(255, 107, 74, 0.5)',
                                                     transform: 'translateY(-1px)'
                                                 },
                                                 '&.Mui-disabled': {
@@ -274,7 +274,7 @@ export default function ResetPasswordPage() {
                                             disabled={loading}
                                         >
                                             {loading ? (
-                                                <CircularProgress size={20} sx={{ color: 'rgba(0, 0, 0, 0.5)' }} />
+                                                <CircularProgress size={20} sx={{ color: 'rgba(255, 255, 255, 0.8)' }} />
                                             ) : (
                                                 'Update Password'
                                             )}

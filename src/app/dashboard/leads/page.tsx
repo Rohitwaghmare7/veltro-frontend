@@ -648,6 +648,8 @@ export default function LeadsPage() {
                                 type="email"
                                 value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                required
+                                helperText="Required for conversation and notification generation"
                             />
                             <TextField
                                 label="Phone"
@@ -702,7 +704,7 @@ export default function LeadsPage() {
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-                        <Button variant="contained" onClick={handleSaveLead} disabled={!formData.name}>
+                        <Button variant="contained" onClick={handleSaveLead} disabled={!formData.name || !formData.email}>
                             {editingLead ? 'Save' : 'Create'}
                         </Button>
                     </DialogActions>

@@ -31,10 +31,8 @@ import BusinessIcon from '@mui/icons-material/Business';
 import DesignServicesIcon from '@mui/icons-material/DesignServices';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LinkIcon from '@mui/icons-material/Link';
-import WarningIcon from '@mui/icons-material/Warning';
 import { useSettingsStore } from '@/store/settingsStore';
 import RBACGuard from '@/components/dashboard/RBACGuard';
-import ConfirmActionDialog from '@/components/team/ConfirmActionDialog';
 
 export default function SettingsPage() {
     const theme = useTheme();
@@ -55,7 +53,6 @@ export default function SettingsPage() {
         updateProfile,
         updateServices,
         updateWorkingHours,
-        deactivateWorkspace,
         setProfileData,
         setServices,
         setWorkingHours,
@@ -67,8 +64,6 @@ export default function SettingsPage() {
         message: '',
         severity: 'success',
     });
-    const [openDeactivate, setOpenDeactivate] = useState(false);
-    const [deactivateConfirmText, setDeactivateConfirmText] = useState('');
 
     useEffect(() => {
         fetchSettings();
@@ -102,7 +97,6 @@ export default function SettingsPage() {
         { id: 'services', label: 'Services', icon: DesignServicesIcon },
         { id: 'hours', label: 'Working Hours', icon: AccessTimeIcon },
         { id: 'links', label: 'Public Links', icon: LinkIcon },
-        { id: 'danger', label: 'Danger Zone', icon: WarningIcon },
     ];
 
     const handleSaveProfile = async () => {
@@ -152,17 +146,6 @@ export default function SettingsPage() {
         }
     };
 
-    const handleDeactivateConfirm = async () => {
-        const result = await deactivateWorkspace(deactivateConfirmText);
-        if (result.success) {
-            setToast({ open: true, message: 'Workspace deactivated successfully!', severity: 'success' });
-            setOpenDeactivate(false);
-            setDeactivateConfirmText('');
-        } else {
-            setToast({ open: true, message: result.error || 'Failed to deactivate workspace', severity: 'error' });
-        }
-    };
-
     const copyToClipboard = () => {
         navigator.clipboard.writeText(bookingUrl);
         setToast({ open: true, message: 'Link copied to clipboard!', severity: 'success' });
@@ -194,11 +177,11 @@ export default function SettingsPage() {
                 sx={{
                     minHeight: '100vh',
                     bgcolor: pageBgColor,
-                    p: { xs: 2, sm: 3, md: 4 },
+                    p: 2,
                 }}
             >
                 {/* Header */}
-                <Box mb={4}>
+                <Box mb={2}>
                     <Typography variant="h4" fontWeight={800} color={textPrimary} sx={{ mb: 0.5 }}>
                         Settings
                     </Typography>
@@ -208,11 +191,11 @@ export default function SettingsPage() {
                 </Box>
 
                 {/* Main Content with Sidebar */}
-                <Box display="flex" gap={3} flexDirection={{ xs: 'column', md: 'row' }}>
+                <Box display="flex" gap={2} flexDirection={{ xs: 'column', md: 'row' }}>
                     {/* Sidebar Navigation */}
                     <Box
                         sx={{
-                            width: { xs: '100%', md: 280 },
+                            width: { xs: '100%', md: 240 },
                             flexShrink: 0,
                         }}
                     >
@@ -227,11 +210,10 @@ export default function SettingsPage() {
                                 boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.2)' : '0 4px 20px rgba(0,0,0,0.05)',
                             }}
                         >
-                            <List sx={{ p: 1 }}>
+                            <List sx={{ p: 0.5 }}>
                                 {menuItems.map((item) => {
                                     const Icon = item.icon;
                                     const isActive = activeSection === item.id;
-                                    const isDanger = item.id === 'danger';
 
                                     return (
                                         <ListItemButton
@@ -240,7 +222,7 @@ export default function SettingsPage() {
                                             sx={{
                                                 borderRadius: '16px',
                                                 mb: 0.5,
-                                                py: 1.5,
+                                                py: 1,
                                                 bgcolor: isActive
                                                     ? (isDark ? 'rgba(139, 92, 246, 0.15)' : '#ede9fe')
                                                     : 'transparent',
@@ -252,15 +234,13 @@ export default function SettingsPage() {
                                                 transition: 'all 0.2s ease',
                                             }}
                                         >
-                                            <ListItemIcon sx={{ minWidth: 40 }}>
+                                            <ListItemIcon sx={{ minWidth: 36 }}>
                                                 <Icon
                                                     sx={{
                                                         fontSize: 22,
-                                                        color: isDanger
-                                                            ? '#ef4444'
-                                                            : isActive
-                                                                ? '#8b5cf6'
-                                                                : textSecondary,
+                                                        color: isActive
+                                                            ? '#8b5cf6'
+                                                            : textSecondary,
                                                     }}
                                                 />
                                             </ListItemIcon>
@@ -269,11 +249,9 @@ export default function SettingsPage() {
                                                 primaryTypographyProps={{
                                                     fontWeight: isActive ? 700 : 600,
                                                     fontSize: '0.95rem',
-                                                    color: isDanger
-                                                        ? '#ef4444'
-                                                        : isActive
-                                                            ? '#8b5cf6'
-                                                            : textPrimary,
+                                                    color: isActive
+                                                        ? '#8b5cf6'
+                                                        : textPrimary,
                                                 }}
                                             />
                                         </ListItemButton>
@@ -290,15 +268,15 @@ export default function SettingsPage() {
                                 borderRadius: '24px',
                                 bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
                                 border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
-                                p: { xs: 3, sm: 4 },
-                                minHeight: 600,
+                                p: 3,
+                                minHeight: 500,
                                 boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.2)' : '0 4px 20px rgba(0,0,0,0.05)',
                             }}
                         >
                             {/* Business Profile Section */}
                             {activeSection === 'profile' && (
                                 <Box>
-                                    <Box mb={4}>
+                                    <Box mb={2}>
                                         <Typography variant="h5" fontWeight={700} color={textPrimary} sx={{ mb: 1 }}>
                                             Business Profile
                                         </Typography>
@@ -307,7 +285,7 @@ export default function SettingsPage() {
                                         </Typography>
                                     </Box>
 
-                                    <Box display="flex" flexDirection="column" gap={3}>
+                                    <Box display="flex" flexDirection="column" gap={2}>
                                         <Box>
                                             <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
                                                 Business Name
@@ -319,7 +297,7 @@ export default function SettingsPage() {
                                                 placeholder="Enter business name"
                                                 sx={{
                                                     width: '100%',
-                                                    p: 1.5,
+                                                    p: 1,
                                                     borderRadius: '12px',
                                                     border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                     bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#F3F4F6',
@@ -335,7 +313,7 @@ export default function SettingsPage() {
                                             />
                                         </Box>
 
-                                        <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr' }} gap={2}>
+                                        <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr' }} gap={1.5}>
                                             <Box>
                                                 <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
                                                     Category
@@ -484,7 +462,7 @@ export default function SettingsPage() {
                                             </Typography>
                                         </Box>
 
-                                        <Divider sx={{ my: 2 }} />
+                                        <Divider sx={{ my: 1.5 }} />
 
                                         <Typography variant="h6" fontWeight={700} color={textPrimary} sx={{ mb: 1 }}>
                                             Address
@@ -644,7 +622,7 @@ export default function SettingsPage() {
                                             </Box>
                                         </Box>
 
-                                        <Box display="flex" gap={2} mt={2}>
+                                        <Box display="flex" gap={2} mt={1.5}>
                                             <Button
                                                 variant="contained"
                                                 onClick={handleSaveProfile}
@@ -689,7 +667,7 @@ export default function SettingsPage() {
                             {/* Services Section */}
                             {activeSection === 'services' && (
                                 <Box>
-                                    <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={4}>
+                                    <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
                                         <Box>
                                             <Typography variant="h5" fontWeight={700} color={textPrimary} sx={{ mb: 1 }}>
                                                 Services Management
@@ -724,12 +702,12 @@ export default function SettingsPage() {
                                             flexDirection="column"
                                             alignItems="center"
                                             justifyContent="center"
-                                            py={8}
+                                            py={4}
                                         >
                                             <Box
                                                 sx={{
-                                                    width: 80,
-                                                    height: 80,
+                                                    width: 60,
+                                                    height: 60,
                                                     borderRadius: '50%',
                                                     bgcolor: isDark ? 'rgba(139, 92, 246, 0.15)' : '#ede9fe',
                                                     display: 'flex',
@@ -738,7 +716,7 @@ export default function SettingsPage() {
                                                     mb: 3,
                                                 }}
                                             >
-                                                <DesignServicesIcon sx={{ fontSize: 40, color: '#8b5cf6' }} />
+                                                <DesignServicesIcon sx={{ fontSize: 32, color: '#8b5cf6' }} />
                                             </Box>
                                             <Typography variant="h6" fontWeight={700} color={textPrimary} sx={{ mb: 1 }}>
                                                 No services added yet
@@ -765,7 +743,7 @@ export default function SettingsPage() {
                                             </Button>
                                         </Box>
                                     ) : (
-                                        <Stack spacing={3}>
+                                        <Stack spacing={2}>
                                             {services.map((service, index) => (
                                                 <Card
                                                     key={index}
@@ -781,8 +759,8 @@ export default function SettingsPage() {
                                                         }
                                                     }}
                                                 >
-                                                    <CardContent sx={{ p: 3 }}>
-                                                        <Box display="flex" flexDirection="column" gap={2.5}>
+                                                    <CardContent sx={{ p: 2 }}>
+                                                        <Box display="flex" flexDirection="column" gap={2}>
                                                             <Box display="flex" gap={2} alignItems="flex-start" flexDirection={{ xs: 'column', sm: 'row' }}>
                                                                 <Box flex={1} width="100%">
                                                                     <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
@@ -795,7 +773,7 @@ export default function SettingsPage() {
                                                                         placeholder="e.g., Haircut, Massage"
                                                                         sx={{
                                                                             width: '100%',
-                                                                            p: 1.5,
+                                                                            p: 1,
                                                                             borderRadius: '12px',
                                                                             border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                                             bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#ffffff',
@@ -822,7 +800,7 @@ export default function SettingsPage() {
                                                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleServiceChange(index, 'duration', parseInt(e.target.value) || 0)}
                                                                         sx={{
                                                                             width: '100%',
-                                                                            p: 1.5,
+                                                                            p: 1,
                                                                             borderRadius: '12px',
                                                                             border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                                             bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#ffffff',
@@ -849,7 +827,7 @@ export default function SettingsPage() {
                                                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleServiceChange(index, 'price', parseInt(e.target.value) || 0)}
                                                                         sx={{
                                                                             width: '100%',
-                                                                            p: 1.5,
+                                                                            p: 1,
                                                                             borderRadius: '12px',
                                                                             border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                                             bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#ffffff',
@@ -869,7 +847,7 @@ export default function SettingsPage() {
                                                                     onClick={() => handleRemoveService(index)}
                                                                     sx={{
                                                                         color: '#ef4444',
-                                                                        mt: { xs: 0, sm: 3.5 },
+                                                                        mt: { xs: 0, sm: 3 },
                                                                         '&:hover': {
                                                                             bgcolor: isDark ? 'rgba(239, 68, 68, 0.1)' : '#fee2e2',
                                                                         }
@@ -912,7 +890,7 @@ export default function SettingsPage() {
                                                 </Card>
                                             ))}
 
-                                            <Box display="flex" gap={2} mt={2}>
+                                            <Box display="flex" gap={2} mt={1.5}>
                                                 <Button
                                                     variant="contained"
                                                     onClick={handleSaveServices}
@@ -954,7 +932,7 @@ export default function SettingsPage() {
                             {/* Working Hours Section */}
                             {activeSection === 'hours' && (
                                 <Box>
-                                    <Box mb={4}>
+                                    <Box mb={2}>
                                         <Typography variant="h5" fontWeight={700} color={textPrimary} sx={{ mb: 1 }}>
                                             Working Hours
                                         </Typography>
@@ -963,7 +941,7 @@ export default function SettingsPage() {
                                         </Typography>
                                     </Box>
 
-                                    <Stack spacing={2}>
+                                    <Stack spacing={1.5}>
                                         {workingHours.map((hours, index) => (
                                             <Card
                                                 key={hours.day}
@@ -979,7 +957,7 @@ export default function SettingsPage() {
                                                     }
                                                 }}
                                             >
-                                                <CardContent sx={{ p: 3 }}>
+                                                <CardContent sx={{ p: 2 }}>
                                                     <Box display="flex" alignItems="center" gap={3} flexWrap="wrap">
                                                         <FormControlLabel
                                                             control={
@@ -1020,7 +998,7 @@ export default function SettingsPage() {
                                                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleWorkingHoursChange(index, 'start', e.target.value)}
                                                                         sx={{
                                                                             width: '100%',
-                                                                            p: 1.5,
+                                                                            p: 1,
                                                                             borderRadius: '12px',
                                                                             border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                                             bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#ffffff',
@@ -1047,7 +1025,7 @@ export default function SettingsPage() {
                                                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleWorkingHoursChange(index, 'end', e.target.value)}
                                                                         sx={{
                                                                             width: '100%',
-                                                                            p: 1.5,
+                                                                            p: 1,
                                                                             borderRadius: '12px',
                                                                             border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                                             bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#ffffff',
@@ -1073,7 +1051,7 @@ export default function SettingsPage() {
                                             </Card>
                                         ))}
 
-                                        <Box display="flex" gap={2} mt={3}>
+                                        <Box display="flex" gap={2} mt={2}>
                                             <Button
                                                 variant="contained"
                                                 onClick={handleSaveWorkingHours}
@@ -1118,7 +1096,7 @@ export default function SettingsPage() {
                             {/* Public Links Section */}
                             {activeSection === 'links' && (
                                 <Box>
-                                    <Box mb={4}>
+                                    <Box mb={2}>
                                         <Typography variant="h5" fontWeight={700} color={textPrimary} sx={{ mb: 1 }}>
                                             Public Links
                                         </Typography>
@@ -1127,7 +1105,7 @@ export default function SettingsPage() {
                                         </Typography>
                                     </Box>
 
-                                    <Stack spacing={4}>
+                                    <Stack spacing={3}>
                                         <Box>
                                             <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
                                                 Public Booking Page
@@ -1138,7 +1116,7 @@ export default function SettingsPage() {
                                                     alignItems: 'center',
                                                     width: '100%',
                                                     p: 0.5,
-                                                    pl: 1.5,
+                                                    pl: 1,
                                                     borderRadius: '12px',
                                                     border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                     bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#F3F4F6',
@@ -1202,7 +1180,7 @@ export default function SettingsPage() {
                                                 readOnly
                                                 sx={{
                                                     width: '100%',
-                                                    p: 1.5,
+                                                    p: 1,
                                                     borderRadius: '12px',
                                                     border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                     bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#F3F4F6',
@@ -1219,77 +1197,9 @@ export default function SettingsPage() {
                                     </Stack>
                                 </Box>
                             )}
-
-                            {/* Danger Zone Section */}
-                            {activeSection === 'danger' && (
-                                <Box>
-                                    <Box mb={4}>
-                                        <Typography variant="h5" fontWeight={700} sx={{ color: '#ef4444', mb: 1 }}>
-                                            Danger Zone
-                                        </Typography>
-                                        <Typography variant="body2" color={textSecondary}>
-                                            Irreversible and destructive actions
-                                        </Typography>
-                                    </Box>
-
-                                    <Card
-                                        sx={{
-                                            borderRadius: '24px',
-                                            bgcolor: isDark ? 'rgba(239, 68, 68, 0.1)' : '#fee2e2',
-                                            border: `2px solid ${isDark ? 'rgba(239, 68, 68, 0.3)' : '#fecaca'}`,
-                                        }}
-                                    >
-                                        <CardContent sx={{ p: 4 }}>
-                                            <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
-                                                <Box flex={1}>
-                                                    <Typography variant="h6" fontWeight={700} color={textPrimary} sx={{ mb: 1 }}>
-                                                        Deactivate Workspace
-                                                    </Typography>
-                                                    <Typography variant="body2" color={textSecondary}>
-                                                        This will deactivate your workspace and stop accepting bookings. Your data will be preserved and you can reactivate it later.
-                                                    </Typography>
-                                                </Box>
-                                                <Button
-                                                    variant="contained"
-                                                    startIcon={<WarningIcon />}
-                                                    onClick={() => setOpenDeactivate(true)}
-                                                    sx={{
-                                                        borderRadius: '12px',
-                                                        textTransform: 'none',
-                                                        fontWeight: 700,
-                                                        bgcolor: '#ef4444',
-                                                        boxShadow: '0 4px 14px 0 rgba(239, 68, 68, 0.39)',
-                                                        '&:hover': {
-                                                            bgcolor: '#dc2626',
-                                                            boxShadow: '0 6px 20px rgba(239, 68, 68, 0.5)',
-                                                        }
-                                                    }}
-                                                >
-                                                    Deactivate
-                                                </Button>
-                                            </Box>
-                                        </CardContent>
-                                    </Card>
-                                </Box>
-                            )}
                         </Paper>
                     </Box>
                 </Box>
-
-                {/* Deactivate Confirmation Dialog */}
-                <ConfirmActionDialog
-                    open={openDeactivate}
-                    onClose={() => {
-                        setOpenDeactivate(false);
-                        setDeactivateConfirmText('');
-                    }}
-                    onConfirm={handleDeactivateConfirm}
-                    title="Deactivate Workspace"
-                    message={`This will deactivate your workspace and stop accepting new bookings. Your data will be preserved and you can reactivate later. To confirm, please type your business name: ${business?.name}`}
-                    confirmText="Deactivate Workspace"
-                    type="danger"
-                    processing={processing}
-                />
 
                 {/* Toast Notifications */}
                 <Snackbar
@@ -1302,7 +1212,7 @@ export default function SettingsPage() {
                         onClose={() => setToast({ ...toast, open: false })}
                         severity={toast.severity}
                         sx={{
-                            borderRadius: '12px',
+                            borderRadius: '8px',
                             boxShadow: isDark ? '0px 8px 24px rgba(0,0,0,0.4)' : '0px 8px 24px rgba(0,0,0,0.1)',
                         }}
                     >

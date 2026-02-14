@@ -18,21 +18,30 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
                     sx={{
                         width: { xs: '100%', md: '380px' },
                         height: '100vh',
-                        bgcolor: '#051821',
-                        backgroundImage: 'radial-gradient(circle at 100% 0%, #082a3a 0%, #051821 50%, #000000 100%)',
+                        bgcolor: 'rgba(5, 5, 5, 0.6)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
                         display: { xs: 'none', md: 'flex' },
                         flexDirection: 'column',
                         p: 6,
-                        borderRight: '1px solid rgba(255, 255, 255, 0.05)',
                         position: 'fixed',
                         zIndex: 10
                     }}
                 >
                     <Box sx={{ mb: 8 }}>
-                        <Typography variant="h4" fontWeight="900" sx={{ color: 'white', letterSpacing: '-1px' }}>
+                        <Typography 
+                            variant="h4" 
+                            fontWeight="700" 
+                            sx={{ 
+                                background: 'linear-gradient(to right, #FFFFFF, #FF6B4A 100%)',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                letterSpacing: '-1px' 
+                            }}
+                        >
                             VELTRO
                         </Typography>
-                        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.4)', mt: 1 }}>
+                        <Typography variant="body2" sx={{ color: '#666', mt: 1, fontSize: '0.85rem' }}>
                             Set up your business workspace
                         </Typography>
                     </Box>
@@ -42,7 +51,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
                     </Box>
 
                     <Box>
-                        <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.2)' }}>
+                        <Typography variant="caption" sx={{ color: '#444' }}>
                             © 2026 Veltro Technologies
                         </Typography>
                     </Box>
@@ -63,8 +72,8 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
                     }}
                 >
                     {/* Spline Background for Content Area */}
-                    <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, opacity: 0.4 }}>
-                        <SplineBackground scale="150%" />
+                    <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, opacity: 0.8 }}>
+                        <SplineBackground scale="180%" opacity={0.8} />
                     </Box>
 
                     <Box sx={{ maxWidth: '650px', width: '100%', px: 6, py: 8, position: 'relative', zIndex: 1 }}>
@@ -85,18 +94,50 @@ function OnboardingStepper() {
             orientation="vertical"
             sx={{
                 '& .MuiStep-root': { mb: 4 },
-                '& .MuiStepLabel-label': { color: 'rgba(255, 255, 255, 0.3)', fontWeight: '500', fontSize: '0.95rem', ml: 1 },
-                '& .MuiStepLabel-label.Mui-active': { color: 'white', fontWeight: '700' },
-                '& .MuiStepLabel-label.Mui-completed': { color: '#00D2FF' },
+                '& .MuiStepLabel-label': { 
+                    color: '#444', 
+                    fontWeight: '500', 
+                    fontSize: '0.9rem', 
+                    ml: 1 
+                },
+                '& .MuiStepLabel-label.Mui-active': { 
+                    color: 'white', 
+                    fontWeight: '700' 
+                },
+                '& .MuiStepLabel-label.Mui-completed': { 
+                    color: '#FF6B4A',
+                    fontWeight: '600'
+                },
                 '& .MuiStepIcon-root': {
                     width: 28,
                     height: 28,
-                    color: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    color: '#050505',
+                    border: '1px solid #222',
                     borderRadius: '50%',
-                    '&.Mui-active': { color: 'white', border: 'none' },
-                    '&.Mui-completed': { color: 'white', border: 'none' },
-                    '& text': { display: 'none' }
+                    '&.Mui-active': { 
+                        color: '#FF6B4A', 
+                        border: 'none',
+                        boxShadow: '0 0 12px rgba(255, 107, 74, 0.4)'
+                    },
+                    '&.Mui-completed': { 
+                        color: '#FF6B4A', 
+                        border: 'none' 
+                    },
+                    '& text': { 
+                        fill: 'white',
+                        fontWeight: '700',
+                        fontSize: '0.75rem'
+                    }
+                },
+                '& .MuiStepConnector-line': {
+                    borderColor: '#222',
+                    borderLeftWidth: 2
+                },
+                '& .MuiStepConnector-root.Mui-completed .MuiStepConnector-line': {
+                    borderColor: '#FF6B4A'
+                },
+                '& .MuiStepConnector-root.Mui-active .MuiStepConnector-line': {
+                    borderColor: '#FF6B4A'
                 }
             }}
         >

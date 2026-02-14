@@ -68,6 +68,7 @@ function SortableField({ field, onUpdate, onRemove, onRequestDelete }: any) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: field.id });
     const theme = useTheme();
     const isDark = theme.palette.mode === 'dark';
+    const isMandatory = field.id === 'email-mandatory';
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -86,43 +87,84 @@ function SortableField({ field, onUpdate, onRemove, onRequestDelete }: any) {
                 p: 3,
                 position: 'relative',
                 mb: 2,
-                bgcolor: cardBg,
+                bgcolor: isMandatory ? (isDark ? 'rgba(102, 126, 234, 0.1)' : 'rgba(102, 126, 234, 0.05)') : cardBg,
                 borderRadius: '16px',
-                border: `1px solid ${borderColor}`,
+                border: `1px solid ${isMandatory ? '#667eea' : borderColor}`,
                 transition: 'all 0.2s',
                 '&:hover': {
-                    borderColor: isDark ? 'rgba(255,255,255,0.3)' : '#cbd5e1',
+                    borderColor: isMandatory ? '#667eea' : (isDark ? 'rgba(255,255,255,0.3)' : '#cbd5e1'),
                     boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.05)',
                     '& .actions': { opacity: 1 }
                 }
             }}
         >
-            <Box
-                className="actions"
-                sx={{
-                    position: 'absolute',
-                    right: 12,
-                    top: 12,
-                    opacity: 0,
-                    transition: 'opacity 0.2s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    bgcolor: isDark ? '#1f2937' : '#ffffff',
-                    borderRadius: '8px',
-                    boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.5)' : '0 2px 8px rgba(0,0,0,0.1)',
-                    p: 0.5,
-                    border: `1px solid ${borderColor}`,
-                    zIndex: 2
-                }}
-            >
-                <IconButton size="small" {...attributes} {...listeners} sx={{ cursor: 'grab', color: 'text.secondary', '&:hover': { color: 'text.primary' } }}>
-                    <DragIndicatorIcon fontSize="small" />
-                </IconButton>
-                <IconButton size="small" onClick={() => onRequestDelete(field.id, field.label)} sx={{ color: 'text.secondary', '&:hover': { color: '#ef4444' } }}>
-                    <DeleteIcon fontSize="small" />
-                </IconButton>
-            </Box>
+            {isMandatory && (
+                <Chip
+                    label="Required for Lead Capture"
+                    size="small"
+                    sx={{
+                        position: 'absolute',
+                        top: 12,
+                        right: 12,
+                        bgcolor: '#667eea',
+                        color: 'white',
+                        fontWeight: 600,
+                        fontSize: '0.7rem',
+                        height: '24px',
+                        zIndex: 3
+                    }}
+                />
+            )}
+            {!isMandatory && (
+                <Box
+                    className="actions"
+                    sx={{
+                        position: 'absolute',
+                        right: 12,
+                        top: 12,
+                        opacity: 0,
+                        transition: 'opacity 0.2s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        bgcolor: isDark ? '#1f2937' : '#ffffff',
+                        borderRadius: '8px',
+                        boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.5)' : '0 2px 8px rgba(0,0,0,0.1)',
+                        p: 0.5,
+                        border: `1px solid ${borderColor}`,
+                        zIndex: 2
+                    }}
+                >
+                    <IconButton size="small" {...attributes} {...listeners} sx={{ cursor: 'grab', color: 'text.secondary', '&:hover': { color: 'text.primary' } }}>
+                        <DragIndicatorIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton size="small" onClick={() => onRequestDelete(field.id, field.label)} sx={{ color: 'text.secondary', '&:hover': { color: '#ef4444' } }}>
+                        <DeleteIcon fontSize="small" />
+                    </IconButton>
+                </Box>
+            )}
+            {isMandatory && (
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        right: 12,
+                        top: 44,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        bgcolor: isDark ? '#1f2937' : '#ffffff',
+                        borderRadius: '8px',
+                        boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.5)' : '0 2px 8px rgba(0,0,0,0.1)',
+                        p: 0.5,
+                        border: `1px solid ${borderColor}`,
+                        zIndex: 2
+                    }}
+                >
+                    <IconButton size="small" {...attributes} {...listeners} sx={{ cursor: 'grab', color: 'text.secondary', '&:hover': { color: 'text.primary' } }}>
+                        <DragIndicatorIcon fontSize="small" />
+                    </IconButton>
+                </Box>
+            )}
 
             <Grid container spacing={2} alignItems="flex-start">
                 <Grid size={{ xs: 12, md: 8 }}>
@@ -132,7 +174,14 @@ function SortableField({ field, onUpdate, onRemove, onRequestDelete }: any) {
                         variant="standard"
                         value={field.label}
                         onChange={(e) => onUpdate(field.id, { label: e.target.value })}
-                        InputProps={{ sx: { fontWeight: 'bold' } }}
+                        disabled={isMandatory}
+                        InputProps={{ 
+                            sx: { 
+                                fontWeight: 'bold',
+                                ...(isMandatory && { color: '#667eea' })
+                            } 
+                        }}
+                        helperText={isMandatory ? "This field is mandatory and cannot be renamed" : ""}
                     />
                 </Grid>
                 <Grid size={{ xs: 12, md: 4 }}>
@@ -141,6 +190,7 @@ function SortableField({ field, onUpdate, onRemove, onRequestDelete }: any) {
                             <Switch
                                 checked={field.required}
                                 onChange={(e) => onUpdate(field.id, { required: e.target.checked })}
+                                disabled={isMandatory}
                                 size="small"
                             />
                         }
@@ -227,7 +277,15 @@ export default function FormBuilderPage() {
 
     const [title, setTitle] = useState('Untitled Form');
     const [description, setDescription] = useState('Please fill out this form...');
-    const [fields, setFields] = useState<FormField[]>([]);
+    const [fields, setFields] = useState<FormField[]>([
+        {
+            id: 'email-mandatory',
+            type: 'email',
+            label: 'Email',
+            required: true,
+            placeholder: 'your@email.com'
+        }
+    ]);
     const [loading, setLoading] = useState(false);
     const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
@@ -280,11 +338,39 @@ export default function FormBuilderPage() {
     };
 
     const removeField = (id: string) => {
+        // Prevent deletion of mandatory email field
+        if (id === 'email-mandatory') {
+            setNotification({
+                open: true,
+                message: 'Email field is mandatory and cannot be deleted',
+                severity: 'error'
+            });
+            return;
+        }
         setFields(fields.filter(f => f.id !== id));
         setDeleteFieldDialog({ open: false, fieldId: null, fieldLabel: '' });
     };
 
     const updateField = (id: string, updates: Partial<FormField>) => {
+        // Prevent changing label and type of mandatory email field
+        if (id === 'email-mandatory') {
+            // Allow only placeholder and required changes (though required should stay true)
+            const allowedUpdates: Partial<FormField> = {};
+            if (updates.placeholder !== undefined) {
+                allowedUpdates.placeholder = updates.placeholder;
+            }
+            // Keep required always true for mandatory email
+            if (updates.required !== undefined && !updates.required) {
+                setNotification({
+                    open: true,
+                    message: 'Email field must remain required',
+                    severity: 'warning'
+                });
+                return;
+            }
+            setFields(fields.map(f => f.id === id ? { ...f, ...allowedUpdates } : f));
+            return;
+        }
         setFields(fields.map(f => f.id === id ? { ...f, ...updates } : f));
     };
 

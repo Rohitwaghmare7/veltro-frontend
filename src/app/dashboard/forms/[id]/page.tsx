@@ -137,8 +137,15 @@ export default function FormSubmissionsPage() {
 
     return (
         <RBACGuard permission={['canEditBookings', 'canEditLeads']}>
-            <Box sx={{ minHeight: '100vh', bgcolor: pageBgColor, p: 4 }}>
-                <Box mb={4}>
+            <Box sx={{ 
+                height: '100vh', 
+                bgcolor: pageBgColor, 
+                p: 4,
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden'
+            }}>
+                <Box mb={3} flexShrink={0}>
                     <Button
                         component={Link}
                         href="/dashboard/forms"
@@ -187,7 +194,7 @@ export default function FormSubmissionsPage() {
                 </Box>
 
                 {/* Summary Cards */}
-                <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }} gap={3} mb={4}>
+                <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }} gap={3} mb={3} flexShrink={0}>
                     <Paper
                         elevation={0}
                         sx={{
@@ -233,6 +240,7 @@ export default function FormSubmissionsPage() {
                     </Paper>
                 </Box>
 
+                {/* Responses Table - Scrollable */}
                 <Paper
                     elevation={0}
                     sx={{
@@ -240,10 +248,13 @@ export default function FormSubmissionsPage() {
                         border: `1px solid ${borderColor}`,
                         bgcolor: cardBg,
                         overflow: 'hidden',
-                        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.05)'
+                        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.05)',
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column'
                     }}
                 >
-                    <TableContainer>
+                    <TableContainer sx={{ flex: 1, overflow: 'auto' }}>
                         <Table>
                             <TableHead>
                                 <TableRow sx={{ bgcolor: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc' }}>

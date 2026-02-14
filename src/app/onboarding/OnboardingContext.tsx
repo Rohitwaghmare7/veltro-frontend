@@ -6,7 +6,8 @@ const steps = [
     'Create Workspace',
     'Connect Channels',
     'Contact Form',
-    'Booking Setup',
+    'Services',
+    'Operating Hours',
     'Activation',
 ];
 

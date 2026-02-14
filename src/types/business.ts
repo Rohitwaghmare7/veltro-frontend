@@ -23,6 +23,7 @@ export interface Address {
 export interface BusinessData {
     name: string;
     category: string;
+    customCategory?: string;
     description: string;
     phone: string;
     email: string;

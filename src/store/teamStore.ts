@@ -15,6 +15,7 @@ interface TeamState {
     deactivateStaff: (memberId: string) => Promise<{ success: boolean; error?: string }>;
     reactivateStaff: (memberId: string) => Promise<{ success: boolean; error?: string }>;
     removeStaff: (memberId: string) => Promise<{ success: boolean; error?: string }>;
+    resendInvite: (memberId: string) => Promise<{ success: boolean; error?: string }>;
     clearError: () => void;
 }
 
@@ -134,6 +135,24 @@ export const useTeamStore = create<TeamState>()(
                     return { success: true };
                 } catch (error: any) {
                     const errorMessage = error.response?.data?.message || 'Failed to remove staff';
+                    set({ error: errorMessage, processing: false });
+                    return { success: false, error: errorMessage };
+                }
+            },
+
+            resendInvite: async (memberId) => {
+                set({ processing: true, error: null });
+                try {
+                    const response = await staffService.resendInvite(memberId);
+                    if (response.success) {
+                        set({ processing: false });
+                        return { success: true };
+                    } else {
+                        set({ error: 'Failed to resend invitation', processing: false });
+                        return { success: false, error: 'Failed to resend invitation' };
+                    }
+                } catch (error: any) {
+                    const errorMessage = error.response?.data?.message || 'Failed to resend invitation';
                     set({ error: errorMessage, processing: false });
                     return { success: false, error: errorMessage };
                 }

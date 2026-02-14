@@ -34,13 +34,14 @@ export default function OnboardingPage() {
     const [businessData, setBusinessData] = useState<BusinessData>({
         name: '',
         category: 'other',
+        customCategory: '',
         description: '',
         phone: '',
         email: '',
         website: '',
         address: { street: '', city: '', state: '', zipCode: '', country: '' },
         emailConnected: false,
-        contactFormFields: ['name', 'email', 'message'],
+        contactFormFields: ['name', 'email'],
         workingHours: [
             { day: 'monday', start: '09:00', end: '17:00', isOpen: true },
             { day: 'tuesday', start: '09:00', end: '17:00', isOpen: true },
@@ -144,10 +145,17 @@ export default function OnboardingPage() {
                 return false; // Email connection is optional
             case 2: // Contact Form
                 return businessData.contactFormFields.length < 2; // Should at least have name/email
-            case 3: // Booking
-                const hasService = businessData.services.some(s => s.name.trim() !== '');
+            case 3: // Services
+                // All services must be valid (name, duration >= 15, price >= 1)
+                const allServicesValid = businessData.services.every(s => 
+                    s.name.trim() !== '' && s.duration >= 15 && s.price >= 1
+                );
+                // Must have at least one service
+                const hasServices = businessData.services.length > 0;
+                return !hasServices || !allServicesValid;
+            case 4: // Operating Hours
                 const hasHours = businessData.workingHours.some(h => h.isOpen);
-                return !hasService || !hasHours;
+                return !hasHours;
             default:
                 return false;
         }
@@ -178,24 +186,35 @@ export default function OnboardingPage() {
                     payload = { contactFormFields: businessData.contactFormFields };
                     break;
                 case 4:
-                    payload = {
-                        workingHours: businessData.workingHours,
-                        services: businessData.services
-                    };
+                    payload = { services: businessData.services };
                     break;
                 case 5:
-                    await api.post('/onboarding/complete');
-                    const userStr = localStorage.getItem('user');
-                    if (userStr) {
-                        const user = JSON.parse(userStr);
-                        user.isOnboarded = true;
+                    payload = { workingHours: businessData.workingHours };
+                    break;
+                case 6:
+                    const response = await api.post('/onboarding/complete');
+                    if (response.data.success) {
+                        const { token, refreshToken, user, business } = response.data.data;
+                        // Update tokens and user in localStorage
+                        localStorage.setItem('token', token);
+                        localStorage.setItem('refreshToken', refreshToken);
                         localStorage.setItem('user', JSON.stringify(user));
+                        // Set the business ID for API calls
+                        if (user.businessId) {
+                            localStorage.setItem('selectedBusinessId', user.businessId);
+                        } else if (business?._id) {
+                            localStorage.setItem('selectedBusinessId', business._id);
+                        }
+                        
+                        // Force page reload to ensure all API calls use new token
+                        window.location.href = '/dashboard';
+                        return;
                     }
                     router.push('/dashboard');
                     return;
             }
 
-            if (stepNum < 5) {
+            if (stepNum < 6) {
                 await api.put(`/onboarding/step/${stepNum}`, payload);
                 setActiveStep(activeStep + 1);
             }
@@ -219,115 +238,162 @@ export default function OnboardingPage() {
     }
 
     const renderStep1 = () => (
-        <Grid container spacing={4}>
-            <Grid size={{ xs: 12 }}>
-                <Typography
-                    variant="h3"
-                    fontWeight="800"
-                    sx={{
-                        background: 'linear-gradient(to right, #FFFFFF, #00D2FF 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        mb: 1,
-                        letterSpacing: '-1px'
-                    }}
-                >
-                    Business Profile
-                </Typography>
-                <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.6)', mb: 2 }}>
-                    Tell us about your business to personalize your experience.
-                </Typography>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                    fullWidth
-                    label="Business Name"
-                    placeholder="Enter your business name"
-                    value={businessData.name}
-                    onChange={(e) => setBusinessData({ ...businessData, name: e.target.value })}
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            bgcolor: 'rgba(255, 255, 255, 0.02)',
-                            color: 'white',
-                            borderRadius: 1,
-                            '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.1)' },
-                            '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.2)' },
-                            '&.Mui-focused fieldset': { borderColor: 'rgba(255, 255, 255, 0.5)' },
-                        },
-                        '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.4)' },
-                    }}
-                />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                    fullWidth
-                    select
-                    label="Category"
-                    value={businessData.category}
-                    onChange={(e) => setBusinessData({ ...businessData, category: e.target.value })}
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            bgcolor: 'rgba(255, 255, 255, 0.02)',
-                            color: 'white',
-                            borderRadius: 1,
-                            '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.1)' },
-                            '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.2)' },
-                            '&.Mui-focused fieldset': { borderColor: 'rgba(255, 255, 255, 0.5)' },
-                        },
-                        '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.4)' },
-                        '& .MuiSelect-icon': { color: 'rgba(255, 255, 255, 0.4)' }
-                    }}
-                    SelectProps={{
-                        MenuProps: {
-                            PaperProps: {
-                                sx: {
-                                    bgcolor: '#0A0A0A',
-                                    backgroundImage: 'none',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                                    borderRadius: 1,
-                                    mt: 1,
-                                    '& .MuiMenuItem-root': {
-                                        color: 'rgba(255, 255, 255, 0.7)',
-                                        py: 1.5,
-                                        '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.05)', color: 'white' },
-                                        '&.Mui-selected': { bgcolor: 'rgba(255, 255, 255, 0.1)', color: 'white' },
-                                        '&.Mui-selected:hover': { bgcolor: 'rgba(255, 255, 255, 0.15)' }
+        <Box
+            sx={{
+                bgcolor: 'rgba(5, 5, 5, 0.0)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: 1,
+                p: 4,
+                boxShadow: '0 0 80px rgba(0, 0, 0, 0.5)'
+            }}
+        >
+            <Stack spacing={3}>
+                <Box>
+                    <Typography
+                        variant="h3"
+                        fontWeight="700"
+                        sx={{
+                            background: 'linear-gradient(to right, #FFFFFF, #FF6B4A 100%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            mb: 0.5,
+                            letterSpacing: '-0.5px'
+                        }}
+                    >
+                        Business Profile
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>
+                        Tell us about your business to personalize your experience.
+                    </Typography>
+                </Box>
+
+                <Box>
+                    <Typography variant="caption" fontWeight="medium" sx={{ mb: 0.5, display: 'block', color: '#888' }}>
+                        Business Name
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        size="small"
+                        placeholder="Enter your business name"
+                        value={businessData.name}
+                        onChange={(e) => setBusinessData({ ...businessData, name: e.target.value })}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                bgcolor: '#050505',
+                                color: 'white',
+                                borderRadius: 1,
+                                fontSize: '0.9rem',
+                                '& fieldset': { borderColor: '#222' },
+                                '&:hover fieldset': { borderColor: '#444' },
+                                '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
+                            },
+                            '& .MuiInputBase-input::placeholder': { color: '#444', opacity: 1 },
+                        }}
+                    />
+                </Box>
+
+                <Box>
+                    <Typography variant="caption" fontWeight="medium" sx={{ mb: 0.5, display: 'block', color: '#888' }}>
+                        Category
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        size="small"
+                        select
+                        value={businessData.category}
+                        onChange={(e) => setBusinessData({ ...businessData, category: e.target.value })}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                bgcolor: '#050505',
+                                color: 'white',
+                                borderRadius: 1,
+                                fontSize: '0.9rem',
+                                '& fieldset': { borderColor: '#222' },
+                                '&:hover fieldset': { borderColor: '#444' },
+                                '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
+                            },
+                            '& .MuiSelect-icon': { color: '#444' }
+                        }}
+                        SelectProps={{
+                            MenuProps: {
+                                PaperProps: {
+                                    sx: {
+                                        bgcolor: '#0A0A0A',
+                                        backgroundImage: 'none',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: 1,
+                                        mt: 1,
+                                        '& .MuiMenuItem-root': {
+                                            color: 'rgba(255, 255, 255, 0.7)',
+                                            py: 1.5,
+                                            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.05)', color: 'white' },
+                                            '&.Mui-selected': { bgcolor: 'rgba(255, 255, 255, 0.1)', color: 'white' },
+                                            '&.Mui-selected:hover': { bgcolor: 'rgba(255, 255, 255, 0.15)' }
+                                        }
                                     }
                                 }
                             }
-                        }
-                    }}
-                >
-                    {['salon', 'spa', 'consulting', 'health', 'other'].map((opt) => (
-                        <MenuItem key={opt} value={opt}>
-                            {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                        </MenuItem>
-                    ))}
-                </TextField>
-            </Grid>
-            <Grid size={{ xs: 12 }}>
-                <TextField
-                    fullWidth
-                    multiline
-                    rows={4}
-                    label="Description"
-                    placeholder="Briefly describe what your business does..."
-                    value={businessData.description}
-                    onChange={(e) => setBusinessData({ ...businessData, description: e.target.value })}
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            bgcolor: 'rgba(255, 255, 255, 0.02)',
-                            color: 'white',
-                            borderRadius: 1,
-                            '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.1)' },
-                            '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.2)' },
-                            '&.Mui-focused fieldset': { borderColor: 'rgba(255, 255, 255, 0.5)' },
-                        },
-                        '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.4)' },
-                    }}
-                />
-            </Grid>
-        </Grid>
+                        }}
+                    >
+                        {['salon', 'spa', 'consulting', 'health', 'fitness', 'education', 'restaurant', 'retail', 'other'].map((opt) => (
+                            <MenuItem key={opt} value={opt}>
+                                {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                            </MenuItem>
+                        ))}
+                    </TextField>
+                    {businessData.category === 'other' && (
+                        <TextField
+                            fullWidth
+                            size="small"
+                            placeholder="Enter custom category"
+                            value={businessData.customCategory || ''}
+                            onChange={(e) => setBusinessData({ ...businessData, customCategory: e.target.value })}
+                            sx={{
+                                mt: 1.5,
+                                '& .MuiOutlinedInput-root': {
+                                    bgcolor: '#050505',
+                                    color: 'white',
+                                    borderRadius: 1,
+                                    fontSize: '0.9rem',
+                                    '& fieldset': { borderColor: '#222' },
+                                    '&:hover fieldset': { borderColor: '#444' },
+                                    '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
+                                },
+                                '& .MuiInputBase-input::placeholder': { color: '#444', opacity: 1 },
+                            }}
+                        />
+                    )}
+                </Box>
+
+                <Box>
+                    <Typography variant="caption" fontWeight="medium" sx={{ mb: 0.5, display: 'block', color: '#888' }}>
+                        Description
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        size="small"
+                        multiline
+                        rows={3}
+                        placeholder="Briefly describe what your business does..."
+                        value={businessData.description}
+                        onChange={(e) => setBusinessData({ ...businessData, description: e.target.value })}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                bgcolor: '#050505',
+                                color: 'white',
+                                borderRadius: 1,
+                                fontSize: '0.9rem',
+                                '& fieldset': { borderColor: '#222' },
+                                '&:hover fieldset': { borderColor: '#444' },
+                                '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
+                            },
+                            '& .MuiInputBase-input::placeholder': { color: '#444', opacity: 1 },
+                        }}
+                    />
+                </Box>
+            </Stack>
+        </Box>
     );
 
     const renderStep2 = () => (
@@ -335,18 +401,18 @@ export default function OnboardingPage() {
             <Box>
                 <Typography
                     variant="h3"
-                    fontWeight="800"
+                    fontWeight="700"
                     sx={{
-                        background: 'linear-gradient(to right, #FFFFFF, #00D2FF 100%)',
+                        background: 'linear-gradient(to right, #FFFFFF, #FF6B4A 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
-                        mb: 1,
-                        letterSpacing: '-1px'
+                        mb: 0.5,
+                        letterSpacing: '-0.5px'
                     }}
                 >
                     Connect Channels
                 </Typography>
-                <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>
                     Automate lead notifications and booking summaries via email.
                 </Typography>
             </Box>
@@ -355,39 +421,53 @@ export default function OnboardingPage() {
                 sx={{
                     p: 4,
                     borderRadius: 1,
-                    bgcolor: 'rgba(255, 255, 255, 0.01)',
-                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                    bgcolor: '#050505',
+                    border: '1px solid #222',
                     transition: 'all 0.3s ease',
-                    '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.03)', borderColor: 'rgba(255, 255, 255, 0.1)' }
+                    '&:hover': { borderColor: '#444' }
                 }}
             >
                 <Stack direction="row" alignItems="center" justifyContent="space-between">
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems:"center", gap: 2 }}>
                         <Box sx={{ p: 1, bgcolor: 'rgba(255, 255, 255, 0.03)', borderRadius: 1, display: 'flex' }}>
-                            <EmailIcon sx={{ color: integrations['gmail']?.status === 'connected' ? 'white' : 'rgba(255, 255, 255, 0.3)' }} />
+                            <EmailIcon sx={{ color: integrations['gmail']?.status === 'connected' ? 'white' : '#444' }} />
                         </Box>
                         <Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Typography variant="h6" sx={{ color: 'white', fontWeight: '700' }}>Connect Gmail</Typography>
+                                <Typography variant="h6" sx={{ color: 'white', fontWeight: '700', fontSize: '1rem' }}>Connect Gmail</Typography>
                                 {integrations['gmail']?.status === 'connected' && (
-                                    <CheckCircleIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                                    <CheckCircleIcon sx={{ color: '#FF6B4A', fontSize: '1rem' }} />
                                 )}
                             </Box>
-                            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.4)' }}>View inbox and send emails from dashboard</Typography>
+                            <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>View inbox and send emails from dashboard</Typography>
                         </Box>
                     </Box>
                     <Button
-                        variant="outlined"
+                        variant="contained"
                         size="small"
                         onClick={handleConnectGmail}
                         disabled={saving}
                         sx={{
+                            background: integrations['gmail']?.status === 'connected' 
+                                ? 'rgba(255, 255, 255, 0.1)' 
+                                : 'linear-gradient(135deg, #FF6B4A 0%, #FF8A4D 100%)',
                             color: 'white',
-                            borderColor: 'rgba(255, 255, 255, 0.1)',
-                            '&:hover': { borderColor: 'rgba(255, 255, 255, 0.3)', bgcolor: 'rgba(255, 255, 255, 0.05)' },
+                            border: integrations['gmail']?.status === 'connected' ? '1px solid rgba(255, 255, 255, 0.2)' : 'none',
+                            '&:hover': { 
+                                background: integrations['gmail']?.status === 'connected'
+                                    ? 'rgba(255, 255, 255, 0.15)'
+                                    : 'linear-gradient(135deg, #FF8A4D 0%, #FF6B4A 100%)',
+                                boxShadow: integrations['gmail']?.status === 'connected' 
+                                    ? 'none' 
+                                    : '0 0 15px rgba(255, 107, 74, 0.5)',
+                            },
                             textTransform: 'none',
                             fontWeight: '600',
-                            borderRadius: 1
+                            borderRadius: 1,
+                            px: 3,
+                            boxShadow: integrations['gmail']?.status === 'connected' 
+                                ? 'none' 
+                                : '0 4px 12px rgba(255, 107, 74, 0.3)',
                         }}
                     >
                         {integrations['gmail']?.status === 'connected' ? 'Connected' : 'Connect'}
@@ -398,39 +478,53 @@ export default function OnboardingPage() {
                 sx={{
                     p: 4,
                     borderRadius: 1,
-                    bgcolor: 'rgba(255, 255, 255, 0.01)',
-                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                    bgcolor: '#050505',
+                    border: '1px solid #222',
                     transition: 'all 0.3s ease',
-                    '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.03)', borderColor: 'rgba(255, 255, 255, 0.1)' }
+                    '&:hover': { borderColor: '#444' }
                 }}
             >
                 <Stack direction="row" alignItems="center" justifyContent="space-between">
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <Box sx={{ p: 1, bgcolor: 'rgba(255, 255, 255, 0.03)', borderRadius: 1, display: 'flex' }}>
-                            <CalendarTodayIcon sx={{ color: integrations['google-calendar']?.status === 'connected' ? 'white' : 'rgba(255, 255, 255, 0.3)' }} />
+                            <CalendarTodayIcon sx={{ color: integrations['google-calendar']?.status === 'connected' ? 'white' : '#444' }} />
                         </Box>
                         <Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Typography variant="h6" sx={{ color: 'white', fontWeight: '700' }}>Google Calendar</Typography>
+                                <Typography variant="h6" sx={{ color: 'white', fontWeight: '700', fontSize: '1rem' }}>Google Calendar</Typography>
                                 {integrations['google-calendar']?.status === 'connected' && (
-                                    <CheckCircleIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                                    <CheckCircleIcon sx={{ color: '#FF6B4A', fontSize: '1rem' }} />
                                 )}
                             </Box>
-                            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.4)' }}>Sync your business bookings and availability</Typography>
+                            <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>Sync your business bookings and availability</Typography>
                         </Box>
                     </Box>
                     <Button
-                        variant="outlined"
+                        variant="contained"
                         size="small"
                         onClick={handleConnectGoogleCalendar}
                         disabled={saving}
                         sx={{
+                            background: integrations['google-calendar']?.status === 'connected' 
+                                ? 'rgba(255, 255, 255, 0.1)' 
+                                : 'linear-gradient(135deg, #FF6B4A 0%, #FF8A4D 100%)',
                             color: 'white',
-                            borderColor: 'rgba(255, 255, 255, 0.1)',
-                            '&:hover': { borderColor: 'rgba(255, 255, 255, 0.3)', bgcolor: 'rgba(255, 255, 255, 0.05)' },
+                            border: integrations['google-calendar']?.status === 'connected' ? '1px solid rgba(255, 255, 255, 0.2)' : 'none',
+                            '&:hover': { 
+                                background: integrations['google-calendar']?.status === 'connected'
+                                    ? 'rgba(255, 255, 255, 0.15)'
+                                    : 'linear-gradient(135deg, #FF8A4D 0%, #FF6B4A 100%)',
+                                boxShadow: integrations['google-calendar']?.status === 'connected' 
+                                    ? 'none' 
+                                    : '0 0 15px rgba(255, 107, 74, 0.5)',
+                            },
                             textTransform: 'none',
                             fontWeight: '600',
-                            borderRadius: 1
+                            borderRadius: 1,
+                            px: 3,
+                            boxShadow: integrations['google-calendar']?.status === 'connected' 
+                                ? 'none' 
+                                : '0 4px 12px rgba(255, 107, 74, 0.3)',
                         }}
                     >
                         {integrations['google-calendar']?.status === 'connected' ? 'Connected' : 'Connect'}
@@ -445,36 +539,36 @@ export default function OnboardingPage() {
             <Box>
                 <Typography
                     variant="h3"
-                    fontWeight="800"
+                    fontWeight="700"
                     sx={{
-                        background: 'linear-gradient(to right, #FFFFFF, #00D2FF 100%)',
+                        background: 'linear-gradient(to right, #FFFFFF, #FF6B4A 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
-                        mb: 1,
-                        letterSpacing: '-1px'
+                        mb: 0.5,
+                        letterSpacing: '-0.5px'
                     }}
                 >
                     Lead Capture
                 </Typography>
-                <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>
                     Configure the fields for your automated lead capture forms.
                 </Typography>
             </Box>
 
             <Grid container spacing={2}>
-                {['name', 'email', 'phone', 'message'].map((field) => (
+                {['name', 'email'].map((field) => (
                     <Grid size={{ xs: 12, sm: 6 }} key={field}>
                         <Box
                             sx={{
                                 p: 2.5,
                                 borderRadius: 1,
-                                bgcolor: 'rgba(255, 255, 255, 0.01)',
-                                border: '1px solid rgba(255, 255, 255, 0.05)',
+                                bgcolor: '#050505',
+                                border: '1px solid #222',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 2,
                                 transition: 'all 0.2s',
-                                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.02)' }
+                                '&:hover': { borderColor: '#444' }
                             }}
                         >
                             <FormControlLabel
@@ -489,10 +583,14 @@ export default function OnboardingPage() {
                                             setBusinessData({ ...businessData, contactFormFields: newFields });
                                         }}
                                         disabled={field === 'name' || field === 'email'}
-                                        sx={{ color: 'rgba(255, 255, 255, 0.1)', '&.Mui-checked': { color: 'white' } }}
+                                        sx={{ 
+                                            color: '#444', 
+                                            '&.Mui-checked': { color: '#FF6B4A' },
+                                            '&.Mui-disabled': { color: '#222' }
+                                        }}
                                     />
                                 }
-                                label={<Typography sx={{ color: 'white', fontWeight: '600' }}>{field.charAt(0).toUpperCase() + field.slice(1)}</Typography>}
+                                label={<Typography sx={{ color: 'white', fontWeight: '600', fontSize: '0.9rem' }}>{field.charAt(0).toUpperCase() + field.slice(1)}</Typography>}
                                 sx={{ m: 0, width: '100%' }}
                             />
                         </Box>
@@ -503,36 +601,47 @@ export default function OnboardingPage() {
     );
 
     const renderStep4 = () => (
-        <Stack spacing={5}>
-            <Box>
-                <Typography
-                    variant="h3"
-                    fontWeight="800"
-                    sx={{
-                        background: 'linear-gradient(to right, #FFFFFF, #00D2FF 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        mb: 1,
-                        letterSpacing: '-1px'
-                    }}
-                >
-                    Services & Hours
-                </Typography>
-                <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
-                    Define your offerings and availability for client bookings.
-                </Typography>
-            </Box>
+        <Box
+            sx={{
+                bgcolor: 'rgba(5, 5, 5, 0.0)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: 1,
+                p: 4,
+                boxShadow: '0 0 80px rgba(0, 0, 0, 0.5)'
+            }}
+        >
+            <Stack spacing={3}>
+                <Box>
+                    <Typography
+                        variant="h3"
+                        fontWeight="700"
+                        sx={{
+                            background: 'linear-gradient(to right, #FFFFFF, #FF6B4A 100%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            mb: 0.5,
+                            letterSpacing: '-0.5px'
+                        }}
+                    >
+                        Services
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>
+                        Define your service offerings for client bookings.
+                    </Typography>
+                </Box>
 
-            <Box>
-                <Typography variant="h6" sx={{ color: 'white', mb: 2, fontWeight: '700' }}>Service Menu</Typography>
                 <Stack spacing={2}>
                     {businessData.services.map((service, index) => (
-                        <Box key={index} sx={{ p: 3, borderRadius: 1, bgcolor: 'rgba(255, 255, 255, 0.01)', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                            <Grid container spacing={2} alignItems="center">
+                        <Box key={index} sx={{ p: 3, borderRadius: 1, bgcolor: '#050505', border: '1px solid #222' }}>
+                            <Grid container spacing={2} alignItems="flex-start">
                                 <Grid size={{ xs: 12, sm: 5 }}>
+                                    <Typography variant="caption" fontWeight="medium" sx={{ mb: 0.5, display: 'block', color: '#888' }}>
+                                        Service Name
+                                    </Typography>
                                     <TextField
                                         fullWidth
-                                        label="Service Name"
+                                        placeholder="e.g., Haircut, Consultation"
                                         size="small"
                                         value={service.name}
                                         onChange={(e) => {
@@ -540,59 +649,81 @@ export default function OnboardingPage() {
                                             newServices[index].name = e.target.value;
                                             setBusinessData({ ...businessData, services: newServices });
                                         }}
-                                        sx={{ '& .MuiOutlinedInput-root': { color: 'white', bgcolor: 'rgba(255, 255, 255, 0.01)' }, '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.4)' } }}
+                                        sx={{ 
+                                            '& .MuiOutlinedInput-root': { 
+                                                color: 'white', 
+                                                bgcolor: 'rgba(255, 255, 255, 0.02)',
+                                                fontSize: '0.9rem',
+                                                '& fieldset': { borderColor: '#222' },
+                                                '&:hover fieldset': { borderColor: '#444' },
+                                                '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
+                                            },
+                                            '& .MuiInputBase-input::placeholder': { color: '#444', opacity: 1 },
+                                        }}
                                     />
                                 </Grid>
                                 <Grid size={{ xs: 5, sm: 3 }}>
+                                    <Typography variant="caption" fontWeight="medium" sx={{ mb: 0.5, display: 'block', color: '#888' }}>
+                                        Duration (min)
+                                    </Typography>
                                     <TextField
                                         fullWidth
                                         type="number"
-                                        label="Min"
+                                        placeholder="30"
                                         size="small"
                                         value={service.duration}
                                         onChange={(e) => {
                                             const newServices = [...businessData.services];
-                                            newServices[index].duration = parseInt(e.target.value) || 0;
+                                            const value = parseInt(e.target.value) || 0;
+                                            newServices[index].duration = value < 15 ? 15 : value;
                                             setBusinessData({ ...businessData, services: newServices });
                                         }}
+                                        inputProps={{ min: 15 }}
                                         sx={{
                                             '& .MuiOutlinedInput-root': {
                                                 color: 'white',
-                                                bgcolor: 'rgba(255, 255, 255, 0.01)',
-                                                '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.1)' },
-                                                '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.2)' },
-                                                '&.Mui-focused fieldset': { borderColor: 'rgba(255, 255, 255, 0.5)' },
+                                                bgcolor: 'rgba(255, 255, 255, 0.02)',
+                                                fontSize: '0.9rem',
+                                                '& fieldset': { borderColor: '#222' },
+                                                '&:hover fieldset': { borderColor: '#444' },
+                                                '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
                                             },
-                                            '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.4)' }
+                                            '& .MuiInputBase-input::placeholder': { color: '#444', opacity: 1 },
                                         }}
                                     />
                                 </Grid>
                                 <Grid size={{ xs: 5, sm: 3 }}>
+                                    <Typography variant="caption" fontWeight="medium" sx={{ mb: 0.5, display: 'block', color: '#888' }}>
+                                        Price ($)
+                                    </Typography>
                                     <TextField
                                         fullWidth
                                         type="number"
-                                        label="Price"
+                                        placeholder="50"
                                         size="small"
                                         value={service.price}
                                         onChange={(e) => {
                                             const newServices = [...businessData.services];
-                                            newServices[index].price = parseInt(e.target.value) || 0;
+                                            const value = parseInt(e.target.value) || 0;
+                                            newServices[index].price = value < 1 ? 1 : value;
                                             setBusinessData({ ...businessData, services: newServices });
                                         }}
+                                        inputProps={{ min: 1 }}
                                         sx={{
                                             '& .MuiOutlinedInput-root': {
                                                 color: 'white',
-                                                bgcolor: 'rgba(255, 255, 255, 0.01)',
-                                                '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.1)' },
-                                                '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.2)' },
-                                                '&.Mui-focused fieldset': { borderColor: 'rgba(255, 255, 255, 0.5)' },
+                                                bgcolor: 'rgba(255, 255, 255, 0.02)',
+                                                fontSize: '0.9rem',
+                                                '& fieldset': { borderColor: '#222' },
+                                                '&:hover fieldset': { borderColor: '#444' },
+                                                '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
                                             },
-                                            '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.4)' }
+                                            '& .MuiInputBase-input::placeholder': { color: '#444', opacity: 1 },
                                         }}
                                     />
                                 </Grid>
-                                <Grid size={{ xs: 2, sm: 1 }} sx={{ textAlign: 'right' }}>
-                                    <IconButton size="small" sx={{ color: 'rgba(255, 25, 25, 0.5)', '&:hover': { color: '#ff4d4d' } }} onClick={() => {
+                                <Grid size={{ xs: 2, sm: 1 }} sx={{ textAlign: 'right', pt: 3 }}>
+                                    <IconButton size="small" sx={{ color: '#444', '&:hover': { color: '#ff4d4d' } }} onClick={() => {
                                         const newServices = businessData.services.filter((_, i) => i !== index);
                                         setBusinessData({ ...businessData, services: newServices });
                                     }}>
@@ -608,15 +739,46 @@ export default function OnboardingPage() {
                             ...businessData,
                             services: [...businessData.services, { name: '', duration: 30, price: 0, description: '' }]
                         })}
-                        sx={{ color: 'rgba(255, 255, 255, 0.6)', alignSelf: 'flex-start', textTransform: 'none', fontWeight: '700', '&:hover': { color: 'white' } }}
+                        sx={{ color: '#666', alignSelf: 'flex-start', textTransform: 'none', fontWeight: '700', '&:hover': { color: 'white' } }}
                     >
                         Add another service
                     </Button>
                 </Stack>
-            </Box>
+            </Stack>
+        </Box>
+    );
 
-            <Box>
-                <Typography variant="h6" sx={{ color: 'white', mb: 2, fontWeight: '700' }}>Operating Hours</Typography>
+    const renderStep5 = () => (
+        <Box
+            sx={{
+                bgcolor: 'rgba(5, 5, 5, 0.0)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: 1,
+                p: 4,
+                boxShadow: '0 0 80px rgba(0, 0, 0, 0.5)'
+            }}
+        >
+            <Stack spacing={3}>
+                <Box>
+                    <Typography
+                        variant="h3"
+                        fontWeight="700"
+                        sx={{
+                            background: 'linear-gradient(to right, #FFFFFF, #FF6B4A 100%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            mb: 0.5,
+                            letterSpacing: '-0.5px'
+                        }}
+                    >
+                        Operating Hours
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>
+                        Set your business availability for client bookings.
+                    </Typography>
+                </Box>
+
                 <Stack spacing={1.5}>
                     {businessData.workingHours.map((wh, index) => (
                         <Grid container spacing={2} key={wh.day} alignItems="center">
@@ -631,10 +793,10 @@ export default function OnboardingPage() {
                                                 newHours[index].isOpen = e.target.checked;
                                                 setBusinessData({ ...businessData, workingHours: newHours });
                                             }}
-                                            sx={{ color: 'rgba(255, 255, 255, 0.05)', '&.Mui-checked': { color: 'white' } }}
+                                            sx={{ color: '#444', '&.Mui-checked': { color: '#FF6B4A' } }}
                                         />
                                     }
-                                    label={<Typography sx={{ color: wh.isOpen ? 'white' : 'rgba(255, 255, 255, 0.2)', fontWeight: wh.isOpen ? '700' : '400', fontSize: '0.95rem' }}>{wh.day.charAt(0).toUpperCase() + wh.day.slice(1)}</Typography>}
+                                    label={<Typography sx={{ color: wh.isOpen ? 'white' : '#666', fontWeight: wh.isOpen ? '700' : '400', fontSize: '0.9rem' }}>{wh.day.charAt(0).toUpperCase() + wh.day.slice(1)}</Typography>}
                                 />
                             </Grid>
                             {wh.isOpen && (
@@ -650,11 +812,20 @@ export default function OnboardingPage() {
                                                 newHours[index].start = e.target.value;
                                                 setBusinessData({ ...businessData, workingHours: newHours });
                                             }}
-                                            sx={{ '& .MuiOutlinedInput-root': { color: 'white', bgcolor: 'rgba(255, 255, 255, 0.01)' } }}
+                                            sx={{ 
+                                                '& .MuiOutlinedInput-root': { 
+                                                    color: 'white', 
+                                                    bgcolor: '#050505',
+                                                    fontSize: '0.85rem',
+                                                    '& fieldset': { borderColor: '#222' },
+                                                    '&:hover fieldset': { borderColor: '#444' },
+                                                    '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
+                                                } 
+                                            }}
                                         />
                                     </Grid>
                                     <Grid size={{ xs: 1 }}>
-                                        <Typography sx={{ color: 'rgba(255, 255, 255, 0.1)', textAlign: 'center' }}>-</Typography>
+                                        <Typography sx={{ color: '#444', textAlign: 'center' }}>-</Typography>
                                     </Grid>
                                     <Grid size={{ xs: 3.5 }}>
                                         <TextField
@@ -667,7 +838,16 @@ export default function OnboardingPage() {
                                                 newHours[index].end = e.target.value;
                                                 setBusinessData({ ...businessData, workingHours: newHours });
                                             }}
-                                            sx={{ '& .MuiOutlinedInput-root': { color: 'white', bgcolor: 'rgba(255, 255, 255, 0.01)' } }}
+                                            sx={{ 
+                                                '& .MuiOutlinedInput-root': { 
+                                                    color: 'white', 
+                                                    bgcolor: '#050505',
+                                                    fontSize: '0.85rem',
+                                                    '& fieldset': { borderColor: '#222' },
+                                                    '&:hover fieldset': { borderColor: '#444' },
+                                                    '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
+                                                } 
+                                            }}
                                         />
                                     </Grid>
                                 </>
@@ -675,26 +855,26 @@ export default function OnboardingPage() {
                         </Grid>
                     ))}
                 </Stack>
-            </Box>
-        </Stack>
+            </Stack>
+        </Box>
     );
 
-    const renderStep5 = () => (
+    const renderStep6 = () => (
         <Box py={4}>
             <Typography
                 variant="h2"
-                fontWeight="900"
+                fontWeight="700"
                 sx={{
-                    background: 'linear-gradient(to right, #FFFFFF, #00D2FF 100%)',
+                    background: 'linear-gradient(to right, #FFFFFF, #FF6B4A 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     mb: 2,
-                    letterSpacing: '-3px'
+                    letterSpacing: '-1px'
                 }}
             >
                 Launch.
             </Typography>
-            <Typography variant="h5" sx={{ color: 'rgba(255, 255, 255, 0.6)', mb: 8, lineHeight: 1.6, fontWeight: '400' }}>
+            <Typography variant="h5" sx={{ color: '#666', mb: 8, lineHeight: 1.6, fontWeight: '400', fontSize: '1.1rem' }}>
                 Your business ecosystem is ready. Start driving growth from your first automated dashboard.
             </Typography>
             <Button
@@ -703,20 +883,22 @@ export default function OnboardingPage() {
                 onClick={handleNext}
                 disabled={saving}
                 sx={{
-                    background: 'white',
-                    color: 'black',
-                    fontWeight: '900',
+                    background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A4D 100%)',
+                    color: 'white',
+                    fontWeight: '700',
                     px: 8,
                     py: 2.5,
                     borderRadius: 1,
                     fontSize: '1.2rem',
                     textTransform: 'none',
-                    boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+                    boxShadow: '0 4px 12px rgba(255, 107, 74, 0.3)',
                     '&:hover': {
-                        background: '#f0f0f0',
+                        background: 'linear-gradient(135deg, #FF8A4D 0%, #FF6B4A 100%)',
+                        boxShadow: '0 0 15px rgba(255, 107, 74, 0.5)',
                         transform: 'translateY(-2px)',
                     },
-                    '&.Mui-disabled': { background: 'rgba(255, 255, 255, 0.1)', color: 'rgba(255, 255, 255, 0.2)' }
+                    '&.Mui-disabled': { background: 'rgba(255, 255, 255, 0.1)', color: 'rgba(255, 255, 255, 0.2)' },
+                    transition: 'all 0.2s ease-in-out'
                 }}
             >
                 {saving ? 'Finalizing...' : 'Enter Dashboard'}
@@ -731,6 +913,7 @@ export default function OnboardingPage() {
             case 2: return renderStep3();
             case 3: return renderStep4();
             case 4: return renderStep5();
+            case 5: return renderStep6();
             default: return null;
         }
     };
@@ -739,7 +922,7 @@ export default function OnboardingPage() {
         <Box sx={{ width: '100%', py: { xs: 4, md: 0 } }}>
             {renderContent()}
 
-            {activeStep < 4 && (
+            {activeStep < 5 && (
                 <Box sx={{ display: 'flex', flexDirection: 'row', pt: 8, borderTop: '1px solid rgba(255, 255, 255, 0.05)', mt: 8 }}>
                     <Button
                         color="inherit"
@@ -762,20 +945,25 @@ export default function OnboardingPage() {
                         variant="contained"
                         disabled={saving || isNextDisabled}
                         sx={{
-                            background: 'white',
-                            color: 'black',
-                            fontWeight: '900',
+                            background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A4D 100%)',
+                            color: 'white',
+                            fontWeight: '700',
                             px: 6,
                             py: 1.8,
                             borderRadius: 1,
                             textTransform: 'none',
                             fontSize: '1rem',
-                            boxShadow: isNextDisabled ? 'none' : '0 10px 30px rgba(255,255,255,0.1)',
-                            '&:hover': { background: '#f8f8f8', transform: 'translateY(-1px)' },
-                            '&.Mui-disabled': { background: 'rgba(255, 255, 255, 0.05)', color: 'rgba(255, 255, 255, 0.2)' }
+                            boxShadow: isNextDisabled ? 'none' : '0 4px 12px rgba(255, 107, 74, 0.3)',
+                            '&:hover': { 
+                                background: 'linear-gradient(135deg, #FF8A4D 0%, #FF6B4A 100%)',
+                                boxShadow: '0 0 15px rgba(255, 107, 74, 0.5)',
+                                transform: 'translateY(-1px)' 
+                            },
+                            '&.Mui-disabled': { background: 'rgba(255, 255, 255, 0.05)', color: 'rgba(255, 255, 255, 0.2)' },
+                            transition: 'all 0.2s ease-in-out'
                         }}
                     >
-                        {saving ? <CircularProgress size={24} sx={{ color: 'black' }} /> : (activeStep === steps.length - 2 ? 'Complete Setup' : 'Next Step')}
+                        {saving ? <CircularProgress size={24} sx={{ color: 'white' }} /> : (activeStep === steps.length - 2 ? 'Complete Setup' : 'Next Step')}
                     </Button>
                 </Box>
             )}

@@ -238,8 +238,8 @@ export default function InventoryPage() {
 
     return (
         <RBACGuard permission="canManageInventory">
-            <Box sx={{ minHeight: '100vh', bgcolor: pageBgColor, p: 4 }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+            <Box sx={{ height: '100vh', bgcolor: pageBgColor, p: 4, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} sx={{ flexShrink: 0 }}>
                     <Box>
                         <Typography variant="h4" fontWeight="800" color={textPrimary} letterSpacing="-0.5px">
                             Inventory
@@ -279,7 +279,7 @@ export default function InventoryPage() {
                 </Box>
 
                 {/* Summary Cards */}
-                <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr 1fr' }} gap={3} mb={4}>
+                <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr 1fr' }} gap={3} mb={4} sx={{ flexShrink: 0 }}>
                     <Paper
                         elevation={0}
                         sx={{
@@ -351,6 +351,7 @@ export default function InventoryPage() {
                         severity="warning"
                         sx={{
                             mb: 4,
+                            flexShrink: 0,
                             borderRadius: '12px',
                             border: `1px solid ${isDark ? 'rgba(239, 68, 68, 0.2)' : '#fecaca'}`,
                             bgcolor: isDark ? 'rgba(239, 68, 68, 0.05)' : '#fef2f2',
@@ -373,10 +374,13 @@ export default function InventoryPage() {
                         border: `1px solid ${borderColor}`,
                         bgcolor: cardBg,
                         overflow: 'hidden',
-                        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.05)'
+                        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.05)',
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column'
                     }}
                 >
-                    <TableContainer>
+                    <TableContainer sx={{ flex: 1, overflow: 'auto' }}>
                         <Table>
                             <TableHead>
                                 <TableRow sx={{ bgcolor: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc' }}>

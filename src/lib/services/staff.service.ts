@@ -77,5 +77,11 @@ export const staffService = {
     reactivateStaff: async (id: string) => {
         const response = await api.put(`/staff/${id}/reactivate`);
         return response.data;
+    },
+
+    // Resend invitation
+    resendInvite: async (id: string) => {
+        const response = await api.post(`/staff/${id}/resend-invite`);
+        return response.data;
     }
 };

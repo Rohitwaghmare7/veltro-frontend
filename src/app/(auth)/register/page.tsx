@@ -145,7 +145,7 @@ function RegisterForm() {
                                 fontWeight="700"
                                 gutterBottom
                                 sx={{
-                                    background: 'linear-gradient(to right, #FFFFFF, #00D2FF 100%)',
+                                    background: 'linear-gradient(to right, #FFFFFF, #FF6B4A 100%)',
                                     WebkitBackgroundClip: 'text',
                                     WebkitTextFillColor: 'transparent',
                                     mb: 0.5
@@ -166,54 +166,7 @@ function RegisterForm() {
                             )}
                         </Box>
 
-                        <Stack direction="row" spacing={1.5}>
-                            <Button
-                                fullWidth
-                                variant="outlined"
-                                size="small"
-                                startIcon={<GitHubIcon fontSize="small" />}
-                                sx={{
-                                    color: 'white',
-                                    borderColor: '#333',
-                                    textTransform: 'none',
-                                    bgcolor: 'rgba(255, 255, 255, 0.03)',
-                                    fontSize: '0.85rem',
-                                    py: 1,
-                                    '&:hover': {
-                                        borderColor: '#fff',
-                                        backgroundColor: 'rgba(255, 255, 255, 0.05)'
-                                    }
-                                }}
-                            >
-                                Github
-                            </Button>
-                            <Button
-                                fullWidth
-                                variant="outlined"
-                                size="small"
-                                startIcon={<GoogleIcon fontSize="small" />}
-                                sx={{
-                                    color: 'white',
-                                    borderColor: '#333',
-                                    textTransform: 'none',
-                                    bgcolor: 'rgba(255, 255, 255, 0.03)',
-                                    fontSize: '0.85rem',
-                                    py: 1,
-                                    '&:hover': {
-                                        borderColor: '#fff',
-                                        backgroundColor: 'rgba(255, 255, 255, 0.05)'
-                                    }
-                                }}
-                            >
-                                Google
-                            </Button>
-                        </Stack>
 
-                        <Divider sx={{ '&::before, &::after': { borderColor: '#222' } }}>
-                            <Typography variant="caption" sx={{ color: '#444', fontSize: '0.7rem' }}>
-                                OR CONTINUE WITH
-                            </Typography>
-                        </Divider>
 
                         <form onSubmit={handleRegister}>
                             <Stack spacing={2.5}>
@@ -390,16 +343,16 @@ function RegisterForm() {
                                     sx={{
                                         fontWeight: '600',
                                         mt: 1,
-                                        background: 'linear-gradient(180deg, #FFFFFF 0%, #E0E0E0 100%)',
-                                        color: 'black',
+                                        background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A4D 100%)',
+                                        color: 'white',
                                         borderRadius: 1,
                                         textTransform: 'none',
                                         fontSize: '0.9rem',
                                         height: 40,
-                                        boxShadow: '0 4px 12px rgba(255, 255, 255, 0.1)',
+                                        boxShadow: '0 4px 12px rgba(255, 107, 74, 0.3)',
                                         '&:hover': {
-                                            background: 'linear-gradient(180deg, #FFFFFF 0%, #F5F5F5 100%)',
-                                            boxShadow: '0 0 15px rgba(255, 255, 255, 0.3)',
+                                            background: 'linear-gradient(135deg, #FF8A4D 0%, #FF6B4A 100%)',
+                                            boxShadow: '0 0 15px rgba(255, 107, 74, 0.5)',
                                             transform: 'translateY(-1px)'
                                         },
                                         '&.Mui-disabled': {
@@ -412,7 +365,7 @@ function RegisterForm() {
                                     disabled={loading}
                                 >
                                     {loading ? (
-                                        <CircularProgress size={20} sx={{ color: 'rgba(0, 0, 0, 0.5)' }} />
+                                        <CircularProgress size={20} sx={{ color: 'rgba(255, 255, 255, 0.8)' }} />
                                     ) : (
                                         'Create account'
                                     )}

@@ -22,6 +22,13 @@ export interface Form {
     sendDelay?: number;
     createdAt: string;
     updatedAt: string;
+    business?: {
+        name: string;
+        email?: string;
+        phone?: string;
+        address?: string;
+        website?: string;
+    };
 }
 
 export interface CreateFormData {

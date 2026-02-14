@@ -17,6 +17,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import BlockIcon from '@mui/icons-material/Block';
 import DeleteIcon from '@mui/icons-material/Delete';
 import GroupIcon from '@mui/icons-material/Group';
+import SendIcon from '@mui/icons-material/Send';
 import { useState, useEffect } from 'react';
 import { useTeamStore } from '@/store/teamStore';
 import { StaffMember } from '@/lib/services/staff.service';
@@ -33,7 +34,7 @@ export default function TeamPage() {
     const textPrimary = isDark ? 'rgba(255,255,255,0.9)' : '#1e293b';
     const textSecondary = isDark ? 'rgba(255,255,255,0.6)' : '#64748b';
 
-    const { staff, loading, processing, fetchStaff, inviteStaff, updatePermissions, deactivateStaff, reactivateStaff, removeStaff } = useTeamStore();
+    const { staff, loading, processing, fetchStaff, inviteStaff, updatePermissions, deactivateStaff, reactivateStaff, removeStaff, resendInvite } = useTeamStore();
 
     const [openInvite, setOpenInvite] = useState(false);
     const [openPermissions, setOpenPermissions] = useState(false);
@@ -116,6 +117,18 @@ export default function TeamPage() {
     const openConfirmDialog = (action: 'deactivate' | 'reactivate' | 'remove') => {
         setConfirmAction(action);
         setOpenConfirm(true);
+        handleMenuClose();
+    };
+
+    const handleResendInvite = async () => {
+        if (!selectedMember) return;
+        
+        const result = await resendInvite(selectedMember._id);
+        if (result.success) {
+            setToast({ open: true, message: 'Invitation resent successfully!', severity: 'success' });
+        } else {
+            setToast({ open: true, message: result.error || 'Failed to resend invitation', severity: 'error' });
+        }
         handleMenuClose();
     };
 
@@ -305,6 +318,22 @@ export default function TeamPage() {
                         }
                     }}
                 >
+                    {selectedMember?.inviteStatus === 'pending' && (
+                        <MenuItem
+                            onClick={handleResendInvite}
+                            sx={{
+                                py: 1.5,
+                                px: 2,
+                                color: textPrimary,
+                                '&:hover': {
+                                    bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc',
+                                }
+                            }}
+                        >
+                            <SendIcon fontSize="small" sx={{ mr: 1.5, color: '#667eea' }} />
+                            Resend Invitation
+                        </MenuItem>
+                    )}
                     {selectedMember?.status === 'deactivated' ? (
                         <MenuItem
                             onClick={() => openConfirmDialog('reactivate')}

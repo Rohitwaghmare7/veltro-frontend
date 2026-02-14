@@ -9,6 +9,12 @@ export interface DashboardStats {
     };
     leads: {
         new24h: number;
+        total?: number;
+        new?: number;
+        contacted?: number;
+        qualified?: number;
+        booked?: number;
+        closed?: number;
         openConversations: number;
         unanswered: number;
     };
@@ -19,6 +25,9 @@ export interface DashboardStats {
             currentStock: number;
             minStock: number;
         }>;
+    };
+    services?: {
+        count: number;
     };
 }
 

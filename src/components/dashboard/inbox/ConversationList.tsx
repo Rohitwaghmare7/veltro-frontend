@@ -31,6 +31,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'; // Using as a placeholder for resolve if needed, but CheckCircle is better
 import RestoreIcon from '@mui/icons-material/Restore';
+import AddIcon from '@mui/icons-material/Add';
+import SyncIcon from '@mui/icons-material/Sync';
 import { Conversation } from '@/lib/services/inbox.service';
 import { useState } from 'react';
 
@@ -44,6 +46,10 @@ interface ConversationListProps {
     onFilterChange: (filter: 'all' | 'open' | 'resolved') => void;
     onBulkResolve: (ids: string[]) => Promise<void>;
     onBulkReopen: (ids: string[]) => Promise<void>;
+    onBulkDelete: (ids: string[]) => Promise<void>;
+    onNewConversation?: () => void;
+    onSyncGmail?: () => void;
+    syncing?: boolean;
 }
 
 export default function ConversationList({
@@ -55,7 +61,11 @@ export default function ConversationList({
     statusFilter,
     onFilterChange,
     onBulkResolve,
-    onBulkReopen
+    onBulkReopen,
+    onBulkDelete,
+    onNewConversation,
+    onSyncGmail,
+    syncing = false
 }: ConversationListProps) {
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -75,14 +85,16 @@ export default function ConversationList({
         );
     };
 
-    const handleBulkAction = async (action: 'resolve' | 'reopen') => {
+    const handleBulkAction = async (action: 'resolve' | 'reopen' | 'delete') => {
         if (selectedIds.length === 0) return;
         setIsExecuting(true);
         try {
             if (action === 'resolve') {
                 await onBulkResolve(selectedIds);
-            } else {
+            } else if (action === 'reopen') {
                 await onBulkReopen(selectedIds);
+            } else if (action === 'delete') {
+                await onBulkDelete(selectedIds);
             }
             // Reset selection mode after successful action
             setIsSelectionMode(false);
@@ -127,7 +139,51 @@ export default function ConversationList({
                     <Typography variant="h6" fontWeight={700} sx={{ fontFamily: 'var(--font-poppins)' }}>
                         {isSelectionMode ? `${selectedIds.length} Selected` : 'Messages'}
                     </Typography>
-                    <Box>
+                    <Box display="flex" gap={1}>
+                        {!isSelectionMode && onSyncGmail && (
+                            <Tooltip title="Sync Gmail">
+                                <IconButton 
+                                    size="small" 
+                                    onClick={onSyncGmail}
+                                    disabled={syncing}
+                                    sx={{
+                                        bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                                        '&:hover': {
+                                            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)',
+                                        },
+                                        '&.Mui-disabled': {
+                                            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+                                        }
+                                    }}
+                                >
+                                    <SyncIcon sx={{ 
+                                        fontSize: 20,
+                                        animation: syncing ? 'spin 1s linear infinite' : 'none',
+                                        '@keyframes spin': {
+                                            '0%': { transform: 'rotate(0deg)' },
+                                            '100%': { transform: 'rotate(360deg)' }
+                                        }
+                                    }} />
+                                </IconButton>
+                            </Tooltip>
+                        )}
+                        {!isSelectionMode && onNewConversation && (
+                            <Tooltip title="New Conversation">
+                                <IconButton 
+                                    size="small" 
+                                    onClick={onNewConversation}
+                                    sx={{
+                                        bgcolor: '#7c3aed',
+                                        color: 'white',
+                                        '&:hover': {
+                                            bgcolor: '#6d28d9'
+                                        }
+                                    }}
+                                >
+                                    <AddIcon />
+                                </IconButton>
+                            </Tooltip>
+                        )}
                         {isSelectionMode ? (
                             <IconButton size="small" onClick={() => { setIsSelectionMode(false); setSelectedIds([]); }}>
                                 <CloseIcon />
@@ -185,6 +241,18 @@ export default function ConversationList({
                                 </Button>
                             )}
                         </Box>
+                        <Button
+                            variant="contained"
+                            size="small"
+                            color="error"
+                            onClick={() => handleBulkAction('delete')}
+                            disabled={selectedIds.length === 0 || isExecuting}
+                            fullWidth
+                            startIcon={<DeleteOutlineIcon />}
+                            sx={{ borderRadius: '8px', textTransform: 'none', color: 'white' }}
+                        >
+                            Delete
+                        </Button>
                     </Stack>
                 ) : (
                     <>

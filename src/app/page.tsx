@@ -60,10 +60,10 @@ export default function Home() {
               fontWeight: 800,
               fontSize: { xs: '4rem', md: '6rem', lg: '8rem' },
               letterSpacing: '-0.02em',
-              background: 'linear-gradient(135deg, #FFFFFF 0%, #AAA 50%, #00F3FF 100%)', // Subtle neon touch
+              background: 'linear-gradient(135deg, #FFFFFF 0%, #AAA 50%, #FF6B4A 100%)', // Coral touch
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              filter: 'drop-shadow(0 0 30px rgba(0, 243, 255, 0.3))', // Neon glow
+              filter: 'drop-shadow(0 0 30px rgba(255, 107, 74, 0.3))', // Coral glow
             }}
           >
             VELTRO
@@ -85,11 +85,11 @@ export default function Home() {
                   background: 'white',
                   color: 'black',
                   fontFamily: 'var(--font-geist-sans)',
-                  boxShadow: '0 0 15px rgba(0, 243, 255, 0.5)', // Neon shadow
+                  boxShadow: '0 0 15px rgba(255, 107, 74, 0.5)', // Coral shadow
                   '&:hover': {
                     background: 'rgba(255,255,255,1)',
                     transform: 'translateY(-2px)',
-                    boxShadow: '0 0 25px rgba(0, 243, 255, 0.8)', // Brighter glow on hover
+                    boxShadow: '0 0 25px rgba(255, 107, 74, 0.8)', // Brighter glow on hover
                   },
                   transition: 'all 0.3s ease',
                 }}
@@ -111,11 +111,11 @@ export default function Home() {
                   background: 'white',
                   color: 'black',
                   fontFamily: 'var(--font-geist-sans)',
-                  boxShadow: '0 0 15px rgba(0, 243, 255, 0.5)', // Neon shadow
+                  boxShadow: '0 0 15px rgba(255, 107, 74, 0.5)', // Coral shadow
                   '&:hover': {
                     background: 'rgba(255,255,255,1)',
                     transform: 'translateY(-2px)',
-                    boxShadow: '0 0 25px rgba(0, 243, 255, 0.8)', // Brighter glow on hover
+                    boxShadow: '0 0 25px rgba(255, 107, 74, 0.8)', // Brighter glow on hover
                   },
                   transition: 'all 0.3s ease',
                 }}

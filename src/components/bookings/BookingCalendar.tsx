@@ -130,20 +130,20 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
         // Parse time slot (e.g., "09:00" or "9:00 AM")
         const timeMatch = booking.timeSlot.match(/(\d+):(\d+)/);
         if (!timeMatch) return { top: '0px', height: '60px' };
-        
+
         let hours = parseInt(timeMatch[1]);
         const minutes = parseInt(timeMatch[2]);
-        
+
         // Handle AM/PM
         if (booking.timeSlot.toLowerCase().includes('pm') && hours !== 12) {
             hours += 12;
         } else if (booking.timeSlot.toLowerCase().includes('am') && hours === 12) {
             hours = 0;
         }
-        
+
         const startHour = hours + minutes / 60;
         const duration = (booking.duration || 60) / 60; // Convert minutes to hours
-        
+
         return {
             top: `${startHour * HOUR_HEIGHT}px`,
             height: `${duration * HOUR_HEIGHT}px`,
@@ -179,10 +179,10 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                         <Typography variant="h4" fontWeight={700} sx={{ fontSize: '2rem', letterSpacing: '-0.02em', color: textPrimary }}>
                             {format(currentDate, 'MMMM, yyyy')}
                         </Typography>
-                        <IconButton 
+                        <IconButton
                             onClick={() => setDatePickerOpen(true)}
-                            sx={{ 
-                                bgcolor: headerBgColor, 
+                            sx={{
+                                bgcolor: headerBgColor,
                                 borderRadius: '12px',
                                 color: textPrimary,
                                 '&:hover': { bgcolor: hoverBg }
@@ -241,10 +241,10 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
 
                         {/* Navigation */}
                         <Box display="flex" gap={1}>
-                            <IconButton 
-                                onClick={handlePrev} 
-                                sx={{ 
-                                    bgcolor: headerBgColor, 
+                            <IconButton
+                                onClick={handlePrev}
+                                sx={{
+                                    bgcolor: headerBgColor,
                                     borderRadius: '12px',
                                     color: textPrimary,
                                     '&:hover': { bgcolor: hoverBg }
@@ -266,10 +266,10 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                             >
                                 Today
                             </Button>
-                            <IconButton 
-                                onClick={handleNext} 
-                                sx={{ 
-                                    bgcolor: headerBgColor, 
+                            <IconButton
+                                onClick={handleNext}
+                                sx={{
+                                    bgcolor: headerBgColor,
                                     borderRadius: '12px',
                                     color: textPrimary,
                                     '&:hover': { bgcolor: hoverBg }
@@ -326,7 +326,7 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                         </Box>
 
                         {/* --- Calendar Grid --- */}
-                        <Box sx={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
+                        <Box sx={{ flex: 1, overflowY: 'auto', position: 'relative', pt: 2 }}>
                             <Box display="flex" height={`${24 * HOUR_HEIGHT}px`}>
                                 {/* Time Column */}
                                 <Box sx={{ width: '60px', flexShrink: 0, position: 'relative' }}>
@@ -334,8 +334,8 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                                         <Box key={i} sx={{ height: `${HOUR_HEIGHT}px`, position: 'relative' }}>
                                             <Typography
                                                 variant="caption"
-                                                sx={{ 
-                                                    position: 'absolute', 
+                                                sx={{
+                                                    position: 'absolute',
                                                     top: 0,
                                                     left: 10,
                                                     color: textSecondary,
@@ -370,7 +370,7 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                                     {/* Day Columns */}
                                     {weekDays.map((day, dayIndex) => {
                                         const isSelectedDay = isSameDay(day, currentDate);
-                                        
+
                                         return (
                                             <Box
                                                 key={dayIndex}
@@ -442,10 +442,10 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                                                                     transition: 'transform 0.2s',
                                                                     zIndex: 10,
                                                                     border: color.border,
-                                                                    '&:hover': { 
-                                                                        transform: 'scale(1.02)', 
-                                                                        zIndex: 20, 
-                                                                        boxShadow: isDark ? '0 10px 20px rgba(0,0,0,0.5)' : '0 10px 20px rgba(0,0,0,0.1)' 
+                                                                    '&:hover': {
+                                                                        transform: 'scale(1.02)',
+                                                                        zIndex: 20,
+                                                                        boxShadow: isDark ? '0 10px 20px rgba(0,0,0,0.5)' : '0 10px 20px rgba(0,0,0,0.1)'
                                                                     }
                                                                 }}
                                                                 onClick={() => openBookingDialog(booking)}
@@ -770,7 +770,7 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                                         }
                                     }}
                                 />
-                            </Box>  
+                            </Box>
 
                             {/* Duration */}
                             <Box>

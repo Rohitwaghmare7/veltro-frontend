@@ -78,6 +78,8 @@ export default function DashboardHeader() {
     const [selectedBusiness, setSelectedBusiness] = useState<BusinessContext | null>(null);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [notifAnchorEl, setNotifAnchorEl] = useState<null | HTMLElement>(null);
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [unreadCount, setUnreadCount] = useState(0);
 
     useEffect(() => {
         const fetchBusinesses = async () => {
@@ -118,6 +120,46 @@ export default function DashboardHeader() {
 
         fetchBusinesses();
     }, []);
+
+    // Fetch notifications
+    useEffect(() => {
+        const fetchNotifications = async () => {
+            try {
+                const res = await api.get('/notifications?limit=10');
+                if (res.data) {
+                    setNotifications(res.data.notifications || []);
+                    setUnreadCount(res.data.unreadCount || 0);
+                }
+            } catch (err) {
+                console.error('Failed to fetch notifications', err);
+            }
+        };
+
+        fetchNotifications();
+        // Poll for new notifications every 30 seconds
+        const interval = setInterval(fetchNotifications, 30000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const handleMarkAsRead = async (id: string) => {
+        try {
+            await api.patch(`/notifications/${id}/read`);
+            setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
+            setUnreadCount(prev => Math.max(0, prev - 1));
+        } catch (err) {
+            console.error('Failed to mark as read', err);
+        }
+    };
+
+    const handleMarkAllAsRead = async () => {
+        try {
+            await api.patch('/notifications/mark-all-read');
+            setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+            setUnreadCount(0);
+        } catch (err) {
+            console.error('Failed to mark all as read', err);
+        }
+    };
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -233,7 +275,12 @@ export default function DashboardHeader() {
                         bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : '#ffffff'
                     }}
                 >
-                    <Badge variant="dot" color="error" overlap="circular">
+                    <Badge 
+                        badgeContent={unreadCount} 
+                        color="error" 
+                        overlap="circular"
+                        invisible={unreadCount === 0}
+                    >
                         <NotificationsIcon sx={{ fontSize: 20 }} />
                     </Badge>
                 </IconButton>
@@ -244,20 +291,91 @@ export default function DashboardHeader() {
                     PaperProps={{
                         sx: {
                             mt: 1.5,
-                            width: 320,
-                            maxHeight: 400,
+                            width: 360,
+                            maxHeight: 500,
                             borderRadius: 2,
                             bgcolor: theme.palette.mode === 'dark' ? '#1a1d29' : '#ffffff',
                             boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
                         }
                     }}
                 >
-                    <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-                        <Typography variant="subtitle1" fontWeight={600}>Notifications</Typography>
+                    <Box sx={{ 
+                        p: 2, 
+                        borderBottom: '1px solid', 
+                        borderColor: 'divider',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }}>
+                        <Typography variant="subtitle1" fontWeight={600}>
+                            Notifications {unreadCount > 0 && `(${unreadCount})`}
+                        </Typography>
+                        {unreadCount > 0 && (
+                            <Typography 
+                                variant="caption" 
+                                sx={{ 
+                                    color: 'primary.main', 
+                                    cursor: 'pointer',
+                                    '&:hover': { textDecoration: 'underline' }
+                                }}
+                                onClick={handleMarkAllAsRead}
+                            >
+                                Mark all read
+                            </Typography>
+                        )}
                     </Box>
-                    <Box sx={{ p: 2, textAlign: 'center' }}>
-                        <Typography variant="body2" color="text.secondary">No new notifications</Typography>
-                    </Box>
+                    {notifications.length === 0 ? (
+                        <Box sx={{ p: 3, textAlign: 'center' }}>
+                            <Typography variant="body2" color="text.secondary">
+                                No notifications yet
+                            </Typography>
+                        </Box>
+                    ) : (
+                        <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+                            {notifications.map((notif) => (
+                                <MenuItem
+                                    key={notif._id}
+                                    onClick={() => {
+                                        if (!notif.read) handleMarkAsRead(notif._id);
+                                        if (notif.link) window.location.href = notif.link;
+                                        setNotifAnchorEl(null);
+                                    }}
+                                    sx={{
+                                        py: 1.5,
+                                        px: 2,
+                                        borderBottom: '1px solid',
+                                        borderColor: 'divider',
+                                        bgcolor: notif.read ? 'transparent' : (theme.palette.mode === 'dark' ? 'rgba(102, 126, 234, 0.1)' : 'rgba(102, 126, 234, 0.05)'),
+                                        '&:hover': {
+                                            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)'
+                                        }
+                                    }}
+                                >
+                                    <Box>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                                            <Typography variant="body2" fontWeight={notif.read ? 400 : 600}>
+                                                {notif.title}
+                                            </Typography>
+                                            {!notif.read && (
+                                                <Box sx={{ 
+                                                    width: 6, 
+                                                    height: 6, 
+                                                    borderRadius: '50%', 
+                                                    bgcolor: 'error.main' 
+                                                }} />
+                                            )}
+                                        </Box>
+                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                                            {notif.message}
+                                        </Typography>
+                                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                                            {new Date(notif.createdAt).toLocaleString()}
+                                        </Typography>
+                                    </Box>
+                                </MenuItem>
+                            ))}
+                        </Box>
+                    )}
                 </Menu>
             </Box>
         </Box>

@@ -102,4 +102,16 @@ export const inboxService = {
         const response = await api.get(`/inbox/contacts/${contactId}/submissions`);
         return response.data;
     },
+
+    // Delete a conversation
+    deleteConversation: async (conversationId: string) => {
+        const response = await api.delete(`/inbox/conversations/${conversationId}`);
+        return response.data;
+    },
+
+    // Bulk delete conversations
+    bulkDeleteConversations: async (conversationIds: string[]) => {
+        const response = await api.post('/inbox/conversations/bulk-delete', { conversationIds });
+        return response.data;
+    },
 };
