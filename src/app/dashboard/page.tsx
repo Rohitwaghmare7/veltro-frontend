@@ -115,17 +115,6 @@ export default function DashboardPage() {
         }));
     }, [stats?.inventory?.lowStock]);
 
-    if (loading) {
-        return (
-            <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" height="100vh" gap={2}>
-                <CircularProgress size={40} thickness={4} sx={{ color: '#FF6B4A' }} />
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>Loading Dashboard...</Typography>
-            </Box>
-        );
-    }
-
-    const pageBgColor = theme.palette.mode === 'light' ? '#F2F1EB' : '#0f1117';
-
     // Calculate leads stats from leads data
     const leadsStats = useMemo(() => {
         const total = leads.length;
@@ -133,12 +122,12 @@ export default function DashboardPage() {
         const contacted = leads.filter(l => l.status === 'contacted').length;
         const qualified = leads.filter(l => l.status === 'qualified').length;
         const closed = leads.filter(l => l.status === 'closed').length;
-        
+
         return { total, new: newLeads, contacted, qualified, closed };
     }, [leads]);
 
     // Prepare quick stats data
-    const quickStats = [
+    const quickStats = useMemo(() => [
         {
             icon: <HotelIcon sx={{ fontSize: 24 }} />,
             label: 'Total Bookings',
@@ -170,7 +159,18 @@ export default function DashboardPage() {
             color: '#ef4444',
             link: '/dashboard/settings'
         }
-    ];
+    ], [stats, leadsStats]);
+
+    if (loading) {
+        return (
+            <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" height="100vh" gap={2}>
+                <CircularProgress size={40} thickness={4} sx={{ color: '#FF6B4A' }} />
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>Loading Dashboard...</Typography>
+            </Box>
+        );
+    }
+
+    const pageBgColor = theme.palette.mode === 'light' ? '#F2F1EB' : '#0f1117';
 
     return (
         <RBACGuard>
