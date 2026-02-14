@@ -72,9 +72,6 @@ export default function DashboardPage() {
                 if (statsRes.success) setStats(statsRes.data);
                 if (alertsRes.success) setAlerts(alertsRes.data);
 
-                // 3. Fetch Leads Data
-                await fetchLeads();
-
                 setLoading(false);
             } catch (error) {
                 console.error('Dashboard initialization failed', error);
@@ -84,7 +81,12 @@ export default function DashboardPage() {
         };
 
         initDashboard();
-    }, [router]);
+    }, [router, setStats, setAlerts, setLoading]);
+
+    // Fetch leads separately
+    useEffect(() => {
+        fetchLeads();
+    }, []);
 
     // Transform alerts to ActivityItem format
     const activityItems = useMemo(() => {
