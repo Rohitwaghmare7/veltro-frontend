@@ -61,6 +61,12 @@ export const staffService = {
         return response.data;
     },
 
+    // Get invite info (public)
+    getInviteInfo: async (token: string) => {
+        const response = await api.get(`/staff/invite/info/${token}`);
+        return response.data;
+    },
+
     // Remove staff
     removeStaff: async (id: string) => {
         const response = await api.delete(`/staff/${id}`);

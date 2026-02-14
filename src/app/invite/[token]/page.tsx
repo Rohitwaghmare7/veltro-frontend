@@ -30,27 +30,26 @@ export default function InvitePage() {
             try {
                 const res = await staffService.acceptInvite(token);
                 if (res.success) {
-                    setSuccess(true);
+                    if (res.userExists) {
+                        // User already exists - just show success message
+                        setSuccess(true);
+                    } else {
+                        // User doesn't exist - redirect to register with invite token
+                        window.location.href = `/register?inviteToken=${token}`;
+                    }
                 } else {
                     setError(res.message || 'Failed to accept invitation');
                 }
             } catch (err: any) {
                 console.error('Error accepting invite', err);
-                if (err.response?.status === 401) {
-                    // User not logged in, redirect to register with return URL
-                    router.push(`/register?returnUrl=/invite/${token}`);
-                    return; // Don't setLoading(false) here to avoid flashing error state
-                } else {
-                    setError(err.response?.data?.message || 'Something went wrong. The link might be invalid or already used.');
-                }
+                setError(err.response?.data?.message || 'Something went wrong. The link might be invalid or already used.');
             } finally {
-                // If we didn't redirect (no return early), set loading to false
                 setLoading(false);
             }
         };
 
         handleAccept();
-    }, [token, router]);
+    }, [token]);
 
     return (
         <Container maxWidth="sm">
@@ -70,18 +69,9 @@ export default function InvitePage() {
                             <Alert severity="success" sx={{ mb: 3 }}>
                                 Invitation accepted successfully! You are now part of the team.
                             </Alert>
-                            <Typography mb={4}>
-                                You can now access the dashboard and manage features based on your permissions.
+                            <Typography>
+                                You can now access the team dashboard and collaborate with your team members.
                             </Typography>
-                            <Button
-                                variant="contained"
-                                component={Link}
-                                href="/dashboard"
-                                fullWidth
-                                size="large"
-                            >
-                                Go to Dashboard
-                            </Button>
                         </Box>
                     ) : (
                         <Box>

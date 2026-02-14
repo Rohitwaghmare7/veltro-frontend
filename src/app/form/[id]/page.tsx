@@ -20,6 +20,8 @@ import {
     InputLabel,
     Divider,
     Avatar,
+    Autocomplete,
+    Chip,
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import BusinessIcon from '@mui/icons-material/Business';
@@ -286,6 +288,9 @@ export default function PublicFormPage() {
                                             required={field.required}
                                             placeholder={field.placeholder}
                                             onChange={(e) => handleAnswerChange(field.id, e.target.value)}
+                                            InputLabelProps={{
+                                                shrink: true,
+                                            }}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
                                                     borderRadius: '8px',
@@ -301,12 +306,16 @@ export default function PublicFormPage() {
                                                         borderWidth: '1px',
                                                         boxShadow: '0 0 0 2px rgba(102, 126, 234, 0.2)',
                                                     },
-                                                    '& input': {
-                                                        py: 1.2,
-                                                        px: 1.5,
-                                                        fontSize: '0.875rem',
-                                                        color: '#111827',
-                                                    }
+                                                },
+                                                '& .MuiOutlinedInput-input': {
+                                                    py: 1.2,
+                                                    px: 1.5,
+                                                    fontSize: '0.875rem',
+                                                    color: '#111827 !important',
+                                                    WebkitTextFillColor: '#111827 !important',
+                                                },
+                                                '& input[type="date"]::-webkit-calendar-picker-indicator': {
+                                                    filter: 'invert(0.5)',
                                                 },
                                             }}
                                         />
@@ -380,6 +389,11 @@ export default function PublicFormPage() {
                                                 borderRadius: '8px',
                                                 bgcolor: 'white',
                                                 fontSize: '0.875rem',
+                                                color: '#111827',
+                                                '& .MuiSelect-select': {
+                                                    color: '#111827 !important',
+                                                    WebkitTextFillColor: '#111827 !important',
+                                                },
                                                 '& .MuiOutlinedInput-notchedOutline': {
                                                     borderColor: '#E5E7EB',
                                                 },
@@ -391,15 +405,94 @@ export default function PublicFormPage() {
                                                     borderWidth: '1px',
                                                     boxShadow: '0 0 0 2px rgba(102, 126, 234, 0.2)',
                                                 },
+                                                '& .MuiSvgIcon-root': {
+                                                    color: '#6B7280',
+                                                },
                                             }}
                                         >
                                             <MenuItem disabled value="">
                                                 <Typography color="#9CA3AF" fontSize="0.875rem">Select an option</Typography>
                                             </MenuItem>
                                             {field.options?.map(opt => (
-                                                <MenuItem key={opt} value={opt} sx={{ fontSize: '0.875rem' }}>{opt}</MenuItem>
+                                                <MenuItem key={opt} value={opt} sx={{ fontSize: '0.875rem', color: '#111827' }}>{opt}</MenuItem>
                                             ))}
                                         </Select>
+                                    </Box>
+                                ) : field.type === 'multiselect' ? (
+                                    <Box>
+                                        <InputLabel
+                                            shrink={false}
+                                            sx={{
+                                                mb: 0.5,
+                                                color: '#374151',
+                                                fontWeight: 600,
+                                                fontSize: '0.875rem',
+                                                transform: 'none',
+                                                position: 'static'
+                                            }}
+                                        >
+                                            {field.label}
+                                        </InputLabel>
+                                        <Autocomplete
+                                            multiple
+                                            options={field.options || []}
+                                            onChange={(e, value) => handleAnswerChange(field.id, value)}
+                                            renderInput={(params) => (
+                                                <TextField
+                                                    {...params}
+                                                    placeholder={field.placeholder || 'Select options'}
+                                                    sx={{
+                                                        '& .MuiOutlinedInput-root': {
+                                                            borderRadius: '8px',
+                                                            bgcolor: 'white',
+                                                            '& fieldset': {
+                                                                borderColor: '#E5E7EB',
+                                                            },
+                                                            '&:hover fieldset': {
+                                                                borderColor: '#D1D5DB',
+                                                            },
+                                                            '&.Mui-focused fieldset': {
+                                                                borderColor: '#667eea',
+                                                                borderWidth: '1px',
+                                                                boxShadow: '0 0 0 2px rgba(102, 126, 234, 0.2)',
+                                                            },
+                                                        },
+                                                        '& .MuiOutlinedInput-input': {
+                                                            fontSize: '0.875rem',
+                                                            color: '#111827 !important',
+                                                            WebkitTextFillColor: '#111827 !important',
+                                                        },
+                                                    }}
+                                                />
+                                            )}
+                                            renderTags={(value, getTagProps) =>
+                                                value.map((option, index) => (
+                                                    <Chip
+                                                        {...getTagProps({ index })}
+                                                        key={option}
+                                                        label={option}
+                                                        size="small"
+                                                        sx={{
+                                                            bgcolor: '#eff6ff',
+                                                            color: '#1e40af',
+                                                            fontSize: '0.75rem',
+                                                            '& .MuiChip-deleteIcon': {
+                                                                color: '#60a5fa',
+                                                                '&:hover': {
+                                                                    color: '#1e40af',
+                                                                },
+                                                            },
+                                                        }}
+                                                    />
+                                                ))
+                                            }
+                                            sx={{
+                                                '& .MuiAutocomplete-tag': {
+                                                    bgcolor: '#eff6ff',
+                                                    color: '#1e40af',
+                                                },
+                                            }}
+                                        />
                                     </Box>
                                 ) : field.type === 'checkbox' ? (
                                     <FormControl component="fieldset">

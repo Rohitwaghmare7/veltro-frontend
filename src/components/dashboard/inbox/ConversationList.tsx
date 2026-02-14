@@ -385,7 +385,7 @@ export default function ConversationList({
                                                 borderColor: (theme) => theme.palette.background.paper
                                             }}
                                         >
-                                            {conv.contactId.name.charAt(0).toUpperCase()}
+                                            {conv.contactId?.name?.charAt(0).toUpperCase() || '?'}
                                         </Avatar>
                                     </Badge>
                                 </ListItemAvatar>
@@ -398,7 +398,7 @@ export default function ConversationList({
                                                 noWrap
                                                 sx={{ maxWidth: '65%' }}
                                             >
-                                                {conv.contactId.name}
+                                                {conv.contactId?.name || 'Unknown Contact'}
                                             </Typography>
                                             <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem', fontWeight: 500 }}>
                                                 {formatTime(conv.lastMessageAt)}

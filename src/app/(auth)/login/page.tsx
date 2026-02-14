@@ -49,11 +49,16 @@ function LoginForm() {
         try {
             const response = await api.post('/auth/login', { email, password });
             if (response.data.success) {
-                const { token, refreshToken, user } = response.data.data;
+                const { token, refreshToken, user, business } = response.data.data;
 
                 localStorage.setItem('token', token);
                 localStorage.setItem('refreshToken', refreshToken);
                 localStorage.setItem('user', JSON.stringify(user));
+
+                // Set business ID if available
+                if (business?._id) {
+                    localStorage.setItem('selectedBusinessId', business._id);
+                }
 
                 router.push(returnUrl || '/dashboard');
             }

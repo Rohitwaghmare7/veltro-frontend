@@ -42,16 +42,13 @@ function RegisterForm() {
     const [error, setError] = useState<string | null>(null);
     const [inviteInfo, setInviteInfo] = useState<{ businessName: string } | null>(null);
 
-    const returnUrl = searchParams.get('returnUrl');
+    const inviteToken = searchParams.get('inviteToken');
 
     const handleClickShowPassword = () => setShowPassword((show) => !show);
 
     const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
     };
-
-    // Extract token from returnUrl if it exists (e.g. /invite/TOKEN)
-    const inviteToken = returnUrl?.startsWith('/invite/') ? returnUrl.split('/')[2] : null;
 
     useEffect(() => {
         if (inviteToken) {
@@ -87,14 +84,24 @@ function RegisterForm() {
                 password,
                 inviteToken
             });
-            const { token, refreshToken, user } = response.data.data;
+            const { token, refreshToken, user, business } = response.data.data;
 
             localStorage.setItem('token', token);
             localStorage.setItem('refreshToken', refreshToken);
             localStorage.setItem('user', JSON.stringify(user));
 
-            // Redirect to returnUrl (the invite acceptance page) or dashboard
-            router.push(returnUrl || (user.isOnboarded ? '/dashboard' : '/onboarding'));
+            // Set business ID if available
+            if (business?._id) {
+                localStorage.setItem('selectedBusinessId', business._id);
+            }
+
+            // If registered with invite token, redirect to dashboard (skip onboarding)
+            // Otherwise, redirect to onboarding if not completed
+            if (inviteToken) {
+                router.push('/dashboard');
+            } else {
+                router.push(user.isOnboarded ? '/dashboard' : '/onboarding');
+            }
         } catch (err: unknown) {
             let message = 'Registration failed';
             if (err instanceof AxiosError) {
@@ -375,7 +382,7 @@ function RegisterForm() {
 
                         <Typography variant="caption" sx={{ color: '#666' }} align="center">
                             Already have an account?{' '}
-                            <Link href={`/login${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`} style={{ textDecoration: 'none' }}>
+                            <Link href="/login" style={{ textDecoration: 'none' }}>
                                 <Typography component="span" variant="caption" sx={{ color: 'white', textDecoration: 'underline' }} fontWeight="medium">
                                     Sign in
                                 </Typography>

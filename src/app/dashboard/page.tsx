@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Box, Grid, CircularProgress, Typography, useTheme } from '@mui/material';
 import HotelIcon from '@mui/icons-material/Hotel';
@@ -12,6 +12,7 @@ import RBACGuard from '@/components/dashboard/RBACGuard';
 import { dashboardService } from '@/lib/services/dashboard.service';
 import { useDashboardStore } from '@/store/dashboardStore';
 import { useLeadsStore } from '@/store/leadsStore';
+import { useBookingsStore } from '@/store/bookingsStore';
 
 // Components
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
@@ -35,11 +36,11 @@ export default function DashboardPage() {
         loading,
         setStats,
         setAlerts,
-        setLoading,
-        setError
+        setLoading
     } = useDashboardStore();
 
     const { leads, fetchLeads } = useLeadsStore();
+    const { bookings, fetchBookings } = useBookingsStore();
 
     // State for weekly activity data (not used anymore, can be removed)
     // const [weeklyActivity, setWeeklyActivity] = useState<any>(null);
@@ -90,6 +91,12 @@ export default function DashboardPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Fetch bookings separately
+    useEffect(() => {
+        fetchBookings();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     // Transform alerts to ActivityItem format
     const activityItems = useMemo(() => {
         return (alerts || []).map((alert: any) => ({
@@ -126,12 +133,35 @@ export default function DashboardPage() {
         return { total, new: newLeads, contacted, qualified, closed };
     }, [leads]);
 
+    // Calculate bookings stats from bookings data
+    const bookingsStats = useMemo(() => {
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const total = bookings.length;
+        const todayBookings = bookings.filter(b => {
+            const bookingDate = new Date(b.date);
+            return bookingDate >= today && bookingDate < tomorrow;
+        }).length;
+
+        const upcomingBookings = bookings.filter(b => {
+            const bookingDate = new Date(b.date);
+            return bookingDate >= tomorrow && (b.status === 'confirmed' || b.status === 'pending');
+        }).length;
+
+        const completedBookings = bookings.filter(b => b.status === 'completed').length;
+
+        return { total, today: todayBookings, upcoming: upcomingBookings, completed: completedBookings };
+    }, [bookings]);
+
     // Prepare quick stats data
     const quickStats = useMemo(() => [
         {
             icon: <HotelIcon sx={{ fontSize: 24 }} />,
             label: 'Total Bookings',
-            value: (stats?.bookings?.today || 0) + (stats?.bookings?.upcoming || 0),
+            value: bookingsStats.total,
             trend: 12,
             color: '#667eea',
             link: '/dashboard/bookings'
@@ -159,7 +189,7 @@ export default function DashboardPage() {
             color: '#ef4444',
             link: '/dashboard/settings'
         }
-    ], [stats, leadsStats]);
+    ], [stats, leadsStats, bookingsStats]);
 
     if (loading) {
         return (
@@ -193,12 +223,12 @@ export default function DashboardPage() {
                     <Grid size={{ xs: 12, lg: 7 }}>
                         <TotalLikesCard
                             title="Total Bookings"
-                            total={(stats?.bookings?.today || 0) + (stats?.bookings?.upcoming || 0)}
+                            total={bookingsStats.total}
                             color="#FF6B4A"
                             breakdown={[
-                                { label: 'Today', value: stats?.bookings?.today || 0, color: '#FCD34D' },
-                                { label: 'Upcoming', value: stats?.bookings?.upcoming || 0, color: '#FFB84D' },
-                                { label: 'Completed', value: stats?.bookings?.completed || 0, color: '#FF8A4D' }
+                                { label: 'Today', value: bookingsStats.today, color: '#FCD34D' },
+                                { label: 'Upcoming', value: bookingsStats.upcoming, color: '#FFB84D' },
+                                { label: 'Completed', value: bookingsStats.completed, color: '#FF8A4D' }
                             ]}
                         />
                     </Grid>

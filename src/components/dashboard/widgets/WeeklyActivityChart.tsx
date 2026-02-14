@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Paper, Typography, MenuItem, Select, useTheme } from '@mui/material';
+import { Box, Paper, Typography, useTheme } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { useState, useMemo, useEffect, ReactNode } from 'react';
@@ -23,7 +23,7 @@ export default function WeeklyActivityChart({
     icon = <FavoriteIcon sx={{ fontSize: 20 }} />
 }: WeeklyActivityChartProps) {
     const theme = useTheme();
-    const [period, setPeriod] = useState<PeriodType>('Week');
+    const period: PeriodType = 'Week'; // Fixed to weekly view
     const [mounted, setMounted] = useState(false);
 
     // Get bookings from Zustand store
@@ -188,25 +188,6 @@ export default function WeeklyActivityChart({
                         <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
                             {title}
                         </Typography>
-                        <Select
-                            value={period}
-                            onChange={(e) => setPeriod(e.target.value as PeriodType)}
-                            size="small"
-                            variant="standard"
-                            disableUnderline
-                            sx={{
-                                fontSize: '0.85rem',
-                                color: 'text.secondary',
-                                fontWeight: 500,
-                                '& .MuiSelect-icon': {
-                                    fontSize: 16
-                                }
-                            }}
-                        >
-                            <MenuItem value="Day">Daily</MenuItem>
-                            <MenuItem value="Week">Weekly</MenuItem>
-                            <MenuItem value="Month">Monthly</MenuItem>
-                        </Select>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5 }}>
                         <Typography variant="h3" sx={{ fontWeight: 700, fontSize: '2.5rem' }}>

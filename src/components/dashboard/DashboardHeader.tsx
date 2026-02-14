@@ -95,6 +95,14 @@ export default function DashboardHeader() {
                             setSelectedBusiness(found);
                             // Fetch business details to get booking slug
                             fetchBusinessDetails(found._id);
+                        } else {
+                            // Stored business ID is invalid, clear it and use first available
+                            localStorage.removeItem('selectedBusinessId');
+                            if (res.data.data.length > 0) {
+                                setSelectedBusiness(res.data.data[0]);
+                                localStorage.setItem('selectedBusinessId', res.data.data[0]._id);
+                                fetchBusinessDetails(res.data.data[0]._id);
+                            }
                         }
                     } else if (res.data.data.length > 0) {
                         setSelectedBusiness(res.data.data[0]);
