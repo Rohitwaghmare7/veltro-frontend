@@ -644,6 +644,7 @@ export default function PublicBookingPage() {
                                             required
                                             value={formData.name}
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            InputLabelProps={{ shrink: true }}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
                                                     borderRadius: '4px',
@@ -654,13 +655,14 @@ export default function PublicBookingPage() {
                                                 },
                                                 '& .MuiInputLabel-root': {
                                                     color: '#6B7280',
-                                                    fontSize: '0.75rem',
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: 600,
                                                     '&.Mui-focused': { color: '#ff6b6b' },
                                                 },
                                                 '& .MuiOutlinedInput-input': {
                                                     color: '#111827',
-                                                    py: 0.8,
-                                                    fontSize: '0.75rem',
+                                                    py: 1.2,
+                                                    fontSize: '0.875rem',
                                                 },
                                             }}
                                         />
@@ -673,6 +675,7 @@ export default function PublicBookingPage() {
                                             required
                                             value={formData.email}
                                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            InputLabelProps={{ shrink: true }}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
                                                     borderRadius: '4px',
@@ -683,13 +686,14 @@ export default function PublicBookingPage() {
                                                 },
                                                 '& .MuiInputLabel-root': {
                                                     color: '#6B7280',
-                                                    fontSize: '0.75rem',
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: 600,
                                                     '&.Mui-focused': { color: '#ff6b6b' },
                                                 },
                                                 '& .MuiOutlinedInput-input': {
                                                     color: '#111827',
-                                                    py: 0.8,
-                                                    fontSize: '0.75rem',
+                                                    py: 1.2,
+                                                    fontSize: '0.875rem',
                                                 },
                                             }}
                                         />
@@ -701,6 +705,7 @@ export default function PublicBookingPage() {
                                             required
                                             value={formData.phone}
                                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                            InputLabelProps={{ shrink: true }}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
                                                     borderRadius: '4px',
@@ -711,13 +716,14 @@ export default function PublicBookingPage() {
                                                 },
                                                 '& .MuiInputLabel-root': {
                                                     color: '#6B7280',
-                                                    fontSize: '0.75rem',
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: 600,
                                                     '&.Mui-focused': { color: '#ff6b6b' },
                                                 },
                                                 '& .MuiOutlinedInput-input': {
                                                     color: '#111827',
-                                                    py: 0.8,
-                                                    fontSize: '0.75rem',
+                                                    py: 1.2,
+                                                    fontSize: '0.875rem',
                                                 },
                                             }}
                                         />
@@ -730,6 +736,7 @@ export default function PublicBookingPage() {
                                             label="Notes (Optional)"
                                             value={formData.notes}
                                             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                            InputLabelProps={{ shrink: true }}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
                                                     borderRadius: '4px',
@@ -740,12 +747,13 @@ export default function PublicBookingPage() {
                                                 },
                                                 '& .MuiInputLabel-root': {
                                                     color: '#6B7280',
-                                                    fontSize: '0.75rem',
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: 600,
                                                     '&.Mui-focused': { color: '#ff6b6b' },
                                                 },
                                                 '& .MuiOutlinedInput-input': {
                                                     color: '#111827',
-                                                    fontSize: '0.75rem',
+                                                    fontSize: '0.875rem',
                                                 },
                                             }}
                                         />
