@@ -20,6 +20,7 @@ export interface Form {
     isRequiredForBooking?: boolean;
     autoSendAfterBooking?: boolean;
     sendDelay?: number;
+    isDefaultBookingForm?: boolean;
     createdAt: string;
     updatedAt: string;
     business?: {
@@ -102,6 +103,12 @@ export const formService = {
     // Get forms linked to a booking
     getBookingForms: async (bookingId: string) => {
         const response = await api.get(`/forms/booking/${bookingId}`);
+        return response.data;
+    },
+
+    // Toggle form as default booking form
+    toggleDefaultBookingForm: async (id: string) => {
+        const response = await api.patch(`/forms/${id}/toggle-default`);
         return response.data;
     }
 };

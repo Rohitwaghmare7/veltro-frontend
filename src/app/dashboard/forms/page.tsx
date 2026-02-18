@@ -25,6 +25,8 @@ import ShareIcon from '@mui/icons-material/Share';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { useState, useEffect } from 'react';
 import { formService, Form } from '@/lib/services/form.service';
 
@@ -137,6 +139,37 @@ export default function FormsPage() {
             setNotification({
                 open: true,
                 message: 'Failed to export submissions. Make sure there are submissions to export.',
+                severity: 'error'
+            });
+        }
+    };
+
+    const handleToggleDefault = async (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+
+        try {
+            const response = await formService.toggleDefaultBookingForm(id);
+            if (response.success) {
+                // Update the forms list
+                setForms(forms.map(f => ({
+                    ...f,
+                    isDefaultBookingForm: f._id === id ? response.data.isDefaultBookingForm : false
+                })));
+                
+                setNotification({
+                    open: true,
+                    message: response.data.isDefaultBookingForm 
+                        ? 'Form marked as default booking form' 
+                        : 'Form unmarked as default',
+                    severity: 'success'
+                });
+            }
+        } catch (error) {
+            console.error('Failed to toggle default form', error);
+            setNotification({
+                open: true,
+                message: 'Failed to update form',
                 severity: 'error'
             });
         }
@@ -269,24 +302,80 @@ export default function FormsPage() {
                                                 <DescriptionIcon sx={{ fontSize: 20 }} />
                                             </Box>
 
-                                            <Tooltip title="Delete Form">
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={(e) => handleDelete(form._id, form.title, e)}
-                                                    sx={{
-                                                        color: textSecondary,
-                                                        backgroundColor: 'transparent',
-                                                        p: 0.5,
-                                                        '&:hover': { color: '#ef4444', backgroundColor: isDark ? 'rgba(239, 68, 68, 0.1)' : '#fee2e2' }
-                                                    }}
-                                                >
-                                                    <DeleteIcon sx={{ fontSize: 18 }} />
-                                                </IconButton>
-                                            </Tooltip>
+                                            <Box display="flex" gap={0.5}>
+                                                <Tooltip title={form.isDefaultBookingForm ? "Default booking form" : "Set as default booking form"}>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={(e) => handleToggleDefault(form._id, e)}
+                                                        sx={{
+                                                            color: form.isDefaultBookingForm ? '#fbbf24' : textSecondary,
+                                                            backgroundColor: 'transparent',
+                                                            p: 0.5,
+                                                            '&:hover': { 
+                                                                color: '#fbbf24', 
+                                                                backgroundColor: isDark ? 'rgba(251, 191, 36, 0.1)' : '#fef3c7' 
+                                                            }
+                                                        }}
+                                                    >
+                                                        {form.isDefaultBookingForm ? (
+                                                            <StarIcon sx={{ fontSize: 18 }} />
+                                                        ) : (
+                                                            <StarBorderIcon sx={{ fontSize: 18 }} />
+                                                        )}
+                                                    </IconButton>
+                                                </Tooltip>
+
+                                                <Tooltip title="Edit Form">
+                                                    <IconButton
+                                                        size="small"
+                                                        component={Link}
+                                                        href={`/dashboard/forms/builder?id=${form._id}`}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        sx={{
+                                                            color: textSecondary,
+                                                            backgroundColor: 'transparent',
+                                                            p: 0.5,
+                                                            '&:hover': { 
+                                                                color: '#3b82f6', 
+                                                                backgroundColor: isDark ? 'rgba(59, 130, 246, 0.1)' : '#eff6ff' 
+                                                            }
+                                                        }}
+                                                    >
+                                                        <EditIcon sx={{ fontSize: 18 }} />
+                                                    </IconButton>
+                                                </Tooltip>
+
+                                                <Tooltip title="Delete Form">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={(e) => handleDelete(form._id, form.title, e)}
+                                                        sx={{
+                                                            color: textSecondary,
+                                                            backgroundColor: 'transparent',
+                                                            p: 0.5,
+                                                            '&:hover': { color: '#ef4444', backgroundColor: isDark ? 'rgba(239, 68, 68, 0.1)' : '#fee2e2' }
+                                                        }}
+                                                    >
+                                                        <DeleteIcon sx={{ fontSize: 18 }} />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Box>
                                         </Box>
 
                                         <Typography variant="h6" fontWeight="700" fontSize="0.95rem" color={textPrimary} noWrap gutterBottom>
                                             {form.title}
+                                            {form.isDefaultBookingForm && (
+                                                <Tooltip title="Default booking form - automatically sent after bookings">
+                                                    <StarIcon 
+                                                        sx={{ 
+                                                            fontSize: 16, 
+                                                            color: '#fbbf24', 
+                                                            ml: 0.5,
+                                                            verticalAlign: 'middle'
+                                                        }} 
+                                                    />
+                                                </Tooltip>
+                                            )}
                                         </Typography>
 
                                         <Box display="flex" alignItems="center" gap={1} mb={2}>

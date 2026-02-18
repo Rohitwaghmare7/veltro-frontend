@@ -360,6 +360,45 @@ export default function FormBuilderPage() {
     const [autoSendAfterBooking, setAutoSendAfterBooking] = useState(false);
     const [sendDelay] = useState(0); // Always 0 - immediate sending
     const [services, setServices] = useState<any[]>([]);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [formId, setFormId] = useState<string | null>(null);
+
+    // Load existing form if ID is in URL
+    useEffect(() => {
+        const searchParams = new URLSearchParams(window.location.search);
+        const id = searchParams.get('id');
+        
+        if (id) {
+            setFormId(id);
+            setIsEditMode(true);
+            loadForm(id);
+        }
+    }, []);
+
+    const loadForm = async (id: string) => {
+        try {
+            setLoading(true);
+            const response = await formService.getForm(id);
+            if (response.success) {
+                const form = response.data;
+                setTitle(form.title);
+                setDescription(form.description || 'Please fill out this form...');
+                setFields(form.fields);
+                setLinkedServices(form.linkedServices || []);
+                setIsRequiredForBooking(form.isRequiredForBooking || false);
+                setAutoSendAfterBooking(form.autoSendAfterBooking || false);
+            }
+        } catch (error) {
+            console.error('Failed to load form:', error);
+            setNotification({
+                open: true,
+                message: 'Failed to load form',
+                severity: 'error'
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Fetch services for linking
     useEffect(() => {
@@ -477,12 +516,25 @@ export default function FormBuilderPage() {
                 autoSendAfterBooking,
                 sendDelay,
             };
-            await formService.createForm(formData);
-            setNotification({
-                open: true,
-                message: 'Form saved successfully!',
-                severity: 'success'
-            });
+            
+            if (isEditMode && formId) {
+                // Update existing form
+                await formService.updateForm(formId, formData);
+                setNotification({
+                    open: true,
+                    message: 'Form updated successfully!',
+                    severity: 'success'
+                });
+            } else {
+                // Create new form
+                await formService.createForm(formData);
+                setNotification({
+                    open: true,
+                    message: 'Form created successfully!',
+                    severity: 'success'
+                });
+            }
+            
             setTimeout(() => {
                 router.push('/dashboard/forms');
             }, 1000);
@@ -490,7 +542,7 @@ export default function FormBuilderPage() {
             console.error('Failed to save form', error);
             setNotification({
                 open: true,
-                message: 'Failed to save form',
+                message: `Failed to ${isEditMode ? 'update' : 'create'} form`,
                 severity: 'error'
             });
         } finally {
@@ -525,7 +577,7 @@ export default function FormBuilderPage() {
                             Back
                         </Button>
                         <Typography variant="h6" fontWeight="bold" color={textPrimary} sx={{ borderLeft: `1px solid ${borderColor}`, pl: 2 }}>
-                            Form Builder
+                            {isEditMode ? 'Edit Form' : 'Form Builder'}
                         </Typography>
                     </Box>
                     <Button
@@ -551,7 +603,7 @@ export default function FormBuilderPage() {
                             }
                         }}
                     >
-                        {loading ? 'Saving...' : 'Save Form'}
+                        {loading ? 'Saving...' : (isEditMode ? 'Update Form' : 'Save Form')}
                     </Button>
                 </Box>
 

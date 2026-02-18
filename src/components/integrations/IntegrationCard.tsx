@@ -306,9 +306,10 @@ export default function IntegrationCard({
                             borderRadius: '8px',
                             textTransform: 'none',
                             fontWeight: 600,
-                            bgcolor: '#8b5cf6',
+                            background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A4D 100%)',
+                            color: '#ffffff',
                             '&:hover': {
-                                bgcolor: '#7c3aed',
+                                background: 'linear-gradient(135deg, #FF5A39 0%, #FF793C 100%)',
                             }
                         }}
                     >
