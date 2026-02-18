@@ -127,7 +127,7 @@ export default function ConversationList({
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
-            borderRadius: '24px',
+            borderRadius: 1,
             overflow: 'hidden',
             bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1a1d29' : '#fff',
             border: '1px solid',
@@ -140,6 +140,23 @@ export default function ConversationList({
                         {isSelectionMode ? `${selectedIds.length} Selected` : 'Messages'}
                     </Typography>
                     <Box display="flex" gap={1}>
+                        {!isSelectionMode && onNewConversation && (
+                            <Tooltip title="New Conversation">
+                                <IconButton 
+                                    size="small" 
+                                    onClick={onNewConversation}
+                                    sx={{
+                                        bgcolor: '#ff6b6b',
+                                        color: 'white',
+                                        '&:hover': {
+                                            bgcolor: '#ff5252'
+                                        }
+                                    }}
+                                >
+                                    <AddIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
+                            </Tooltip>
+                        )}
                         {!isSelectionMode && onSyncGmail && (
                             <Tooltip title="Sync Gmail">
                                 <IconButton 
@@ -157,7 +174,7 @@ export default function ConversationList({
                                     }}
                                 >
                                     <SyncIcon sx={{ 
-                                        fontSize: 20,
+                                        fontSize: 16,
                                         animation: syncing ? 'spin 1s linear infinite' : 'none',
                                         '@keyframes spin': {
                                             '0%': { transform: 'rotate(0deg)' },
@@ -167,31 +184,14 @@ export default function ConversationList({
                                 </IconButton>
                             </Tooltip>
                         )}
-                        {!isSelectionMode && onNewConversation && (
-                            <Tooltip title="New Conversation">
-                                <IconButton 
-                                    size="small" 
-                                    onClick={onNewConversation}
-                                    sx={{
-                                        bgcolor: '#7c3aed',
-                                        color: 'white',
-                                        '&:hover': {
-                                            bgcolor: '#6d28d9'
-                                        }
-                                    }}
-                                >
-                                    <AddIcon />
-                                </IconButton>
-                            </Tooltip>
-                        )}
                         {isSelectionMode ? (
                             <IconButton size="small" onClick={() => { setIsSelectionMode(false); setSelectedIds([]); }}>
-                                <CloseIcon />
+                                <CloseIcon sx={{ fontSize: 16 }} />
                             </IconButton>
                         ) : (
                             <Tooltip title="Select Messages">
                                 <IconButton size="small" onClick={() => setIsSelectionMode(true)}>
-                                    <ChecklistIcon />
+                                    <ChecklistIcon sx={{ fontSize: 16 }} />
                                 </IconButton>
                             </Tooltip>
                         )}
@@ -206,53 +206,112 @@ export default function ConversationList({
                                 size="small"
                                 onClick={handleSelectAll}
                                 fullWidth
-                                sx={{ borderRadius: '8px', textTransform: 'none' }}
+                                sx={{ 
+                                    borderRadius: '8px', 
+                                    textTransform: 'none',
+                                    borderColor: '#ff6b6b',
+                                    color: '#ff6b6b',
+                                    '&:hover': {
+                                        borderColor: '#ff5252',
+                                        bgcolor: 'rgba(255, 107, 107, 0.05)'
+                                    }
+                                }}
                             >
                                 {selectedIds.length === conversations.length ? 'Deselect All' : 'Select All'}
                             </Button>
                         </Box>
                         <Box display="flex" gap={1}>
                             {statusFilter !== 'resolved' && (
-                                <Button
-                                    variant="contained"
-                                    size="small"
-                                    color="success"
-                                    onClick={() => handleBulkAction('resolve')}
-                                    disabled={selectedIds.length === 0 || isExecuting}
-                                    fullWidth
-                                    startIcon={<CheckCircleOutlineIcon />}
-                                    sx={{ borderRadius: '8px', textTransform: 'none', color: 'white' }}
+                                <Box
+                                    onClick={selectedIds.length > 0 && !isExecuting ? () => handleBulkAction('resolve') : undefined}
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 0.5,
+                                        bgcolor: selectedIds.length === 0 || isExecuting ? '#d1d5db' : '#ff6b6b',
+                                        color: selectedIds.length === 0 || isExecuting ? '#9ca3af' : '#ffffff',
+                                        px: 2,
+                                        py: 1,
+                                        borderRadius: '8px',
+                                        fontWeight: 600,
+                                        fontSize: '0.875rem',
+                                        cursor: selectedIds.length === 0 || isExecuting ? 'not-allowed' : 'pointer',
+                                        transition: 'all 0.2s',
+                                        opacity: selectedIds.length === 0 || isExecuting ? 0.6 : 1,
+                                        flex: 1,
+                                        textTransform: 'none',
+                                        '&:hover': {
+                                            bgcolor: selectedIds.length === 0 || isExecuting ? '#d1d5db' : '#ff5252',
+                                            transform: selectedIds.length === 0 || isExecuting ? 'none' : 'translateY(-1px)',
+                                            boxShadow: selectedIds.length === 0 || isExecuting ? 'none' : '0 4px 12px rgba(255, 107, 107, 0.3)'
+                                        }
+                                    }}
                                 >
+                                    <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
                                     Resolve
-                                </Button>
+                                </Box>
                             )}
                             {statusFilter !== 'open' && (
-                                <Button
-                                    variant="contained"
-                                    size="small"
-                                    color="warning"
-                                    onClick={() => handleBulkAction('reopen')}
-                                    disabled={selectedIds.length === 0 || isExecuting}
-                                    fullWidth
-                                    startIcon={<RestoreIcon />}
-                                    sx={{ borderRadius: '8px', textTransform: 'none', color: 'white' }}
+                                <Box
+                                    onClick={selectedIds.length > 0 && !isExecuting ? () => handleBulkAction('reopen') : undefined}
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 0.5,
+                                        bgcolor: selectedIds.length === 0 || isExecuting ? '#d1d5db' : '#ff6b6b',
+                                        color: selectedIds.length === 0 || isExecuting ? '#9ca3af' : '#ffffff',
+                                        px: 2,
+                                        py: 1,
+                                        borderRadius: '8px',
+                                        fontWeight: 600,
+                                        fontSize: '0.875rem',
+                                        cursor: selectedIds.length === 0 || isExecuting ? 'not-allowed' : 'pointer',
+                                        transition: 'all 0.2s',
+                                        opacity: selectedIds.length === 0 || isExecuting ? 0.6 : 1,
+                                        flex: 1,
+                                        textTransform: 'none',
+                                        '&:hover': {
+                                            bgcolor: selectedIds.length === 0 || isExecuting ? '#d1d5db' : '#ff5252',
+                                            transform: selectedIds.length === 0 || isExecuting ? 'none' : 'translateY(-1px)',
+                                            boxShadow: selectedIds.length === 0 || isExecuting ? 'none' : '0 4px 12px rgba(255, 107, 107, 0.3)'
+                                        }
+                                    }}
                                 >
+                                    <RestoreIcon sx={{ fontSize: 18 }} />
                                     Reopen
-                                </Button>
+                                </Box>
                             )}
                         </Box>
-                        <Button
-                            variant="contained"
-                            size="small"
-                            color="error"
-                            onClick={() => handleBulkAction('delete')}
-                            disabled={selectedIds.length === 0 || isExecuting}
-                            fullWidth
-                            startIcon={<DeleteOutlineIcon />}
-                            sx={{ borderRadius: '8px', textTransform: 'none', color: 'white' }}
+                        <Box
+                            onClick={selectedIds.length > 0 && !isExecuting ? () => handleBulkAction('delete') : undefined}
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 0.5,
+                                bgcolor: selectedIds.length === 0 || isExecuting ? '#d1d5db' : '#ff6b6b',
+                                color: selectedIds.length === 0 || isExecuting ? '#9ca3af' : '#ffffff',
+                                px: 2,
+                                py: 1,
+                                borderRadius: '8px',
+                                fontWeight: 600,
+                                fontSize: '0.875rem',
+                                cursor: selectedIds.length === 0 || isExecuting ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.2s',
+                                opacity: selectedIds.length === 0 || isExecuting ? 0.6 : 1,
+                                textTransform: 'none',
+                                '&:hover': {
+                                    bgcolor: selectedIds.length === 0 || isExecuting ? '#d1d5db' : '#ff5252',
+                                    transform: selectedIds.length === 0 || isExecuting ? 'none' : 'translateY(-1px)',
+                                    boxShadow: selectedIds.length === 0 || isExecuting ? 'none' : '0 4px 12px rgba(255, 107, 107, 0.3)'
+                                }
+                            }}
                         >
+                            <DeleteOutlineIcon sx={{ fontSize: 18 }} />
                             Delete
-                        </Button>
+                        </Box>
                     </Stack>
                 ) : (
                     <>
@@ -266,7 +325,7 @@ export default function ConversationList({
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                                        <SearchIcon sx={{ color: '#000000', fontSize: 20 }} />
                                     </InputAdornment>
                                 ),
                             }}
@@ -300,7 +359,7 @@ export default function ConversationList({
                                     textTransform: 'none',
                                     fontWeight: 600,
                                     fontSize: '0.8rem',
-                                    color: 'text.secondary',
+                                    color: '#9ca3af',
                                     '&.Mui-selected': {
                                         bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2c3e50' : '#fff',
                                         color: 'text.primary',
@@ -324,7 +383,7 @@ export default function ConversationList({
                 {conversations.length === 0 ? (
                     <Box p={4} textAlign="center">
                         <InboxOutlinedIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2, opacity: 0.5 }} />
-                        <Typography variant="body2" color="textSecondary">
+                        <Typography variant="body2" sx={{ color: '#9ca3af' }}>
                             No conversations found
                         </Typography>
                     </Box>
@@ -357,9 +416,9 @@ export default function ConversationList({
                                     px: 2,
                                     transition: 'all 0.2s',
                                     '&.Mui-selected': {
-                                        bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(124, 58, 237, 0.15)' : 'rgba(124, 58, 237, 0.08)',
+                                        bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 107, 107, 0.15)' : 'rgba(255, 107, 107, 0.08)',
                                         '&:hover': {
-                                            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(124, 58, 237, 0.25)' : 'rgba(124, 58, 237, 0.12)',
+                                            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 107, 107, 0.25)' : 'rgba(255, 107, 107, 0.12)',
                                         }
                                     },
                                     '&:hover': {
@@ -377,7 +436,7 @@ export default function ConversationList({
                                     >
                                         <Avatar
                                             sx={{
-                                                bgcolor: selectedId === conv._id && !isSelectionMode ? '#7c3aed' : (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                                                bgcolor: selectedId === conv._id && !isSelectionMode ? '#ff6b6b' : (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
                                                 color: selectedId === conv._id && !isSelectionMode ? '#fff' : 'text.primary',
                                                 fontWeight: 600,
                                                 fontSize: '0.9rem',
@@ -400,7 +459,7 @@ export default function ConversationList({
                                             >
                                                 {conv.contactId?.name || 'Unknown Contact'}
                                             </Typography>
-                                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem', fontWeight: 500 }}>
+                                            <Typography variant="caption" sx={{ fontSize: '0.7rem', fontWeight: 500, color: '#ff6b6b' }}>
                                                 {formatTime(conv.lastMessageAt)}
                                             </Typography>
                                         </Box>
@@ -409,7 +468,7 @@ export default function ConversationList({
                                         <Box>
                                             <Typography
                                                 variant="body2"
-                                                color={conv.unreadCount > 0 ? "text.primary" : "text.secondary"}
+                                                color={conv.unreadCount > 0 ? "text.primary" : "#9ca3af"}
                                                 noWrap
                                                 fontSize="0.8rem"
                                                 fontWeight={conv.unreadCount > 0 ? 500 : 400}

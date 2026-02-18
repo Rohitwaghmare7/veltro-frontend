@@ -3,12 +3,12 @@
 import React, { createContext, useContext, useState } from 'react';
 
 const steps = [
-    'Create Workspace',
+    'Business Profile',
     'Connect Channels',
-    'Contact Form',
+    'Lead Capture',
     'Services',
     'Operating Hours',
-    'Activation',
+    'Launch',
 ];
 
 interface OnboardingContextType {

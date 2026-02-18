@@ -87,12 +87,12 @@ function SortableField({ field, onUpdate, onRemove, onRequestDelete }: any) {
                 p: 3,
                 position: 'relative',
                 mb: 2,
-                bgcolor: isMandatory ? (isDark ? 'rgba(102, 126, 234, 0.1)' : 'rgba(102, 126, 234, 0.05)') : cardBg,
-                borderRadius: '16px',
-                border: `1px solid ${isMandatory ? '#667eea' : borderColor}`,
+                bgcolor: isMandatory ? (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)') : cardBg,
+                borderRadius: 1,
+                border: `1px solid ${isMandatory ? (isDark ? 'rgba(255,255,255,0.3)' : '#9ca3af') : borderColor}`,
                 transition: 'all 0.2s',
                 '&:hover': {
-                    borderColor: isMandatory ? '#667eea' : (isDark ? 'rgba(255,255,255,0.3)' : '#cbd5e1'),
+                    borderColor: isMandatory ? (isDark ? 'rgba(255,255,255,0.4)' : '#6b7280') : (isDark ? 'rgba(255,255,255,0.3)' : '#cbd5e1'),
                     boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.05)',
                     '& .actions': { opacity: 1 }
                 }
@@ -106,7 +106,7 @@ function SortableField({ field, onUpdate, onRemove, onRequestDelete }: any) {
                         position: 'absolute',
                         top: 12,
                         right: 12,
-                        bgcolor: '#667eea',
+                        bgcolor: isDark ? 'rgba(255,255,255,0.2)' : '#374151',
                         color: 'white',
                         fontWeight: 600,
                         fontSize: '0.7rem',
@@ -178,8 +178,16 @@ function SortableField({ field, onUpdate, onRemove, onRequestDelete }: any) {
                         InputProps={{ 
                             sx: { 
                                 fontWeight: 'bold',
-                                ...(isMandatory && { color: '#667eea' })
+                                ...(isMandatory && { color: isDark ? 'rgba(255,255,255,0.9)' : '#111827' })
                             } 
+                        }}
+                        InputLabelProps={{
+                            sx: {
+                                color: isDark ? 'rgba(255,255,255,0.6)' : '#64748b',
+                                '&.Mui-focused': {
+                                    color: isDark ? 'rgba(255,255,255,0.7)' : '#374151'
+                                }
+                            }
                         }}
                         helperText={isMandatory ? "This field is mandatory and cannot be renamed" : ""}
                     />
@@ -194,7 +202,14 @@ function SortableField({ field, onUpdate, onRemove, onRequestDelete }: any) {
                                 size="small"
                             />
                         }
-                        label={<Typography variant="body2" color="textSecondary">Required</Typography>}
+                        label={
+                            <Typography 
+                                variant="body2" 
+                                sx={{ color: isDark ? 'rgba(255,255,255,0.6)' : '#64748b' }}
+                            >
+                                Required
+                            </Typography>
+                        }
                     />
                 </Grid>
 
@@ -207,7 +222,29 @@ function SortableField({ field, onUpdate, onRemove, onRequestDelete }: any) {
                             label="Placeholder"
                             value={field.placeholder || ''}
                             onChange={(e) => onUpdate(field.id, { placeholder: e.target.value })}
-                            sx={{ mt: 1 }}
+                            InputLabelProps={{
+                                sx: {
+                                    color: isDark ? 'rgba(255,255,255,0.6)' : '#64748b',
+                                    '&.Mui-focused': {
+                                        color: isDark ? 'rgba(255,255,255,0.7)' : '#374151'
+                                    }
+                                }
+                            }}
+                            sx={{ 
+                                mt: 1,
+                                '& .MuiOutlinedInput-root': {
+                                    '&:hover fieldset': {
+                                        borderColor: isDark ? 'rgba(255,255,255,0.3)' : '#9ca3af',
+                                    },
+                                    '&.Mui-focused fieldset': {
+                                        borderColor: isDark ? 'rgba(255,255,255,0.5)' : '#6b7280',
+                                    }
+                                },
+                                '& input::placeholder': {
+                                    color: isDark ? 'rgba(255,255,255,0.6)' : '#64748b',
+                                    opacity: 0.7
+                                }
+                            }}
                         />
                     </Grid>
                 )}
@@ -216,7 +253,7 @@ function SortableField({ field, onUpdate, onRemove, onRequestDelete }: any) {
                 {['select', 'checkbox', 'multiselect'].includes(field.type) && (
                     <Grid size={{ xs: 12 }}>
                         <Box mt={2}>
-                            <Typography variant="caption" fontWeight="bold" color="textSecondary">
+                            <Typography variant="caption" fontWeight="bold" sx={{ color: isDark ? 'rgba(255,255,255,0.6)' : '#64748b' }}>
                                 Options
                             </Typography>
                             {field.options?.map((option: string, optIndex: number) => (
@@ -230,6 +267,20 @@ function SortableField({ field, onUpdate, onRemove, onRequestDelete }: any) {
                                             const newOptions = [...(field.options || [])];
                                             newOptions[optIndex] = e.target.value;
                                             onUpdate(field.id, { options: newOptions });
+                                        }}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                '&:hover fieldset': {
+                                                    borderColor: isDark ? 'rgba(255,255,255,0.3)' : '#9ca3af',
+                                                },
+                                                '&.Mui-focused fieldset': {
+                                                    borderColor: isDark ? 'rgba(255,255,255,0.5)' : '#6b7280',
+                                                }
+                                            },
+                                            '& input::placeholder': {
+                                                color: isDark ? 'rgba(255,255,255,0.6)' : '#64748b',
+                                                opacity: 0.7
+                                            }
                                         }}
                                     />
                                     <IconButton
@@ -247,7 +298,7 @@ function SortableField({ field, onUpdate, onRemove, onRequestDelete }: any) {
                             <Button
                                 size="small"
                                 startIcon={<AddIcon />}
-                                sx={{ mt: 1.5, textTransform: 'none', borderRadius: '8px' }}
+                                sx={{ mt: 1.5, textTransform: 'none', borderRadius: 1 }}
                                 onClick={() => {
                                     const newOptions = [...(field.options || []), `Option ${(field.options?.length || 0) + 1}`];
                                     onUpdate(field.id, { options: newOptions });
@@ -483,13 +534,20 @@ export default function FormBuilderPage() {
                         onClick={handleSave}
                         disabled={loading}
                         sx={{
-                            borderRadius: '10px',
+                            borderRadius: 1,
                             textTransform: 'none',
                             fontWeight: 600,
                             px: 3,
-                            bgcolor: isDark ? '#667eea' : '#111827',
+                            background: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
+                            color: 'white',
+                            boxShadow: '0 4px 14px 0 rgba(255, 107, 107, 0.39)',
                             '&:hover': {
-                                bgcolor: isDark ? '#7c8ef0' : '#000000',
+                                background: 'linear-gradient(135deg, #ff5252 0%, #ff7043 100%)',
+                                boxShadow: '0 6px 20px rgba(255, 107, 107, 0.5)'
+                            },
+                            '&:disabled': {
+                                background: isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0',
+                                color: textSecondary
                             }
                         }}
                     >
@@ -497,10 +555,10 @@ export default function FormBuilderPage() {
                     </Button>
                 </Box>
 
-                <Box sx={{ p: 4, height: 'calc(100vh - 80px)', overflow: 'hidden' }}>
-                    <Grid container spacing={3} sx={{ height: '100%' }}>
+                <Box sx={{ p: 2, pt: 2, height: 'calc(100vh - 80px)', overflow: 'hidden' }}>
+                    <Grid container spacing={1} sx={{ height: '100%' }}>
                         {/* Toolbox Sidebar */}
-                        <Grid size={{ xs: 12, md: 2.5 }} sx={{ height: '100%' }}>
+                        <Grid size={{ xs: 12, md: 2 }} sx={{ height: '100%' }}>
                             <Box
                                 sx={{
                                     height: '100%',
@@ -512,25 +570,26 @@ export default function FormBuilderPage() {
                                     overflow: 'hidden'
                                 }}
                             >
-                                <Box p={2.5} borderBottom={`1px solid ${borderColor}`}>
-                                    <Typography variant="subtitle1" fontWeight="bold" color={textPrimary}>
+                                <Box p={1.5} borderBottom={`1px solid ${borderColor}`}>
+                                    <Typography variant="subtitle2" fontWeight="bold" color="#ff6b6b" fontSize="0.85rem">
                                         Toolbox
                                     </Typography>
                                 </Box>
-                                <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
+                                <Box sx={{ flex: 1, overflowY: 'auto', p: 1.5 }}>
                                     <List disablePadding>
-                                        <Typography variant="caption" fontWeight="bold" color={textSecondary} sx={{ display: 'block', mb: 1, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                        <Typography variant="caption" fontWeight="bold" color={textSecondary} sx={{ display: 'block', mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.65rem' }}>
                                             Fields
                                         </Typography>
                                         {toolBoxItems.map((item) => (
-                                            <ListItem key={item.label} disablePadding sx={{ mb: 1 }}>
+                                            <ListItem key={item.label} disablePadding sx={{ mb: 0.5 }}>
                                                 <ListItemButton
                                                     onClick={() => addField(item.type)}
                                                     sx={{
                                                         border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#e5e7eb'}`,
-                                                        borderRadius: '10px',
+                                                        borderRadius: 1,
                                                         transition: 'all 0.2s',
-                                                        py: 1.5,
+                                                        py: 0.75,
+                                                        px: 1,
                                                         '&:hover': {
                                                             bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#f9fafb',
                                                             borderColor: isDark ? 'rgba(255,255,255,0.2)' : '#d1d5db',
@@ -538,26 +597,26 @@ export default function FormBuilderPage() {
                                                         }
                                                     }}
                                                 >
-                                                    <ListItemIcon sx={{ minWidth: 36, color: item.type === 'section' ? 'primary.main' : textSecondary }}>
+                                                    <ListItemIcon sx={{ minWidth: 28, color: textSecondary, '& svg': { fontSize: 18 } }}>
                                                         {item.icon}
                                                     </ListItemIcon>
                                                     <ListItemText
                                                         primary={item.label}
-                                                        primaryTypographyProps={{ variant: 'body2', fontWeight: 500, color: textPrimary }}
+                                                        primaryTypographyProps={{ variant: 'body2', fontWeight: 500, color: textPrimary, fontSize: '0.8rem' }}
                                                     />
                                                 </ListItemButton>
                                             </ListItem>
                                         ))}
 
-                                        <Divider sx={{ my: 3, borderColor: borderColor }} />
+                                        <Divider sx={{ my: 2, borderColor: borderColor }} />
 
-                                        <Typography variant="caption" fontWeight="bold" color={textSecondary} sx={{ display: 'block', mb: 2, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                        <Typography variant="caption" fontWeight="bold" color={textSecondary} sx={{ display: 'block', mb: 1, textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.65rem' }}>
                                             Integrations
                                         </Typography>
 
-                                        <Stack spacing={2.5}>
+                                        <Stack spacing={1.5}>
                                             <Box>
-                                                <Typography variant="caption" fontWeight="600" color={textPrimary} sx={{ display: 'block', mb: 1 }}>
+                                                <Typography variant="caption" fontWeight="600" color={textPrimary} sx={{ display: 'block', mb: 0.5, fontSize: '0.7rem' }}>
                                                     Link to Services
                                                 </Typography>
                                                 <Autocomplete
@@ -573,7 +632,8 @@ export default function FormBuilderPage() {
                                                             size="small"
                                                             sx={{
                                                                 '& .MuiOutlinedInput-root': {
-                                                                    borderRadius: '10px',
+                                                                    borderRadius: 1,
+                                                                    fontSize: '0.75rem'
                                                                 }
                                                             }}
                                                         />
@@ -586,11 +646,12 @@ export default function FormBuilderPage() {
                                                                 key={index}
                                                                 size="small"
                                                                 sx={{
-                                                                    borderRadius: '6px',
-                                                                    bgcolor: isDark ? 'rgba(102, 126, 234, 0.2)' : '#e0e7ff',
-                                                                    color: isDark ? '#a5b4fc' : '#667eea',
+                                                                    borderRadius: 1,
+                                                                    bgcolor: isDark ? 'rgba(255,255,255,0.1)' : '#f3f4f6',
+                                                                    color: isDark ? 'rgba(255,255,255,0.7)' : '#374151',
                                                                     fontWeight: 600,
-                                                                    fontSize: '0.75rem'
+                                                                    fontSize: '0.65rem',
+                                                                    height: 20
                                                                 }}
                                                             />
                                                         ))
@@ -601,8 +662,8 @@ export default function FormBuilderPage() {
                                             <Box
                                                 sx={{
                                                     bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
-                                                    borderRadius: '12px',
-                                                    p: 2,
+                                                    borderRadius: '10px',
+                                                    p: 1.5,
                                                     border: `1px solid ${borderColor}`
                                                 }}
                                             >
@@ -614,20 +675,20 @@ export default function FormBuilderPage() {
                                                             size="small"
                                                             sx={{
                                                                 '& .MuiSwitch-switchBase.Mui-checked': {
-                                                                    color: '#667eea',
+                                                                    color: isDark ? 'rgba(255,255,255,0.9)' : '#111827',
                                                                 },
                                                                 '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                                                    backgroundColor: '#667eea',
+                                                                    backgroundColor: isDark ? 'rgba(255,255,255,0.3)' : '#6b7280',
                                                                 }
                                                             }}
                                                         />
                                                     }
                                                     label={
-                                                        <Box>
-                                                            <Typography variant="body2" color={textPrimary} fontWeight="600">
+                                                        <Box sx={{ maxWidth: '180px' }}>
+                                                            <Typography variant="body2" color={textPrimary} fontWeight="600" fontSize="0.75rem">
                                                                 Required for Booking
                                                             </Typography>
-                                                            <Typography variant="caption" color={textSecondary} sx={{ display: 'block', mt: 0.5 }}>
+                                                            <Typography variant="caption" color={textSecondary} sx={{ display: 'block', mt: 0.25, fontSize: '0.65rem', lineHeight: 1.3 }}>
                                                                 Clients must complete this form before booking
                                                             </Typography>
                                                         </Box>
@@ -639,8 +700,8 @@ export default function FormBuilderPage() {
                                             <Box
                                                 sx={{
                                                     bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
-                                                    borderRadius: '12px',
-                                                    p: 2,
+                                                    borderRadius: '10px',
+                                                    p: 1.5,
                                                     border: `1px solid ${borderColor}`
                                                 }}
                                             >
@@ -652,20 +713,20 @@ export default function FormBuilderPage() {
                                                             size="small"
                                                             sx={{
                                                                 '& .MuiSwitch-switchBase.Mui-checked': {
-                                                                    color: '#667eea',
+                                                                    color: isDark ? 'rgba(255,255,255,0.9)' : '#111827',
                                                                 },
                                                                 '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                                                    backgroundColor: '#667eea',
+                                                                    backgroundColor: isDark ? 'rgba(255,255,255,0.3)' : '#6b7280',
                                                                 }
                                                             }}
                                                         />
                                                     }
                                                     label={
-                                                        <Box>
-                                                            <Typography variant="body2" color={textPrimary} fontWeight="600">
+                                                        <Box sx={{ maxWidth: '180px' }}>
+                                                            <Typography variant="body2" color={textPrimary} fontWeight="600" fontSize="0.75rem">
                                                                 Auto-send after Booking
                                                             </Typography>
-                                                            <Typography variant="caption" color={textSecondary} sx={{ display: 'block', mt: 0.5 }}>
+                                                            <Typography variant="caption" color={textSecondary} sx={{ display: 'block', mt: 0.25, fontSize: '0.65rem', lineHeight: 1.3 }}>
                                                                 Automatically email form to clients immediately after booking
                                                             </Typography>
                                                         </Box>
@@ -688,7 +749,7 @@ export default function FormBuilderPage() {
                                     borderRadius: '24px',
                                     border: `2px dashed ${borderColor}`,
                                     overflowY: 'auto',
-                                    p: 4,
+                                    p: 0,
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center'
@@ -698,12 +759,13 @@ export default function FormBuilderPage() {
                                     elevation={0}
                                     sx={{
                                         width: '100%',
-                                        maxWidth: '700px',
-                                        p: 5,
+                                        maxWidth: '100%',
+                                        p: 2,
                                         bgcolor: panelBg,
-                                        borderRadius: '20px',
-                                        boxShadow: isDark ? '0 10px 40px rgba(0,0,0,0.3)' : '0 10px 40px rgba(0,0,0,0.05)',
-                                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'transparent'}`
+                                        borderRadius: '24px',
+                                        boxShadow: 'none',
+                                        border: 'none',
+                                        height: '100%'
                                     }}
                                 >
                                     <TextField
@@ -713,9 +775,9 @@ export default function FormBuilderPage() {
                                         value={title}
                                         onChange={(e) => setTitle(e.target.value)}
                                         InputProps={{
-                                            sx: { fontSize: '2rem', fontWeight: '800', color: textPrimary, pb: 1 }
+                                            sx: { fontSize: '1.25rem', fontWeight: '700', color: textPrimary, pb: 0.5 }
                                         }}
-                                        sx={{ mb: 2 }}
+                                        sx={{ mb: 1 }}
                                     />
                                     <TextField
                                         fullWidth
@@ -724,9 +786,9 @@ export default function FormBuilderPage() {
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
                                         InputProps={{
-                                            sx: { color: textSecondary }
+                                            sx: { color: textSecondary, fontSize: '0.85rem' }
                                         }}
-                                        sx={{ mb: 5 }}
+                                        sx={{ mb: 2 }}
                                     />
 
                                     <DndContext
@@ -793,7 +855,7 @@ export default function FormBuilderPage() {
                         </Grid>
 
                         {/* Live Preview Panel */}
-                        <Grid size={{ xs: 12, md: 3.5 }} sx={{ height: '100%' }}>
+                        <Grid size={{ xs: 12, md: 4 }} sx={{ height: '100%' }}>
                             <Box
                                 sx={{
                                     height: '100%',
@@ -806,8 +868,8 @@ export default function FormBuilderPage() {
                                 }}
                             >
                                 <Box p={2.5} borderBottom={`1px solid ${borderColor}`} display="flex" alignItems="center" gap={1}>
-                                    <SmartphoneIcon fontSize="small" sx={{ color: textSecondary }} />
-                                    <Typography variant="subtitle1" fontWeight="bold" color={textPrimary}>
+                                    <SmartphoneIcon fontSize="small" sx={{ color: '#ff6b6b' }} />
+                                    <Typography variant="subtitle1" fontWeight="bold" color="#ff6b6b">
                                         Mobile Preview
                                     </Typography>
                                 </Box>
@@ -822,7 +884,7 @@ export default function FormBuilderPage() {
                                             border: `1px solid ${borderColor}`
                                         }}
                                     >
-                                        <Typography variant="h6" fontWeight="bold" mb={0.5} color={textPrimary}>
+                                        <Typography variant="h6" fontWeight="bold" mb={0.5} color={textPrimary} fontSize="1rem">
                                             {title || 'Untitled Form'}
                                         </Typography>
                                         <Typography variant="body2" color={textSecondary} mb={3}>
@@ -851,6 +913,14 @@ export default function FormBuilderPage() {
                                                                 placeholder={field.placeholder}
                                                                 size="small"
                                                                 variant="outlined"
+                                                                sx={{
+                                                                    '& .MuiOutlinedInput-root': {
+                                                                        '& textarea::placeholder': {
+                                                                            color: isDark ? 'rgba(255,255,255,0.6)' : '#64748b',
+                                                                            opacity: 0.7
+                                                                        }
+                                                                    }
+                                                                }}
                                                             />
                                                         ) : field.type === 'select' ? (
                                                             <FormControl fullWidth size="small">
@@ -885,6 +955,14 @@ export default function FormBuilderPage() {
                                                                 size="small"
                                                                 placeholder={field.placeholder}
                                                                 type={field.type}
+                                                                sx={{
+                                                                    '& .MuiOutlinedInput-root': {
+                                                                        '& input::placeholder': {
+                                                                            color: isDark ? 'rgba(255,255,255,0.6)' : '#64748b',
+                                                                            opacity: 0.7
+                                                                        }
+                                                                    }
+                                                                }}
                                                             />
                                                         )}
                                                     </Box>
@@ -896,9 +974,15 @@ export default function FormBuilderPage() {
                                                     sx={{
                                                         borderRadius: '8px',
                                                         mt: 2,
-                                                        bgcolor: 'primary.main',
+                                                        background: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
+                                                        color: 'white',
                                                         textTransform: 'none',
-                                                        fontWeight: 600
+                                                        fontWeight: 600,
+                                                        boxShadow: '0 4px 14px 0 rgba(255, 107, 107, 0.39)',
+                                                        '&:hover': {
+                                                            background: 'linear-gradient(135deg, #ff5252 0%, #ff7043 100%)',
+                                                            boxShadow: '0 6px 20px rgba(255, 107, 107, 0.5)'
+                                                        }
                                                     }}
                                                 >
                                                     Submit

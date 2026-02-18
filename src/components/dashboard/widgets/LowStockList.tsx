@@ -24,8 +24,10 @@ export default function LowStockList({ items = [] }: LowStockListProps) {
             bgcolor: (theme) => theme.palette.mode === 'light' ? '#fff' : '#1a1d29',
             boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
             height: '100%',
+            maxHeight: 500,
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            overflow: 'hidden'
         }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -56,7 +58,7 @@ export default function LowStockList({ items = [] }: LowStockListProps) {
                     <Typography variant="body2">All items well stocked</Typography>
                 </Box>
             ) : (
-                <List disablePadding sx={{ flex: 1, overflowY: 'auto', maxHeight: 200 }}>
+                <List disablePadding sx={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
                     {items.map((item) => (
                         <ListItem
                             key={item._id}
@@ -80,7 +82,7 @@ export default function LowStockList({ items = [] }: LowStockListProps) {
                                 primary={item.name}
                                 primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
                                 secondary={`${item.quantity} / ${item.threshold} ${item.unit}`}
-                                secondaryTypographyProps={{ variant: 'caption' }}
+                                secondaryTypographyProps={{ variant: 'caption', sx: { color: '#9ca3af' } }}
                             />
                             <Chip
                                 label={item.quantity === 0 ? 'Out of Stock' : 'Low'}

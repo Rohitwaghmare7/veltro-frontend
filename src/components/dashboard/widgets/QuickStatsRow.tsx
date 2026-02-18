@@ -64,7 +64,7 @@ export default function QuickStatsRow({ stats }: QuickStatsRowProps) {
                     {/* Content */}
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Typography variant="caption" sx={{ 
-                            color: 'text.secondary', 
+                            color: theme.palette.mode === 'dark' ? 'text.secondary' : '#000000', 
                             fontSize: '0.75rem',
                             display: 'block',
                             mb: 0.5

@@ -171,12 +171,12 @@ export default function FormsPage() {
                             fontWeight: 700,
                             px: 3,
                             py: 1.5,
-                            bgcolor: isDark ? '#667eea' : '#111827',
+                            background: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
                             color: 'white',
-                            boxShadow: isDark ? '0 4px 14px 0 rgba(102, 126, 234, 0.39)' : '0 4px 14px 0 rgba(17, 24, 39, 0.39)',
+                            boxShadow: '0 4px 14px 0 rgba(255, 107, 107, 0.39)',
                             '&:hover': {
-                                bgcolor: isDark ? '#7c8ef0' : '#000000',
-                                boxShadow: isDark ? '0 6px 20px rgba(102, 126, 234, 0.5)' : '0 6px 20px rgba(0,0,0,0.23)'
+                                background: 'linear-gradient(135deg, #ff5252 0%, #ff7043 100%)',
+                                boxShadow: '0 6px 20px rgba(255, 107, 107, 0.5)'
                             }
                         }}
                     >
@@ -252,13 +252,13 @@ export default function FormsPage() {
                                         }
                                     }}
                                 >
-                                    <Box p={3}>
-                                        <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+                                    <Box p={2}>
+                                        <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1.5}>
                                             <Box
                                                 sx={{
-                                                    width: 48,
-                                                    height: 48,
-                                                    borderRadius: '14px',
+                                                    width: 40,
+                                                    height: 40,
+                                                    borderRadius: '12px',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
@@ -266,7 +266,7 @@ export default function FormsPage() {
                                                     color: '#3b82f6'
                                                 }}
                                             >
-                                                <DescriptionIcon />
+                                                <DescriptionIcon sx={{ fontSize: 20 }} />
                                             </Box>
 
                                             <Tooltip title="Delete Form">
@@ -276,45 +276,48 @@ export default function FormsPage() {
                                                     sx={{
                                                         color: textSecondary,
                                                         backgroundColor: 'transparent',
+                                                        p: 0.5,
                                                         '&:hover': { color: '#ef4444', backgroundColor: isDark ? 'rgba(239, 68, 68, 0.1)' : '#fee2e2' }
                                                     }}
                                                 >
-                                                    <DeleteIcon fontSize="small" />
+                                                    <DeleteIcon sx={{ fontSize: 18 }} />
                                                 </IconButton>
                                             </Tooltip>
                                         </Box>
 
-                                        <Typography variant="h6" fontWeight="700" color={textPrimary} noWrap gutterBottom>
+                                        <Typography variant="h6" fontWeight="700" fontSize="0.95rem" color={textPrimary} noWrap gutterBottom>
                                             {form.title}
                                         </Typography>
 
-                                        <Box display="flex" alignItems="center" gap={1} mb={3}>
-                                            <Typography variant="caption" fontWeight="500" sx={{
+                                        <Box display="flex" alignItems="center" gap={1} mb={2}>
+                                            <Typography variant="caption" fontWeight="500" fontSize="0.7rem" sx={{
                                                 bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9',
                                                 color: textSecondary,
-                                                px: 1.5,
-                                                py: 0.5,
+                                                px: 1,
+                                                py: 0.3,
                                                 borderRadius: '6px'
                                             }}>
                                                 {form.submissionsCount} Responses
                                             </Typography>
-                                            <Typography variant="caption" color={textSecondary}>
+                                            <Typography variant="caption" fontSize="0.7rem" color={textSecondary}>
                                                 • {new Date(form.updatedAt || Date.now()).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                             </Typography>
                                         </Box>
 
-                                        <Divider sx={{ borderColor: borderColor, mb: 2 }} />
+                                        <Divider sx={{ borderColor: borderColor, mb: 1.5 }} />
 
                                         <Stack direction="row" spacing={1}>
                                             <Button
                                                 size="small"
-                                                startIcon={<ShareIcon fontSize="small" />}
+                                                startIcon={<ShareIcon sx={{ fontSize: 16 }} />}
                                                 onClick={(e) => handleShare(form._id, e)}
                                                 sx={{
                                                     flex: 1,
                                                     borderRadius: '8px',
                                                     color: textSecondary,
                                                     textTransform: 'none',
+                                                    fontSize: '0.75rem',
+                                                    py: 0.5,
                                                     borderColor: borderColor,
                                                     '&:hover': { bgcolor: hoverBg, color: textPrimary }
                                                 }}
@@ -323,13 +326,15 @@ export default function FormsPage() {
                                             </Button>
                                             <Button
                                                 size="small"
-                                                startIcon={<DownloadIcon fontSize="small" />}
+                                                startIcon={<DownloadIcon sx={{ fontSize: 16 }} />}
                                                 onClick={(e) => handleExport(form._id, form.title, e)}
                                                 sx={{
                                                     flex: 1,
                                                     borderRadius: '8px',
                                                     color: textSecondary,
                                                     textTransform: 'none',
+                                                    fontSize: '0.75rem',
+                                                    py: 0.5,
                                                     borderColor: borderColor,
                                                     '&:hover': { bgcolor: hoverBg, color: textPrimary }
                                                 }}

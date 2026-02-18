@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Paper, Typography, IconButton, Divider } from '@mui/material';
+import { Box, Paper, Typography, IconButton, Divider, useTheme } from '@mui/material';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 
 interface TotalLikesCardProps {
@@ -24,6 +24,8 @@ export default function TotalLikesCard({
     ],
     color = "#FF6B4A"
 }: TotalLikesCardProps) {
+    const theme = useTheme();
+    
     return (
         <Paper sx={{
             height: '100%',
@@ -41,7 +43,7 @@ export default function TotalLikesCard({
             {/* Header */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Box>
-                    <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.9rem', mb: 0.5 }}>
+                    <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '1rem', mb: 0.5, fontWeight: 600 }}>
                         {title}
                     </Typography>
                     <Typography variant="h3" sx={{ fontWeight: 700, fontSize: '2.5rem' }}>

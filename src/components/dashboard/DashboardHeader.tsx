@@ -52,14 +52,14 @@ function BookingLinkPill({ bookingSlug }: { bookingSlug?: string }) {
                 pr: 2,
                 py: 1,
                 borderRadius: '12px',
-                bgcolor: copied ? 'rgba(34, 197, 94, 0.1)' : (theme.palette.mode === 'dark' ? 'rgba(102, 126, 234, 0.15)' : 'rgba(102, 126, 234, 0.1)'),
-                color: copied ? '#22c55e' : '#667eea',
+                bgcolor: copied ? 'rgba(34, 197, 94, 0.1)' : (theme.palette.mode === 'dark' ? 'rgba(255, 107, 107, 0.15)' : 'rgba(255, 107, 107, 0.1)'),
+                color: copied ? '#22c55e' : '#ff6b6b',
                 cursor: 'pointer',
                 border: '1px solid',
-                borderColor: copied ? 'rgba(34, 197, 94, 0.3)' : (theme.palette.mode === 'dark' ? 'rgba(102, 126, 234, 0.3)' : 'rgba(102, 126, 234, 0.2)'),
+                borderColor: copied ? 'rgba(34, 197, 94, 0.3)' : (theme.palette.mode === 'dark' ? 'rgba(255, 107, 107, 0.3)' : 'rgba(255, 107, 107, 0.2)'),
                 transition: 'all 0.2s',
                 '&:hover': {
-                    bgcolor: copied ? 'rgba(34, 197, 94, 0.2)' : (theme.palette.mode === 'dark' ? 'rgba(102, 126, 234, 0.25)' : 'rgba(102, 126, 234, 0.15)'),
+                    bgcolor: copied ? 'rgba(34, 197, 94, 0.2)' : (theme.palette.mode === 'dark' ? 'rgba(255, 107, 107, 0.25)' : 'rgba(255, 107, 107, 0.15)'),
                     transform: 'translateY(-1px)'
                 }
             }}
@@ -208,69 +208,71 @@ export default function DashboardHeader() {
                 {/* Booking Link Pill */}
                 <BookingLinkPill bookingSlug={selectedBusiness?.bookingSlug} />
 
-                {/* Company/Workspace Selector */}
-                <Box>
-                    <Paper
-                        onClick={handleMenuOpen}
-                        elevation={0}
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                            pl: 2,
-                            pr: 1.5,
-                            py: 1,
-                            borderRadius: '12px',
-                            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : '#ffffff',
-                            color: theme.palette.text.primary,
-                            cursor: 'pointer',
-                            border: '1px solid',
-                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-                            transition: 'all 0.2s',
-                            '&:hover': {
-                                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
-                                transform: 'translateY(-1px)'
-                            }
-                        }}
-                    >
-                        <BusinessIcon sx={{ fontSize: 18, opacity: 0.7 }} />
-                        <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.85rem' }}>
-                            {selectedBusiness?.name || 'Select Company'}
-                        </Typography>
-                        <KeyboardArrowDownIcon sx={{ fontSize: 18, opacity: 0.5 }} />
-                    </Paper>
-                    <Menu
-                        anchorEl={anchorEl}
-                        open={Boolean(anchorEl)}
-                        onClose={handleMenuClose}
-                        PaperProps={{
-                            sx: {
-                                mt: 1,
-                                borderRadius: 2,
-                                minWidth: 240,
-                                bgcolor: theme.palette.mode === 'dark' ? '#1a1d29' : '#ffffff',
+                {/* Company/Workspace Selector - Only show if multiple businesses */}
+                {businesses.length > 1 && (
+                    <Box>
+                        <Paper
+                            onClick={handleMenuOpen}
+                            elevation={0}
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                                pl: 2,
+                                pr: 1.5,
+                                py: 1,
+                                borderRadius: '12px',
+                                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : '#ffffff',
                                 color: theme.palette.text.primary,
+                                cursor: 'pointer',
                                 border: '1px solid',
                                 borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-                                boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
-                            }
-                        }}
-                    >
-                        {businesses.map((biz) => (
-                            <MenuItem
-                                key={biz._id}
-                                onClick={() => handleBusinessSelect(biz)}
-                                sx={{
-                                    gap: 1.5,
-                                    '&:hover': { bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)' }
-                                }}
-                            >
-                                <BusinessIcon sx={{ fontSize: 18, opacity: 0.7 }} />
-                                {biz.name}
-                            </MenuItem>
-                        ))}
-                    </Menu>
-                </Box>
+                                transition: 'all 0.2s',
+                                '&:hover': {
+                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
+                                    transform: 'translateY(-1px)'
+                                }
+                            }}
+                        >
+                            <BusinessIcon sx={{ fontSize: 18, opacity: 0.7 }} />
+                            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.85rem' }}>
+                                {selectedBusiness?.name || 'Select Company'}
+                            </Typography>
+                            <KeyboardArrowDownIcon sx={{ fontSize: 18, opacity: 0.5 }} />
+                        </Paper>
+                        <Menu
+                            anchorEl={anchorEl}
+                            open={Boolean(anchorEl)}
+                            onClose={handleMenuClose}
+                            PaperProps={{
+                                sx: {
+                                    mt: 1,
+                                    borderRadius: 2,
+                                    minWidth: 240,
+                                    bgcolor: theme.palette.mode === 'dark' ? '#1a1d29' : '#ffffff',
+                                    color: theme.palette.text.primary,
+                                    border: '1px solid',
+                                    borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                                    boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+                                }
+                            }}
+                        >
+                            {businesses.map((biz) => (
+                                <MenuItem
+                                    key={biz._id}
+                                    onClick={() => handleBusinessSelect(biz)}
+                                    sx={{
+                                        gap: 1.5,
+                                        '&:hover': { bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)' }
+                                    }}
+                                >
+                                    <BusinessIcon sx={{ fontSize: 18, opacity: 0.7 }} />
+                                    {biz.name}
+                                </MenuItem>
+                            ))}
+                        </Menu>
+                    </Box>
+                )}
 
                 {/* Notification Icon */}
                 <IconButton
@@ -288,6 +290,20 @@ export default function DashboardHeader() {
                         color="error" 
                         overlap="circular"
                         invisible={unreadCount === 0}
+                        anchorOrigin={{
+                            vertical: 'top',
+                            horizontal: 'right',
+                        }}
+                        sx={{
+                            '& .MuiBadge-badge': {
+                                top: 4,
+                                right: 4,
+                                minWidth: 18,
+                                height: 18,
+                                fontSize: '0.65rem',
+                                padding: '0 4px'
+                            }
+                        }}
                     >
                         <NotificationsIcon sx={{ fontSize: 20 }} />
                     </Badge>
@@ -300,6 +316,7 @@ export default function DashboardHeader() {
                         sx: {
                             mt: 1.5,
                             width: 360,
+                            maxWidth: 'calc(100vw - 32px)',
                             maxHeight: 500,
                             borderRadius: 2,
                             bgcolor: theme.palette.mode === 'dark' ? '#1a1d29' : '#ffffff',
@@ -356,12 +373,14 @@ export default function DashboardHeader() {
                                         bgcolor: notif.read ? 'transparent' : (theme.palette.mode === 'dark' ? 'rgba(102, 126, 234, 0.1)' : 'rgba(102, 126, 234, 0.05)'),
                                         '&:hover': {
                                             bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)'
-                                        }
+                                        },
+                                        whiteSpace: 'normal',
+                                        wordWrap: 'break-word'
                                     }}
                                 >
-                                    <Box>
+                                    <Box sx={{ width: '100%', overflow: 'hidden' }}>
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                                            <Typography variant="body2" fontWeight={notif.read ? 400 : 600}>
+                                            <Typography variant="body2" fontWeight={notif.read ? 400 : 600} sx={{ wordBreak: 'break-word' }}>
                                                 {notif.title}
                                             </Typography>
                                             {!notif.read && (
@@ -369,14 +388,15 @@ export default function DashboardHeader() {
                                                     width: 6, 
                                                     height: 6, 
                                                     borderRadius: '50%', 
-                                                    bgcolor: 'error.main' 
+                                                    bgcolor: 'error.main',
+                                                    flexShrink: 0
                                                 }} />
                                             )}
                                         </Box>
-                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                                        <Typography variant="caption" sx={{ display: 'block', mb: 0.5, color: '#9ca3af', wordBreak: 'break-word' }}>
                                             {notif.message}
                                         </Typography>
-                                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                                        <Typography variant="caption" sx={{ fontSize: '0.7rem', color: '#9ca3af' }}>
                                             {new Date(notif.createdAt).toLocaleString()}
                                         </Typography>
                                     </Box>

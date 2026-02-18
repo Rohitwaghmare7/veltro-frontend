@@ -267,9 +267,12 @@ export default function InventoryPage() {
                                 fontWeight: 600,
                                 px: 3,
                                 py: 1,
-                                bgcolor: isDark ? '#667eea' : '#111827',
+                                background: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
+                                color: 'white',
+                                boxShadow: '0 4px 14px 0 rgba(255, 107, 107, 0.39)',
                                 '&:hover': {
-                                    bgcolor: isDark ? '#7c8ef0' : '#000000',
+                                    background: 'linear-gradient(135deg, #ff5252 0%, #ff7043 100%)',
+                                    boxShadow: '0 6px 20px rgba(255, 107, 107, 0.5)'
                                 }
                             }}
                         >
@@ -279,11 +282,11 @@ export default function InventoryPage() {
                 </Box>
 
                 {/* Summary Cards */}
-                <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr 1fr' }} gap={3} mb={4} sx={{ flexShrink: 0 }}>
+                <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr 1fr' }} gap={2} mb={2} sx={{ flexShrink: 0 }}>
                     <Paper
                         elevation={0}
                         sx={{
-                            p: 3,
+                            p: 2,
                             borderRadius: '16px',
                             bgcolor: cardBg,
                             border: `1px solid ${borderColor}`,
@@ -304,7 +307,7 @@ export default function InventoryPage() {
                     <Paper
                         elevation={0}
                         sx={{
-                            p: 3,
+                            p: 2,
                             borderRadius: '16px',
                             bgcolor: cardBg,
                             border: `1px solid ${borderColor}`,
@@ -325,7 +328,7 @@ export default function InventoryPage() {
                     <Paper
                         elevation={0}
                         sx={{
-                            p: 3,
+                            p: 2,
                             borderRadius: '16px',
                             bgcolor: cardBg,
                             border: `1px solid ${borderColor}`,
@@ -350,7 +353,7 @@ export default function InventoryPage() {
                     <Alert
                         severity="warning"
                         sx={{
-                            mb: 4,
+                            mb: 2,
                             flexShrink: 0,
                             borderRadius: '12px',
                             border: `1px solid ${isDark ? 'rgba(239, 68, 68, 0.2)' : '#fecaca'}`,
@@ -550,7 +553,11 @@ export default function InventoryPage() {
                                                             textTransform: 'none',
                                                             borderColor: borderColor,
                                                             color: textSecondary,
-                                                            '&:hover': { borderColor: 'primary.main', color: 'primary.main' }
+                                                            '&:hover': { 
+                                                                borderColor: '#ff6b6b',
+                                                                background: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
+                                                                color: 'white'
+                                                            }
                                                         }}
                                                     >
                                                         Restock
@@ -558,7 +565,7 @@ export default function InventoryPage() {
                                                     <IconButton size="small" onClick={() => handleOpenEdit(row)} sx={{ color: textSecondary, '&:hover': { color: 'primary.main' } }}>
                                                         <EditIcon fontSize="small" />
                                                     </IconButton>
-                                                    <IconButton size="small" onClick={() => handleDelete(row)} sx={{ color: textSecondary, '&:hover': { color: 'error.main' } }}>
+                                                    <IconButton size="small" onClick={() => handleDelete(row)} sx={{ color: '#ef4444', '&:hover': { color: '#dc2626' } }}>
                                                         <DeleteIcon fontSize="small" />
                                                     </IconButton>
                                                 </TableCell>
@@ -822,11 +829,22 @@ export default function InventoryPage() {
                     onClose={() => setRestockDialog({ ...restockDialog, open: false })}
                     maxWidth="xs"
                     fullWidth
+                    PaperProps={{
+                        sx: {
+                            borderRadius: '16px',
+                            bgcolor: cardBg,
+                            backgroundImage: 'none'
+                        }
+                    }}
                 >
-                    <DialogTitle>Restock {restockDialog.name}</DialogTitle>
-                    <DialogContent>
-                        <Box mt={1}>
-                            <Typography variant="body2" color="textSecondary" mb={2}>
+                    <DialogTitle sx={{ pb: 1, pt: 2, px: 3 }}>
+                        <Typography variant="h6" fontWeight="700" fontSize="1.1rem" color={textPrimary}>
+                            Restock {restockDialog.name}
+                        </Typography>
+                    </DialogTitle>
+                    <DialogContent sx={{ pt: 1, pb: 2, px: 3 }}>
+                        <Box>
+                            <Typography variant="body2" color={textPrimary} mb={1.5} fontWeight="500">
                                 Current Stock: {restockDialog.currentStock}
                             </Typography>
                             <TextField
@@ -837,12 +855,51 @@ export default function InventoryPage() {
                                 value={restockQty}
                                 onChange={(e) => setRestockQty(e.target.value)}
                                 InputProps={{ inputProps: { min: 1 } }}
+                                InputLabelProps={{
+                                    sx: {
+                                        color: isDark ? 'rgba(255,255,255,0.6)' : '#64748b',
+                                        '&.Mui-focused': {
+                                            color: isDark ? 'rgba(255,255,255,0.7)' : '#374151'
+                                        }
+                                    }
+                                }}
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        '& input': {
+                                            color: textPrimary
+                                        }
+                                    }
+                                }}
                             />
                         </Box>
                     </DialogContent>
-                    <DialogActions>
-                        <Button onClick={() => setRestockDialog({ ...restockDialog, open: false })}>Cancel</Button>
-                        <Button variant="contained" onClick={submitRestock}>Add Stock</Button>
+                    <DialogActions sx={{ px: 3, pb: 2, pt: 1 }}>
+                        <Button 
+                            onClick={() => setRestockDialog({ ...restockDialog, open: false })}
+                            sx={{ 
+                                textTransform: 'none',
+                                color: textSecondary
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button 
+                            variant="contained" 
+                            onClick={submitRestock}
+                            sx={{
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                background: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
+                                color: 'white',
+                                boxShadow: '0 4px 14px 0 rgba(255, 107, 107, 0.39)',
+                                '&:hover': {
+                                    background: 'linear-gradient(135deg, #ff5252 0%, #ff7043 100%)',
+                                    boxShadow: '0 6px 20px rgba(255, 107, 107, 0.5)'
+                                }
+                            }}
+                        >
+                            Add Stock
+                        </Button>
                     </DialogActions>
                 </Dialog>
 

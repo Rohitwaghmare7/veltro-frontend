@@ -159,23 +159,15 @@ export default function WeeklyActivityChart({
             {/* Header */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
                 <Box sx={{ flex: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                        <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
-                            {title}
-                        </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5 }}>
-                        <Typography variant="h3" sx={{ fontWeight: 700, fontSize: '2.5rem' }}>
-                            {totalValue}
-                        </Typography>
-                        <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 500 }}>
-                            {metric}
-                        </Typography>
-                        <Box sx={{ color: color }}>
-                            {icon}
-                        </Box>
-                    </Box>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
+                    <Typography variant="body2" sx={{ color: theme.palette.mode === 'dark' ? 'text.secondary' : '#000000', fontSize: '1rem', mb: 0.5, fontWeight: 600 }}>
+                        Upcoming Bookings
+                    </Typography>
+                    <Typography variant="h3" sx={{ fontWeight: 700, fontSize: '2.5rem', color: '#ff6b6b' }}>
+                        {totalValue}
+                    </Typography>
+                </Box>
+                <Box>
+                    <Typography variant="caption" sx={{ color: theme.palette.mode === 'dark' ? 'text.secondary' : '#000000', fontSize: '0.75rem' }}>
                         {dateRange}
                     </Typography>
                 </Box>
@@ -189,7 +181,7 @@ export default function WeeklyActivityChart({
                             dataKey="day"
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
+                            tick={{ fill: theme.palette.mode === 'dark' ? theme.palette.text.secondary : '#000000', fontSize: 12, fontWeight: 600 }}
                         />
                         <YAxis
                             hide
@@ -212,10 +204,12 @@ export default function WeeklyActivityChart({
                             {chartData.map((entry, index) => {
                                 // Highlight the bar with the highest value in orange
                                 const isHighest = entry.value === maxValue && entry.value > 0;
+                                const barColor = theme.palette.mode === 'dark' ? '#ffffff' : '#1a1a1a';
+                                const fadedColor = theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.4)';
                                 return (
                                     <Cell
                                         key={`cell-${index}`}
-                                        fill={isHighest ? '#FF6B4A' : (entry.highlight ? color : `${color}60`)}
+                                        fill={isHighest ? '#ff6b6b' : (entry.highlight ? barColor : fadedColor)}
                                     />
                                 );
                             })}
@@ -224,12 +218,7 @@ export default function WeeklyActivityChart({
                 </ResponsiveContainer>
             </Box>
 
-            {/* Max Value Indicator */}
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
-                    Peak: {maxValue}
-                </Typography>
-            </Box>
+
         </Paper>
     );
 }

@@ -118,7 +118,7 @@ export default function TeamMemberCard({ member, onMenuClick, onCardClick }: Tea
             sx={{
                 bgcolor: bgColor,
                 borderRadius: '16px',
-                p: 3,
+                p: 2,
                 border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
@@ -127,28 +127,28 @@ export default function TeamMemberCard({ member, onMenuClick, onCardClick }: Tea
                     boxShadow: isDark
                         ? '0 8px 24px rgba(0,0,0,0.4)'
                         : '0 8px 24px rgba(0,0,0,0.08)',
-                    borderColor: isDark ? 'rgba(139, 92, 246, 0.3)' : '#c4b5fd',
+                    borderColor: isDark ? 'rgba(255, 107, 107, 0.3)' : '#fecaca',
                 }
             }}
         >
-            <Box display="flex" alignItems="flex-start" justifyContent="space-between" mb={2}>
-                <Box display="flex" alignItems="center" gap={2}>
+            <Box display="flex" alignItems="flex-start" justifyContent="space-between" mb={1.5}>
+                <Box display="flex" alignItems="center" gap={1.5}>
                     <Avatar
                         sx={{
-                            width: 48,
-                            height: 48,
-                            bgcolor: '#8b5cf6',
+                            width: 40,
+                            height: 40,
+                            bgcolor: '#ff6b6b',
                             fontWeight: 700,
-                            fontSize: '1.1rem',
+                            fontSize: '0.95rem',
                         }}
                     >
                         {getInitials(member.name)}
                     </Avatar>
                     <Box>
-                        <Typography variant="h6" fontWeight={700} color={textPrimary} sx={{ mb: 0.5 }}>
+                        <Typography variant="h6" fontWeight={700} color={textPrimary} sx={{ mb: 0.25, fontSize: '0.95rem' }}>
                             {member.name}
                         </Typography>
-                        <Typography variant="body2" color={textSecondary} sx={{ fontSize: '0.875rem' }}>
+                        <Typography variant="body2" color={textSecondary} sx={{ fontSize: '0.75rem' }}>
                             {member.email}
                         </Typography>
                     </Box>
@@ -161,16 +161,17 @@ export default function TeamMemberCard({ member, onMenuClick, onCardClick }: Tea
                     }}
                     sx={{
                         color: textSecondary,
+                        p: 0.5,
                         '&:hover': {
                             bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9',
                         }
                     }}
                 >
-                    <MoreVertIcon />
+                    <MoreVertIcon fontSize="small" />
                 </IconButton>
             </Box>
 
-            <Box display="flex" alignItems="center" gap={1} mb={2}>
+            <Box display="flex" alignItems="center" gap={1} mb={1.5}>
                 {getStatusChip()}
             </Box>
 
@@ -178,14 +179,14 @@ export default function TeamMemberCard({ member, onMenuClick, onCardClick }: Tea
                 sx={{
                     bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
                     borderRadius: '12px',
-                    p: 1.5,
+                    p: 1.25,
                     border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'}`,
                 }}
             >
-                <Typography variant="caption" color={textSecondary} sx={{ display: 'block', mb: 0.5 }}>
+                <Typography variant="caption" color={textSecondary} sx={{ display: 'block', mb: 0.25, fontSize: '0.7rem' }}>
                     Permissions
                 </Typography>
-                <Typography variant="body2" fontWeight={600} color={textPrimary}>
+                <Typography variant="body2" fontWeight={600} color={textPrimary} sx={{ fontSize: '0.85rem' }}>
                     {getPermissionSummary()}
                 </Typography>
             </Box>

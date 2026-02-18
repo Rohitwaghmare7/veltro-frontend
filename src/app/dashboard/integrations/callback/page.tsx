@@ -45,7 +45,7 @@ function CallbackContent() {
                 const user = userStr ? JSON.parse(userStr) : null;
 
                 if (user && !user.isOnboarded) {
-                    setTimeout(() => router.push('/onboarding'), 1500);
+                    setTimeout(() => router.push('/onboarding?calendar=connected'), 1500);
                 } else {
                     setTimeout(() => router.push('/dashboard/integrations'), 2000);
                 }
@@ -57,7 +57,7 @@ function CallbackContent() {
                 const user = userStr ? JSON.parse(userStr) : null;
 
                 if (user && !user.isOnboarded) {
-                    setTimeout(() => router.push('/onboarding'), 2000);
+                    setTimeout(() => router.push('/onboarding?calendar=connected'), 2000);
                 } else {
                     setTimeout(() => router.push('/dashboard/integrations'), 3000);
                 }

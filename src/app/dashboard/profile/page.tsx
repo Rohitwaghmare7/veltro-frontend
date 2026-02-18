@@ -136,7 +136,7 @@ export default function ProfilePage() {
     const getRoleBadgeColor = (role: string) => {
         switch (role?.toLowerCase()) {
             case 'owner':
-                return { bg: isDark ? 'rgba(139, 92, 246, 0.15)' : '#ede9fe', color: '#8b5cf6' };
+                return { bg: isDark ? 'rgba(255, 107, 107, 0.15)' : '#fee2e2', color: '#ff6b6b' };
             case 'staff':
                 return { bg: isDark ? 'rgba(59, 130, 246, 0.15)' : '#dbeafe', color: '#3b82f6' };
             default:
@@ -185,74 +185,71 @@ export default function ProfilePage() {
             </Box>
 
             {/* Main Content */}
-            <Box display="flex" gap={3} flexDirection={{ xs: 'column', lg: 'row' }}>
-                {/* Profile Card */}
-                <Box sx={{ width: { xs: '100%', lg: 360 }, flexShrink: 0 }}>
-                    <Paper
-                        sx={{
-                            borderRadius: '16px',
-                            bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
-                            border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
-                            p: 4,
-                            textAlign: 'center',
-                        }}
-                    >
+            <Stack spacing={3}>
+                {/* Profile Card - Full Width Row */}
+                <Paper
+                    sx={{
+                        borderRadius: '16px',
+                        bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
+                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
+                        p: 3,
+                    }}
+                >
+                    <Box display="flex" alignItems="center" gap={3} flexWrap="wrap">
                         <Avatar
                             sx={{
-                                width: 120,
-                                height: 120,
-                                mx: 'auto',
-                                mb: 3,
-                                bgcolor: '#8b5cf6',
-                                fontSize: 48,
+                                width: 80,
+                                height: 80,
+                                bgcolor: '#ff6b6b',
+                                fontSize: 32,
                                 fontWeight: 700,
-                                boxShadow: '0 8px 24px rgba(139, 92, 246, 0.3)',
+                                boxShadow: '0 8px 24px rgba(255, 107, 107, 0.3)',
                             }}
                         >
-                            {profile.name ? getInitials(profile.name) : <PersonIcon sx={{ fontSize: 60 }} />}
+                            {profile.name ? getInitials(profile.name) : <PersonIcon sx={{ fontSize: 40 }} />}
                         </Avatar>
                         
-                        <Typography variant="h5" fontWeight={700} color={textPrimary} sx={{ mb: 1 }}>
-                            {profile.name || 'User'}
-                        </Typography>
-                        
-                        <Typography variant="body2" color={textSecondary} sx={{ mb: 2 }}>
-                            {profile.email}
-                        </Typography>
+                        <Box flex={1} minWidth={200}>
+                            <Typography variant="h5" fontWeight={700} color={textPrimary} sx={{ mb: 0.5 }}>
+                                {profile.name || 'User'}
+                            </Typography>
+                            <Typography variant="body2" color={textSecondary} sx={{ mb: 1 }}>
+                                {profile.email}
+                            </Typography>
+                            <Chip
+                                label={profile.role || 'User'}
+                                sx={{
+                                    bgcolor: roleBadge.bg,
+                                    color: roleBadge.color,
+                                    fontWeight: 700,
+                                    fontSize: '0.875rem',
+                                    textTransform: 'capitalize',
+                                    px: 2,
+                                    height: 32,
+                                }}
+                            />
+                        </Box>
 
-                        <Chip
-                            label={profile.role || 'User'}
-                            sx={{
-                                bgcolor: roleBadge.bg,
-                                color: roleBadge.color,
-                                fontWeight: 700,
-                                fontSize: '0.875rem',
-                                textTransform: 'capitalize',
-                                px: 2,
-                                height: 32,
-                            }}
-                        />
-
-                        <Divider sx={{ my: 3 }} />
-
-                        <Stack spacing={2}>
+                        <Box display="flex" gap={2} flexWrap="wrap">
                             <Box
                                 sx={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: 2,
-                                    p: 2,
+                                    gap: 1.5,
+                                    px: 2,
+                                    py: 1.5,
                                     borderRadius: '12px',
                                     bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
                                     border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'}`,
+                                    minWidth: 200,
                                 }}
                             >
                                 <EmailIcon sx={{ color: textSecondary, fontSize: 20 }} />
-                                <Box flex={1} textAlign="left">
-                                    <Typography variant="caption" color={textSecondary} display="block">
+                                <Box>
+                                    <Typography variant="caption" color={textSecondary} display="block" sx={{ fontSize: '0.7rem' }}>
                                         Email
                                     </Typography>
-                                    <Typography variant="body2" fontWeight={600} color={textPrimary} sx={{ wordBreak: 'break-all' }}>
+                                    <Typography variant="body2" fontWeight={600} color={textPrimary} sx={{ wordBreak: 'break-all', fontSize: '0.875rem' }}>
                                         {profile.email}
                                     </Typography>
                                 </Box>
@@ -262,179 +259,221 @@ export default function ProfilePage() {
                                 sx={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: 2,
-                                    p: 2,
+                                    gap: 1.5,
+                                    px: 2,
+                                    py: 1.5,
                                     borderRadius: '12px',
                                     bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
                                     border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'}`,
+                                    minWidth: 150,
                                 }}
                             >
                                 <BadgeIcon sx={{ color: textSecondary, fontSize: 20 }} />
-                                <Box flex={1} textAlign="left">
-                                    <Typography variant="caption" color={textSecondary} display="block">
+                                <Box>
+                                    <Typography variant="caption" color={textSecondary} display="block" sx={{ fontSize: '0.7rem' }}>
                                         Role
                                     </Typography>
-                                    <Typography variant="body2" fontWeight={600} color={textPrimary} sx={{ textTransform: 'capitalize' }}>
+                                    <Typography variant="body2" fontWeight={600} color={textPrimary} sx={{ textTransform: 'capitalize', fontSize: '0.875rem' }}>
                                         {profile.role || 'User'}
                                     </Typography>
+                                </Box>
+                            </Box>
+                        </Box>
+                    </Box>
+                </Paper>
+
+                {/* Forms Section - Two Columns */}
+                <Box display="grid" gridTemplateColumns={{ xs: '1fr', lg: '1fr 1fr' }} gap={3}>
+                    {/* Personal Information */}
+                    <Paper
+                        sx={{
+                            borderRadius: '16px',
+                            bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
+                            border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
+                            p: 2.5,
+                        }}
+                    >
+                        <Box mb={2}>
+                            <Typography variant="h6" fontWeight={700} color={textPrimary} sx={{ mb: 0.5, fontSize: '1.05rem' }}>
+                                Personal Information
+                            </Typography>
+                            <Typography variant="body2" color={textSecondary} sx={{ fontSize: '0.8rem' }}>
+                                Update your personal details
+                            </Typography>
+                        </Box>
+
+                        <Stack spacing={2}>
+                            <TextField
+                                fullWidth
+                                size="small"
+                                label="Full Name"
+                                value={profile.name}
+                                onChange={handleChange('name')}
+                                sx={{
+                                    '& .MuiOutlinedInput-root': { borderRadius: '12px' },
+                                    '& .MuiInputLabel-root': { color: '#64748b', fontSize: '0.875rem' },
+                                    '& .MuiInputBase-input': { fontSize: '0.875rem' }
+                                }}
+                            />
+
+                            <TextField
+                                fullWidth
+                                size="small"
+                                label="Email"
+                                value={profile.email}
+                                disabled
+                                helperText="Email cannot be changed"
+                                sx={{
+                                    '& .MuiOutlinedInput-root': { borderRadius: '12px' },
+                                    '& .MuiInputLabel-root': { color: '#64748b', fontSize: '0.875rem' },
+                                    '& .MuiInputBase-input': { fontSize: '0.875rem' },
+                                    '& .MuiFormHelperText-root': { fontSize: '0.7rem' }
+                                }}
+                            />
+
+                            <TextField
+                                fullWidth
+                                size="small"
+                                label="Role"
+                                value={profile.role}
+                                disabled
+                                sx={{
+                                    '& .MuiOutlinedInput-root': { borderRadius: '12px' },
+                                    '& input': { textTransform: 'capitalize' },
+                                    '& .MuiInputLabel-root': { color: '#64748b', fontSize: '0.875rem' },
+                                    '& .MuiInputBase-input': { fontSize: '0.875rem' }
+                                }}
+                            />
+
+                            <Box display="flex" gap={2}>
+                                <Box
+                                    onClick={saving ? undefined : handleSave}
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 1,
+                                        px: 3,
+                                        py: 1,
+                                        borderRadius: '12px',
+                                        background: saving ? '#9ca3af' : 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
+                                        color: '#ffffff',
+                                        fontWeight: 700,
+                                        fontSize: '0.8rem',
+                                        cursor: saving ? 'not-allowed' : 'pointer',
+                                        opacity: saving ? 0.6 : 1,
+                                        transition: 'all 0.2s ease',
+                                        '&:hover': saving ? {} : {
+                                            transform: 'translateY(-1px)',
+                                            boxShadow: '0 6px 20px rgba(255, 107, 107, 0.4)',
+                                        }
+                                    }}
+                                >
+                                    {saving ? <CircularProgress size={14} sx={{ color: 'white' }} /> : <CheckCircleIcon sx={{ fontSize: 16 }} />}
+                                    Save Changes
+                                </Box>
+                            </Box>
+                        </Stack>
+                    </Paper>
+
+                    {/* Change Password */}
+                    <Paper
+                        sx={{
+                            borderRadius: '16px',
+                            bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
+                            border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
+                            p: 2.5,
+                        }}
+                    >
+                        <Box mb={2}>
+                            <Box display="flex" alignItems="center" gap={1.5} mb={0.5}>
+                                <LockIcon sx={{ color: textSecondary, fontSize: 22 }} />
+                                <Typography variant="h6" fontWeight={700} color={textPrimary} sx={{ fontSize: '1.05rem' }}>
+                                    Change Password
+                                </Typography>
+                            </Box>
+                            <Typography variant="body2" color={textSecondary} sx={{ fontSize: '0.8rem' }}>
+                                Update your password to keep your account secure
+                            </Typography>
+                        </Box>
+
+                        <Stack spacing={2}>
+                            <TextField
+                                fullWidth
+                                size="small"
+                                type="password"
+                                label="Current Password"
+                                value={passwordData.current}
+                                onChange={(e) => setPasswordData({ ...passwordData, current: e.target.value })}
+                                sx={{
+                                    '& .MuiOutlinedInput-root': { borderRadius: '12px' },
+                                    '& .MuiInputLabel-root': { color: '#64748b', fontSize: '0.875rem' },
+                                    '& .MuiInputBase-input': { fontSize: '0.875rem' }
+                                }}
+                            />
+
+                            <TextField
+                                fullWidth
+                                size="small"
+                                type="password"
+                                label="New Password"
+                                value={passwordData.new}
+                                onChange={(e) => setPasswordData({ ...passwordData, new: e.target.value })}
+                                helperText="Must be at least 8 characters"
+                                sx={{
+                                    '& .MuiOutlinedInput-root': { borderRadius: '12px' },
+                                    '& .MuiInputLabel-root': { color: '#64748b', fontSize: '0.875rem' },
+                                    '& .MuiInputBase-input': { fontSize: '0.875rem' },
+                                    '& .MuiFormHelperText-root': { fontSize: '0.7rem' }
+                                }}
+                            />
+
+                            <TextField
+                                fullWidth
+                                size="small"
+                                type="password"
+                                label="Confirm New Password"
+                                value={passwordData.confirm}
+                                onChange={(e) => setPasswordData({ ...passwordData, confirm: e.target.value })}
+                                sx={{
+                                    '& .MuiOutlinedInput-root': { borderRadius: '12px' },
+                                    '& .MuiInputLabel-root': { color: '#64748b', fontSize: '0.875rem' },
+                                    '& .MuiInputBase-input': { fontSize: '0.875rem' }
+                                }}
+                            />
+
+                            <Box display="flex" gap={2}>
+                                <Box
+                                    onClick={(saving || !passwordData.current || !passwordData.new || !passwordData.confirm) ? undefined : handlePasswordChange}
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 1,
+                                        px: 3,
+                                        py: 1,
+                                        borderRadius: '12px',
+                                        background: (saving || !passwordData.current || !passwordData.new || !passwordData.confirm) ? '#9ca3af' : 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
+                                        color: '#ffffff',
+                                        fontWeight: 700,
+                                        fontSize: '0.8rem',
+                                        cursor: (saving || !passwordData.current || !passwordData.new || !passwordData.confirm) ? 'not-allowed' : 'pointer',
+                                        opacity: (saving || !passwordData.current || !passwordData.new || !passwordData.confirm) ? 0.6 : 1,
+                                        transition: 'all 0.2s ease',
+                                        '&:hover': (saving || !passwordData.current || !passwordData.new || !passwordData.confirm) ? {} : {
+                                            transform: 'translateY(-1px)',
+                                            boxShadow: '0 6px 20px rgba(255, 107, 107, 0.4)',
+                                        }
+                                    }}
+                                >
+                                    {saving ? <CircularProgress size={14} sx={{ color: 'white' }} /> : <LockIcon sx={{ fontSize: 16 }} />}
+                                    Update Password
                                 </Box>
                             </Box>
                         </Stack>
                     </Paper>
                 </Box>
-
-                {/* Forms Section */}
-                <Box flex={1}>
-                    <Stack spacing={3}>
-                        {/* Personal Information */}
-                        <Paper
-                            sx={{
-                                borderRadius: '16px',
-                                bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
-                                border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
-                                p: 4,
-                            }}
-                        >
-                            <Box mb={3}>
-                                <Typography variant="h6" fontWeight={700} color={textPrimary} sx={{ mb: 1 }}>
-                                    Personal Information
-                                </Typography>
-                                <Typography variant="body2" color={textSecondary}>
-                                    Update your personal details
-                                </Typography>
-                            </Box>
-
-                            <Stack spacing={3}>
-                                <TextField
-                                    fullWidth
-                                    label="Full Name"
-                                    value={profile.name}
-                                    onChange={handleChange('name')}
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-                                />
-
-                                <TextField
-                                    fullWidth
-                                    label="Email"
-                                    value={profile.email}
-                                    disabled
-                                    helperText="Email cannot be changed"
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-                                />
-
-                                <TextField
-                                    fullWidth
-                                    label="Role"
-                                    value={profile.role}
-                                    disabled
-                                    sx={{
-                                        '& .MuiOutlinedInput-root': { borderRadius: '12px' },
-                                        '& input': { textTransform: 'capitalize' }
-                                    }}
-                                />
-
-                                <Box display="flex" gap={2}>
-                                    <Button
-                                        variant="contained"
-                                        onClick={handleSave}
-                                        disabled={saving}
-                                        startIcon={saving ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <CheckCircleIcon />}
-                                        sx={{
-                                            borderRadius: '12px',
-                                            textTransform: 'none',
-                                            fontWeight: 700,
-                                            px: 4,
-                                            bgcolor: '#8b5cf6',
-                                            boxShadow: '0 4px 14px 0 rgba(139, 92, 246, 0.39)',
-                                            '&:hover': {
-                                                bgcolor: '#7c3aed',
-                                                boxShadow: '0 6px 20px rgba(139, 92, 246, 0.5)',
-                                            }
-                                        }}
-                                    >
-                                        Save Changes
-                                    </Button>
-                                </Box>
-                            </Stack>
-                        </Paper>
-
-                        {/* Change Password */}
-                        <Paper
-                            sx={{
-                                borderRadius: '16px',
-                                bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
-                                border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
-                                p: 4,
-                            }}
-                        >
-                            <Box mb={3}>
-                                <Box display="flex" alignItems="center" gap={1.5} mb={1}>
-                                    <LockIcon sx={{ color: textSecondary, fontSize: 24 }} />
-                                    <Typography variant="h6" fontWeight={700} color={textPrimary}>
-                                        Change Password
-                                    </Typography>
-                                </Box>
-                                <Typography variant="body2" color={textSecondary}>
-                                    Update your password to keep your account secure
-                                </Typography>
-                            </Box>
-
-                            <Stack spacing={3}>
-                                <TextField
-                                    fullWidth
-                                    type="password"
-                                    label="Current Password"
-                                    value={passwordData.current}
-                                    onChange={(e) => setPasswordData({ ...passwordData, current: e.target.value })}
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-                                />
-
-                                <TextField
-                                    fullWidth
-                                    type="password"
-                                    label="New Password"
-                                    value={passwordData.new}
-                                    onChange={(e) => setPasswordData({ ...passwordData, new: e.target.value })}
-                                    helperText="Must be at least 8 characters"
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-                                />
-
-                                <TextField
-                                    fullWidth
-                                    type="password"
-                                    label="Confirm New Password"
-                                    value={passwordData.confirm}
-                                    onChange={(e) => setPasswordData({ ...passwordData, confirm: e.target.value })}
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-                                />
-
-                                <Box display="flex" gap={2}>
-                                    <Button
-                                        variant="contained"
-                                        onClick={handlePasswordChange}
-                                        disabled={saving || !passwordData.current || !passwordData.new || !passwordData.confirm}
-                                        startIcon={saving ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <LockIcon />}
-                                        sx={{
-                                            borderRadius: '12px',
-                                            textTransform: 'none',
-                                            fontWeight: 700,
-                                            px: 4,
-                                            bgcolor: '#8b5cf6',
-                                            boxShadow: '0 4px 14px 0 rgba(139, 92, 246, 0.39)',
-                                            '&:hover': {
-                                                bgcolor: '#7c3aed',
-                                                boxShadow: '0 6px 20px rgba(139, 92, 246, 0.5)',
-                                            }
-                                        }}
-                                    >
-                                        Update Password
-                                    </Button>
-                                </Box>
-                            </Stack>
-                        </Paper>
-                    </Stack>
-                </Box>
-            </Box>
+            </Stack>
 
             {/* Toast Notifications */}
             <Snackbar

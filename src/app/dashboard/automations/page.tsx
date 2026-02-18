@@ -221,14 +221,15 @@ export default function AutomationsPage() {
                             '& .MuiTab-root': {
                                 textTransform: 'none',
                                 fontWeight: 600,
-                                fontSize: '0.95rem',
-                                minHeight: 56,
+                                fontSize: '0.875rem',
+                                minHeight: 52,
+                                color: textPrimary,
                             },
                             '& .Mui-selected': {
-                                color: '#8b5cf6',
+                                color: '#ff6b6b',
                             },
                             '& .MuiTabs-indicator': {
-                                bgcolor: '#8b5cf6',
+                                bgcolor: '#ff6b6b',
                                 height: 3,
                                 borderRadius: '3px 3px 0 0',
                             },
@@ -241,7 +242,7 @@ export default function AutomationsPage() {
 
                     {/* Settings Tab */}
                     <TabPanel value={tabValue} index={0}>
-                        <Box p={3}>
+                        <Box p={2}>
                             <Alert
                                 severity="info"
                                 sx={{
@@ -286,15 +287,30 @@ export default function AutomationsPage() {
 
                     {/* Logs Tab */}
                     <TabPanel value={tabValue} index={1}>
-                        <Box p={3}>
+                        <Box px={2} py={2}>
                             <Box display="flex" gap={2} mb={3} flexWrap="wrap">
-                                <FormControl size="small" sx={{ minWidth: 200 }}>
+                                <FormControl 
+                                    size="small" 
+                                    sx={{ 
+                                        minWidth: 180,
+                                        '& .MuiInputLabel-root': {
+                                            color: '#64748b',
+                                            fontSize: '0.875rem',
+                                        },
+                                        '& .MuiOutlinedInput-root': {
+                                            fontSize: '0.875rem',
+                                        }
+                                    }}
+                                >
                                     <InputLabel>Trigger Type</InputLabel>
                                     <Select
                                         value={triggerFilter}
                                         label="Trigger Type"
                                         onChange={(e) => setTriggerFilter(e.target.value)}
-                                        sx={{ borderRadius: '12px' }}
+                                        sx={{ 
+                                            borderRadius: '12px',
+                                            height: 36,
+                                        }}
                                     >
                                         <MenuItem value="">All Triggers</MenuItem>
                                         <MenuItem value="NEW_CONTACT">New Contact</MenuItem>
@@ -305,13 +321,28 @@ export default function AutomationsPage() {
                                     </Select>
                                 </FormControl>
 
-                                <FormControl size="small" sx={{ minWidth: 150 }}>
+                                <FormControl 
+                                    size="small" 
+                                    sx={{ 
+                                        minWidth: 130,
+                                        '& .MuiInputLabel-root': {
+                                            color: '#64748b',
+                                            fontSize: '0.875rem',
+                                        },
+                                        '& .MuiOutlinedInput-root': {
+                                            fontSize: '0.875rem',
+                                        }
+                                    }}
+                                >
                                     <InputLabel>Status</InputLabel>
                                     <Select
                                         value={successFilter}
                                         label="Status"
                                         onChange={(e) => setSuccessFilter(e.target.value)}
-                                        sx={{ borderRadius: '12px' }}
+                                        sx={{ 
+                                            borderRadius: '12px',
+                                            height: 36,
+                                        }}
                                     >
                                         <MenuItem value="">All</MenuItem>
                                         <MenuItem value="true">Success</MenuItem>
@@ -326,30 +357,44 @@ export default function AutomationsPage() {
                                     value={limitFilter}
                                     onChange={(e) => setLimitFilter(Number(e.target.value))}
                                     sx={{ 
-                                        width: 100,
+                                        width: 90,
+                                        '& .MuiInputLabel-root': {
+                                            color: '#64748b',
+                                            fontSize: '0.875rem',
+                                        },
                                         '& .MuiOutlinedInput-root': {
                                             borderRadius: '12px',
+                                            height: 36,
+                                            fontSize: '0.875rem',
                                         }
                                     }}
                                 />
 
-                                <Button
-                                    variant="contained"
-                                    startIcon={<RefreshIcon />}
-                                    onClick={handleRefreshLogs}
-                                    disabled={logsLoading}
+                                <Box
+                                    onClick={logsLoading ? undefined : handleRefreshLogs}
                                     sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 1,
+                                        px: 2,
+                                        py: 0.75,
                                         borderRadius: '12px',
-                                        textTransform: 'none',
+                                        background: logsLoading ? '#9ca3af' : 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
+                                        color: '#ffffff',
                                         fontWeight: 600,
-                                        bgcolor: '#8b5cf6',
-                                        '&:hover': {
-                                            bgcolor: '#7c3aed',
+                                        fontSize: '0.875rem',
+                                        cursor: logsLoading ? 'not-allowed' : 'pointer',
+                                        opacity: logsLoading ? 0.6 : 1,
+                                        transition: 'all 0.2s ease',
+                                        '&:hover': logsLoading ? {} : {
+                                            transform: 'translateY(-1px)',
+                                            boxShadow: '0 4px 12px rgba(255, 107, 107, 0.3)',
                                         }
                                     }}
                                 >
+                                    <RefreshIcon sx={{ fontSize: 18 }} />
                                     Refresh
-                                </Button>
+                                </Box>
                             </Box>
 
                             {logsLoading ? (
@@ -381,11 +426,11 @@ export default function AutomationsPage() {
                                     <Table>
                                         <TableHead>
                                             <TableRow sx={{ bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc' }}>
-                                                <TableCell sx={{ fontWeight: 700, color: textPrimary }}>Date & Time</TableCell>
-                                                <TableCell sx={{ fontWeight: 700, color: textPrimary }}>Trigger</TableCell>
-                                                <TableCell sx={{ fontWeight: 700, color: textPrimary }}>Contact</TableCell>
-                                                <TableCell sx={{ fontWeight: 700, color: textPrimary }}>Status</TableCell>
-                                                <TableCell sx={{ fontWeight: 700, color: textPrimary }}>Details</TableCell>
+                                                <TableCell sx={{ fontWeight: 700, color: textPrimary, fontSize: '0.875rem' }}>Date & Time</TableCell>
+                                                <TableCell sx={{ fontWeight: 700, color: textPrimary, fontSize: '0.875rem' }}>Trigger</TableCell>
+                                                <TableCell sx={{ fontWeight: 700, color: textPrimary, fontSize: '0.875rem' }}>Contact</TableCell>
+                                                <TableCell sx={{ fontWeight: 700, color: textPrimary, fontSize: '0.875rem' }}>Status</TableCell>
+                                                <TableCell sx={{ fontWeight: 700, color: textPrimary, fontSize: '0.875rem' }}>Details</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -399,7 +444,7 @@ export default function AutomationsPage() {
                                                         }
                                                     }}
                                                 >
-                                                    <TableCell sx={{ color: textPrimary }}>
+                                                    <TableCell sx={{ color: textPrimary, fontSize: '0.875rem' }}>
                                                         {formatDate(log.executedAt || log.createdAt || log.timestamp)}
                                                     </TableCell>
                                                     <TableCell>
@@ -407,13 +452,16 @@ export default function AutomationsPage() {
                                                             label={(log.trigger || 'UNKNOWN').replace(/_/g, ' ')}
                                                             size="small"
                                                             sx={{
-                                                                bgcolor: isDark ? 'rgba(139, 92, 246, 0.15)' : '#ede9fe',
-                                                                color: '#8b5cf6',
+                                                                bgcolor: log.trigger === 'INVENTORY_LOW' 
+                                                                    ? (isDark ? 'rgba(234, 179, 8, 0.15)' : '#fef3c7')
+                                                                    : (isDark ? 'rgba(139, 92, 246, 0.15)' : '#ede9fe'),
+                                                                color: log.trigger === 'INVENTORY_LOW' ? '#eab308' : '#8b5cf6',
                                                                 fontWeight: 600,
+                                                                fontSize: '0.75rem',
                                                             }}
                                                         />
                                                     </TableCell>
-                                                    <TableCell sx={{ color: textPrimary }}>
+                                                    <TableCell sx={{ color: textPrimary, fontSize: '0.875rem' }}>
                                                         {log.contactId?.name || log.contactId?.email || log.contact?.name || log.contact?.email || 'N/A'}
                                                     </TableCell>
                                                     <TableCell>
@@ -426,6 +474,7 @@ export default function AutomationsPage() {
                                                                     bgcolor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#d1fae5',
                                                                     color: '#10b981',
                                                                     fontWeight: 600,
+                                                                    fontSize: '0.75rem',
                                                                 }}
                                                             />
                                                         ) : (
@@ -437,12 +486,13 @@ export default function AutomationsPage() {
                                                                     bgcolor: isDark ? 'rgba(239, 68, 68, 0.15)' : '#fee2e2',
                                                                     color: '#ef4444',
                                                                     fontWeight: 600,
+                                                                    fontSize: '0.75rem',
                                                                 }}
                                                             />
                                                         )}
                                                     </TableCell>
                                                     <TableCell>
-                                                        <Typography variant="body2" color={textSecondary}>
+                                                        <Typography variant="body2" color={textSecondary} sx={{ fontSize: '0.875rem' }}>
                                                             {log.error || log.details || 'Executed successfully'}
                                                         </Typography>
                                                     </TableCell>
@@ -457,7 +507,7 @@ export default function AutomationsPage() {
 
                     {/* Statistics Tab */}
                     <TabPanel value={tabValue} index={2}>
-                        <Box p={3}>
+                        <Box px={2} py={2}>
                             {statsLoading ? (
                                 <Box display="flex" justifyContent="center" py={8}>
                                     <CircularProgress sx={{ color: '#8b5cf6' }} />
@@ -482,69 +532,69 @@ export default function AutomationsPage() {
                                     <Box
                                         display="grid"
                                         gridTemplateColumns={{ xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }}
-                                        gap={3}
-                                        mb={4}
+                                        gap={2}
+                                        mb={3}
                                     >
                                         <Card
                                             sx={{
-                                                borderRadius: '16px',
+                                                borderRadius: '12px',
                                                 bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
                                                 border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                             }}
                                         >
-                                            <CardContent>
-                                                <Typography variant="caption" color={textSecondary} fontWeight={600} gutterBottom>
+                                            <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                                                <Typography variant="caption" color={textSecondary} fontWeight={600} gutterBottom sx={{ fontSize: '0.7rem' }}>
                                                     Total Executions
                                                 </Typography>
-                                                <Typography variant="h4" fontWeight={700} color={textPrimary}>
+                                                <Typography variant="h5" fontWeight={700} color={textPrimary}>
                                                     {stats.totalExecutions || 0}
                                                 </Typography>
                                             </CardContent>
                                         </Card>
                                         <Card
                                             sx={{
-                                                borderRadius: '16px',
+                                                borderRadius: '12px',
                                                 bgcolor: isDark ? 'rgba(16, 185, 129, 0.1)' : '#d1fae5',
                                                 border: `1px solid ${isDark ? 'rgba(16, 185, 129, 0.2)' : '#a7f3d0'}`,
                                             }}
                                         >
-                                            <CardContent>
-                                                <Typography variant="caption" color={textSecondary} fontWeight={600} gutterBottom>
+                                            <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                                                <Typography variant="caption" color={textSecondary} fontWeight={600} gutterBottom sx={{ fontSize: '0.7rem' }}>
                                                     Successful
                                                 </Typography>
-                                                <Typography variant="h4" fontWeight={700} sx={{ color: '#10b981' }}>
+                                                <Typography variant="h5" fontWeight={700} sx={{ color: '#10b981' }}>
                                                     {stats.successCount || 0}
                                                 </Typography>
                                             </CardContent>
                                         </Card>
                                         <Card
                                             sx={{
-                                                borderRadius: '16px',
+                                                borderRadius: '12px',
                                                 bgcolor: isDark ? 'rgba(239, 68, 68, 0.1)' : '#fee2e2',
                                                 border: `1px solid ${isDark ? 'rgba(239, 68, 68, 0.2)' : '#fecaca'}`,
                                             }}
                                         >
-                                            <CardContent>
-                                                <Typography variant="caption" color={textSecondary} fontWeight={600} gutterBottom>
+                                            <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                                                <Typography variant="caption" color={textSecondary} fontWeight={600} gutterBottom sx={{ fontSize: '0.7rem' }}>
                                                     Failed
                                                 </Typography>
-                                                <Typography variant="h4" fontWeight={700} sx={{ color: '#ef4444' }}>
+                                                <Typography variant="h5" fontWeight={700} sx={{ color: '#ef4444' }}>
                                                     {stats.failureCount || 0}
                                                 </Typography>
                                             </CardContent>
                                         </Card>
                                         <Card
                                             sx={{
-                                                borderRadius: '16px',
-                                                bgcolor: isDark ? 'rgba(139, 92, 246, 0.1)' : '#ede9fe',
-                                                border: `1px solid ${isDark ? 'rgba(139, 92, 246, 0.2)' : '#ddd6fe'}`,
+                                                borderRadius: '12px',
+                                                bgcolor: isDark ? 'rgba(59, 130, 246, 0.1)' : '#dbeafe',
+                                                border: `1px solid ${isDark ? 'rgba(59, 130, 246, 0.2)' : '#93c5fd'}`,
                                             }}
                                         >
-                                            <CardContent>
-                                                <Typography variant="caption" color={textSecondary} fontWeight={600} gutterBottom>
+                                            <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                                                <Typography variant="caption" color={textSecondary} fontWeight={600} gutterBottom sx={{ fontSize: '0.7rem' }}>
                                                     Success Rate
                                                 </Typography>
-                                                <Typography variant="h4" fontWeight={700} sx={{ color: '#8b5cf6' }}>
+                                                <Typography variant="h5" fontWeight={700} sx={{ color: '#3b82f6' }}>
                                                     {stats.totalExecutions > 0
                                                         ? Math.round((stats.successCount / stats.totalExecutions) * 100)
                                                         : 0}%
@@ -553,7 +603,7 @@ export default function AutomationsPage() {
                                         </Card>
                                     </Box>
 
-                                    <Typography variant="h6" fontWeight={700} color={textPrimary} gutterBottom>
+                                    <Typography variant="h6" fontWeight={700} color={textPrimary} gutterBottom sx={{ fontSize: '0.95rem', mb: 1.5 }}>
                                         Executions by Trigger Type
                                     </Typography>
                                     <TableContainer
@@ -562,11 +612,11 @@ export default function AutomationsPage() {
                                             border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                         }}
                                     >
-                                        <Table>
+                                        <Table size="small">
                                             <TableHead>
                                                 <TableRow sx={{ bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc' }}>
-                                                    <TableCell sx={{ fontWeight: 700, color: textPrimary }}>Trigger</TableCell>
-                                                    <TableCell align="right" sx={{ fontWeight: 700, color: textPrimary }}>Count</TableCell>
+                                                    <TableCell sx={{ fontWeight: 700, color: textPrimary, fontSize: '0.875rem', py: 1.5 }}>Trigger</TableCell>
+                                                    <TableCell align="right" sx={{ fontWeight: 700, color: textPrimary, fontSize: '0.875rem', py: 1.5 }}>Count</TableCell>
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
@@ -579,19 +629,22 @@ export default function AutomationsPage() {
                                                             }
                                                         }}
                                                     >
-                                                        <TableCell>
+                                                        <TableCell sx={{ py: 1.25 }}>
                                                             <Chip
                                                                 label={trigger.replace(/_/g, ' ')}
                                                                 size="small"
                                                                 sx={{
-                                                                    bgcolor: isDark ? 'rgba(139, 92, 246, 0.15)' : '#ede9fe',
-                                                                    color: '#8b5cf6',
+                                                                    bgcolor: trigger === 'INVENTORY_LOW'
+                                                                        ? (isDark ? 'rgba(234, 179, 8, 0.15)' : '#fef3c7')
+                                                                        : (isDark ? 'rgba(139, 92, 246, 0.15)' : '#ede9fe'),
+                                                                    color: trigger === 'INVENTORY_LOW' ? '#eab308' : '#8b5cf6',
                                                                     fontWeight: 600,
+                                                                    fontSize: '0.75rem',
                                                                 }}
                                                             />
                                                         </TableCell>
-                                                        <TableCell align="right">
-                                                            <Typography variant="h6" fontWeight={700} color={textPrimary}>
+                                                        <TableCell align="right" sx={{ py: 1.25 }}>
+                                                            <Typography variant="h6" fontWeight={700} color={textPrimary} sx={{ fontSize: '0.95rem' }}>
                                                                 {count}
                                                             </Typography>
                                                         </TableCell>

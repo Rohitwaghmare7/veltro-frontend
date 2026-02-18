@@ -180,7 +180,7 @@ export default function IntegrationsPage() {
                 }}
             >
                 {/* Header */}
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
                     <Box>
                         <Typography variant="h4" fontWeight={800} color={textPrimary} sx={{ mb: 0.5 }}>
                             Integrations
@@ -199,10 +199,10 @@ export default function IntegrationsPage() {
                             textTransform: 'none',
                             fontWeight: 600,
                             borderColor: isDark ? 'rgba(255,255,255,0.2)' : '#e2e8f0',
-                            color: textPrimary,
+                            color: '#ff6b6b',
                             '&:hover': {
-                                borderColor: isDark ? 'rgba(255,255,255,0.3)' : '#cbd5e1',
-                                bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc',
+                                borderColor: '#ff6b6b',
+                                bgcolor: isDark ? 'rgba(255, 107, 107, 0.1)' : '#fee2e2',
                             }
                         }}
                     >
@@ -214,7 +214,7 @@ export default function IntegrationsPage() {
                 <Alert
                     severity="info"
                     sx={{
-                        mb: 4,
+                        mb: 3,
                         borderRadius: '12px',
                         bgcolor: isDark ? 'rgba(59, 130, 246, 0.1)' : '#dbeafe',
                         border: `1px solid ${isDark ? 'rgba(59, 130, 246, 0.2)' : '#93c5fd'}`,
@@ -234,8 +234,8 @@ export default function IntegrationsPage() {
                             md: 'repeat(2, 1fr)',
                             lg: 'repeat(3, 1fr)',
                         },
-                        gap: 3,
-                        mb: 4,
+                        gap: 2,
+                        mb: 3,
                     }}
                 >
                     {integrationsList.map((integration) => (

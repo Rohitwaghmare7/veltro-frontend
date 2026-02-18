@@ -1,6 +1,4 @@
-'use client';
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Box,
     Typography,
@@ -31,6 +29,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { useBookingsStore } from '@/store/bookingsStore';
+import { useSettingsStore } from '@/store/settingsStore';
 
 const HOUR_HEIGHT = 120; // Height of one hour in pixels
 
@@ -50,6 +49,7 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
     const theme = useTheme();
     const isDark = theme.palette.mode === 'dark';
     const { creating, createBooking: createBookingAction } = useBookingsStore();
+    const { workingHours, fetchSettings } = useSettingsStore();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [viewMode, setViewMode] = useState<'list' | 'calendar'>('calendar');
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -66,6 +66,39 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
         duration: 60,
         notes: ''
     });
+
+    // Fetch working hours on mount
+    useEffect(() => {
+        fetchSettings();
+    }, [fetchSettings]);
+
+    // Calculate earliest and latest hours from working hours
+    const getTimeRange = () => {
+        if (!workingHours || workingHours.length === 0) {
+            return { startHour: 9, endHour: 17 }; // Default 9 AM to 5 PM
+        }
+
+        const openDays = workingHours.filter(wh => wh.isOpen);
+        if (openDays.length === 0) {
+            return { startHour: 9, endHour: 17 };
+        }
+
+        let earliestStart = 24;
+        let latestEnd = 0;
+
+        openDays.forEach(wh => {
+            const startHour = parseInt(wh.start.split(':')[0]);
+            const endHour = parseInt(wh.end.split(':')[0]);
+            
+            if (startHour < earliestStart) earliestStart = startHour;
+            if (endHour > latestEnd) latestEnd = endHour;
+        });
+
+        return { startHour: earliestStart, endHour: latestEnd };
+    };
+
+    const { startHour, endHour } = getTimeRange();
+    const totalHours = endHour - startHour;
 
     // Week start logic (Monday)
     const startDate = startOfWeek(currentDate, { weekStartsOn: 1 });
@@ -141,11 +174,14 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
             hours = 0;
         }
 
-        const startHour = hours + minutes / 60;
+        // Calculate position relative to start hour
+        const startHourOffset = hours - startHour;
+        const startMinuteOffset = minutes / 60;
+        const startPosition = startHourOffset + startMinuteOffset;
         const duration = (booking.duration || 60) / 60; // Convert minutes to hours
 
         return {
-            top: `${startHour * HOUR_HEIGHT}px`,
+            top: `${startPosition * HOUR_HEIGHT}px`,
             height: `${duration * HOUR_HEIGHT}px`,
         };
     };
@@ -156,7 +192,7 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
     const borderColor = isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6';
     const textPrimary = isDark ? 'rgba(255,255,255,0.9)' : '#111827';
     const textSecondary = isDark ? 'rgba(255,255,255,0.6)' : '#6B7280';
-    const todayBg = isDark ? '#667eea' : '#111827';
+    const todayBg = '#ff6b6b';
     const todayText = '#ffffff';
     const hoverBg = isDark ? 'rgba(255,255,255,0.05)' : '#F9FAFB';
 
@@ -255,13 +291,13 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                             <Button
                                 onClick={handleToday}
                                 sx={{
-                                    bgcolor: headerBgColor,
-                                    color: textPrimary,
+                                    bgcolor: '#ff6b6b',
+                                    color: '#ffffff',
                                     textTransform: 'none',
                                     fontWeight: 700,
                                     borderRadius: '12px',
                                     px: 3,
-                                    '&:hover': { bgcolor: hoverBg }
+                                    '&:hover': { bgcolor: '#ff5252' }
                                 }}
                             >
                                 Today
@@ -310,7 +346,7 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                                             transition: 'all 0.2s ease',
                                             cursor: 'pointer',
                                             border: isSelected ? `3px solid ${todayBg}` : '3px solid transparent',
-                                            '&:hover': { bgcolor: isToday ? (isDark ? '#7c8ef0' : '#1F2937') : hoverBg }
+                                            '&:hover': { bgcolor: isToday ? '#ff5252' : hoverBg }
                                         }}
                                         onClick={() => setCurrentDate(day)}
                                     >
@@ -327,32 +363,35 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
 
                         {/* --- Calendar Grid --- */}
                         <Box sx={{ flex: 1, overflowY: 'auto', position: 'relative', pt: 2 }}>
-                            <Box display="flex" height={`${24 * HOUR_HEIGHT}px`}>
+                            <Box display="flex" height={`${totalHours * HOUR_HEIGHT}px`}>
                                 {/* Time Column */}
                                 <Box sx={{ width: '60px', flexShrink: 0, position: 'relative' }}>
-                                    {Array.from({ length: 24 }).map((_, i) => (
-                                        <Box key={i} sx={{ height: `${HOUR_HEIGHT}px`, position: 'relative' }}>
-                                            <Typography
-                                                variant="caption"
-                                                sx={{
-                                                    position: 'absolute',
-                                                    top: 0,
-                                                    left: 10,
-                                                    color: textSecondary,
-                                                    fontWeight: 600,
-                                                    transform: 'translateY(-50%)'
-                                                }}
-                                            >
-                                                {format(setHours(new Date(), i), 'h aaa')}
-                                            </Typography>
-                                        </Box>
-                                    ))}
+                                    {Array.from({ length: totalHours }).map((_, i) => {
+                                        const hour = startHour + i;
+                                        return (
+                                            <Box key={i} sx={{ height: `${HOUR_HEIGHT}px`, position: 'relative' }}>
+                                                <Typography
+                                                    variant="caption"
+                                                    sx={{
+                                                        position: 'absolute',
+                                                        top: 0,
+                                                        left: 10,
+                                                        color: textSecondary,
+                                                        fontWeight: 600,
+                                                        transform: 'translateY(-50%)'
+                                                    }}
+                                                >
+                                                    {format(setHours(new Date(), hour), 'h aaa')}
+                                                </Typography>
+                                            </Box>
+                                        );
+                                    })}
                                 </Box>
 
                                 {/* Grid Body */}
                                 <Box sx={{ flex: 1, position: 'relative' }}>
                                     {/* Horizontal Lines */}
-                                    {Array.from({ length: 24 }).map((_, i) => (
+                                    {Array.from({ length: totalHours }).map((_, i) => (
                                         <Box
                                             key={i}
                                             sx={{
@@ -385,34 +424,37 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                                                 }}
                                             >
                                                 {/* Clickable Time Slots */}
-                                                {Array.from({ length: 24 }).map((_, hour) => (
-                                                    <Box
-                                                        key={`slot-${dayIndex}-${hour}`}
-                                                        onClick={() => handleTimeSlotClick(day, hour)}
-                                                        sx={{
-                                                            position: 'absolute',
-                                                            top: hour * HOUR_HEIGHT,
-                                                            left: 0,
-                                                            right: 0,
-                                                            height: `${HOUR_HEIGHT}px`,
-                                                            zIndex: 1,
-                                                            cursor: 'pointer',
-                                                            '&:hover': {
-                                                                bgcolor: isDark ? 'rgba(102, 126, 234, 0.08)' : 'rgba(102, 126, 234, 0.05)',
-                                                                '&::after': {
-                                                                    content: '"+"',
-                                                                    position: 'absolute',
-                                                                    top: '50%',
-                                                                    left: '50%',
-                                                                    transform: 'translate(-50%, -50%)',
-                                                                    fontSize: '2rem',
-                                                                    color: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                                                                    fontWeight: 300
+                                                {Array.from({ length: totalHours }).map((_, hourIndex) => {
+                                                    const hour = startHour + hourIndex;
+                                                    return (
+                                                        <Box
+                                                            key={`slot-${dayIndex}-${hour}`}
+                                                            onClick={() => handleTimeSlotClick(day, hour)}
+                                                            sx={{
+                                                                position: 'absolute',
+                                                                top: hourIndex * HOUR_HEIGHT,
+                                                                left: 0,
+                                                                right: 0,
+                                                                height: `${HOUR_HEIGHT}px`,
+                                                                zIndex: 1,
+                                                                cursor: 'pointer',
+                                                                '&:hover': {
+                                                                    bgcolor: isDark ? 'rgba(102, 126, 234, 0.08)' : 'rgba(102, 126, 234, 0.05)',
+                                                                    '&::after': {
+                                                                        content: '"+"',
+                                                                        position: 'absolute',
+                                                                        top: '50%',
+                                                                        left: '50%',
+                                                                        transform: 'translate(-50%, -50%)',
+                                                                        fontSize: '2rem',
+                                                                        color: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                                                                        fontWeight: 300
+                                                                    }
                                                                 }
-                                                            }
-                                                        }}
-                                                    />
-                                                ))}
+                                                            }}
+                                                        />
+                                                    );
+                                                })}
 
                                                 {/* Render Bookings */}
                                                 {bookings
@@ -481,8 +523,8 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                     slotProps={{
                         paper: {
                             sx: {
-                                borderRadius: '24px',
-                                width: '400px',
+                                borderRadius: '20px',
+                                width: '380px',
                                 maxWidth: '90vw',
                                 boxShadow: isDark ? '0px 20px 60px rgba(0,0,0,0.5)' : '0px 20px 60px rgba(0,0,0,0.15)',
                                 overflow: 'visible',
@@ -492,82 +534,88 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                         }
                     }}
                 >
-                    <Box sx={{ p: 3, position: 'relative' }}>
+                    <Box sx={{ p: 2.5, position: 'relative' }}>
                         <IconButton
                             onClick={closeDialog}
+                            size="small"
                             sx={{ position: 'absolute', right: 10, top: 10, color: textSecondary }}
                         >
-                            <Close />
+                            <Close sx={{ fontSize: 20 }} />
                         </IconButton>
 
-                        <Typography variant="h5" fontWeight={700} sx={{ mb: 3, pr: 4, color: textPrimary }}>
+                        <Typography variant="h6" fontWeight={700} sx={{ mb: 2, pr: 4, color: textPrimary, fontSize: '1.125rem' }}>
                             {selectedBooking?.clientName}
                         </Typography>
 
-                        <Box sx={{ bgcolor: headerBgColor, borderRadius: '12px', p: 1.5, mb: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <CalendarToday sx={{ color: textSecondary }} />
-                            <Typography fontWeight={600} color={textPrimary}>
+                        <Box sx={{ bgcolor: headerBgColor, borderRadius: '8px', p: 1.25, mb: 1.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            <CalendarToday sx={{ color: textSecondary, fontSize: 16 }} />
+                            <Typography fontWeight={600} color={textPrimary} sx={{ fontSize: '0.875rem' }}>
                                 {selectedBooking && format(new Date(selectedBooking.date), 'EEEE, d MMMM yyyy')}
                             </Typography>
                         </Box>
 
-                        <Box display="flex" gap={2} mb={2}>
-                            <Box sx={{ flex: 1, bgcolor: headerBgColor, borderRadius: '12px', p: 1.5, display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <AccessTime sx={{ color: textSecondary }} />
-                                <Typography fontWeight={600} color={textPrimary}>
+                        <Box display="flex" gap={1.5} mb={1.5}>
+                            <Box sx={{ flex: 1, bgcolor: headerBgColor, borderRadius: '8px', p: 1.25, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                <AccessTime sx={{ color: textSecondary, fontSize: 16 }} />
+                                <Typography fontWeight={600} color={textPrimary} sx={{ fontSize: '0.875rem' }}>
                                     {selectedBooking?.timeSlot}
                                 </Typography>
                             </Box>
-                            <Box sx={{ flex: 1, bgcolor: headerBgColor, borderRadius: '12px', p: 1.5, display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <Typography fontWeight={600} color={textPrimary}>
+                            <Box sx={{ flex: 1, bgcolor: headerBgColor, borderRadius: '8px', p: 1.25, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                <Typography fontWeight={600} color={textPrimary} sx={{ fontSize: '0.875rem' }}>
                                     {selectedBooking?.duration} min
                                 </Typography>
                             </Box>
                         </Box>
 
-                        <Box sx={{ bgcolor: headerBgColor, borderRadius: '12px', p: 1.5, mb: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <LocationOnOutlined sx={{ color: textSecondary }} />
-                            <Typography fontWeight={600} color={textPrimary}>{selectedBooking?.serviceType}</Typography>
+                        <Box sx={{ bgcolor: headerBgColor, borderRadius: '8px', p: 1.25, mb: 1.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            <LocationOnOutlined sx={{ color: textSecondary, fontSize: 16 }} />
+                            <Typography fontWeight={600} color={textPrimary} sx={{ fontSize: '0.875rem' }}>{selectedBooking?.serviceType}</Typography>
                         </Box>
 
-                        <Box sx={{ bgcolor: headerBgColor, borderRadius: '12px', p: 1.5, mb: 3 }}>
-                            <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block' }}>Status</Typography>
-                            <Typography fontWeight={600} color={textPrimary} sx={{ textTransform: 'capitalize' }}>
+                        <Box sx={{ bgcolor: headerBgColor, borderRadius: '8px', p: 1.25, mb: 1.5 }}>
+                            <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontSize: '0.75rem' }}>Status</Typography>
+                            <Typography fontWeight={600} color={textPrimary} sx={{ textTransform: 'capitalize', fontSize: '0.875rem' }}>
                                 {selectedBooking?.status}
                             </Typography>
                         </Box>
 
                         {selectedBooking?.notes && (
-                            <Box sx={{ bgcolor: headerBgColor, borderRadius: '12px', p: 1.5, mb: 3 }}>
-                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block' }}>Notes</Typography>
+                            <Box sx={{ bgcolor: headerBgColor, borderRadius: '8px', p: 1.25, mb: 2 }}>
+                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontSize: '0.75rem' }}>Notes</Typography>
                                 <Typography fontWeight={500} color={textPrimary} sx={{ fontSize: '0.875rem' }}>
                                     {selectedBooking.notes}
                                 </Typography>
                             </Box>
                         )}
 
-                        <Box display="flex" justifyContent="flex-end" mt={4}>
-                            <Button
-                                variant="contained"
+                        <Box display="flex" justifyContent="flex-end" mt={2}>
+                            <Box
+                                onClick={closeDialog}
                                 sx={{
-                                    bgcolor: isDark ? '#667eea' : '#111827',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    bgcolor: '#ff6b6b',
                                     color: 'white',
                                     textTransform: 'none',
-                                    borderRadius: '12px',
-                                    py: 1.5,
-                                    px: 4,
+                                    borderRadius: '8px',
+                                    py: 1,
+                                    px: 3,
                                     fontWeight: 700,
-                                    fontSize: '0.95rem',
-                                    boxShadow: isDark ? '0 4px 14px 0 rgba(102, 126, 234, 0.39)' : '0 4px 14px 0 rgba(17, 24, 39, 0.39)',
+                                    fontSize: '0.875rem',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 14px 0 rgba(255, 107, 107, 0.39)',
+                                    transition: 'all 0.2s',
                                     '&:hover': {
-                                        bgcolor: isDark ? '#7c8ef0' : '#000000',
-                                        boxShadow: isDark ? '0 6px 20px rgba(102, 126, 234, 0.5)' : '0 6px 20px rgba(0,0,0,0.23)'
+                                        bgcolor: '#ff5252',
+                                        boxShadow: '0 6px 20px rgba(255, 107, 107, 0.5)',
+                                        transform: 'translateY(-1px)'
                                     }
                                 }}
-                                onClick={closeDialog}
                             >
                                 Close
-                            </Button>
+                            </Box>
                         </Box>
                     </Box>
                 </Dialog>
@@ -586,7 +634,47 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                         }
                     }}
                 >
-                    <Box sx={{ p: 3 }}>
+                    <Box sx={{ 
+                        p: 3,
+                        '& .MuiPickersDay-root': {
+                            '&.Mui-selected': {
+                                backgroundColor: '#ff6b6b !important',
+                                color: '#ffffff',
+                                '&:hover': {
+                                    backgroundColor: '#ff5252 !important',
+                                },
+                                '&:focus': {
+                                    backgroundColor: '#ff6b6b !important',
+                                }
+                            },
+                            '&.MuiPickersDay-today': {
+                                borderColor: '#ff6b6b !important',
+                                '&:not(.Mui-selected)': {
+                                    borderColor: '#ff6b6b !important',
+                                }
+                            }
+                        },
+                        '& .MuiPickersCalendarHeader-switchViewButton': {
+                            color: '#ff6b6b',
+                        },
+                        '& .MuiPickersArrowSwitcher-button': {
+                            color: '#ff6b6b',
+                        },
+                        '& .MuiPickersYear-yearButton.Mui-selected': {
+                            backgroundColor: '#ff6b6b !important',
+                            color: '#ffffff',
+                            '&:hover': {
+                                backgroundColor: '#ff5252 !important',
+                            }
+                        },
+                        '& .MuiPickersMonth-monthButton.Mui-selected': {
+                            backgroundColor: '#ff6b6b !important',
+                            color: '#ffffff',
+                            '&:hover': {
+                                backgroundColor: '#ff5252 !important',
+                            }
+                        }
+                    }}>
                         <Typography variant="h6" fontWeight={700} sx={{ mb: 2, color: textPrimary }}>
                             Select Date
                         </Typography>
@@ -606,11 +694,23 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                                             borderRadius: '12px',
                                             color: textPrimary,
                                             '& fieldset': {
-                                                borderColor: borderColor,
+                                                borderColor: '#ff6b6b',
                                             },
+                                            '&:hover fieldset': {
+                                                borderColor: '#ff6b6b',
+                                            },
+                                            '&.Mui-focused fieldset': {
+                                                borderColor: '#ff6b6b',
+                                            }
                                         },
                                         '& .MuiInputLabel-root': {
                                             color: textSecondary,
+                                            '&.Mui-focused': {
+                                                color: '#ff6b6b',
+                                            }
+                                        },
+                                        '& .MuiIconButton-root': {
+                                            color: '#ff6b6b',
                                         }
                                     }
                                 }
@@ -628,35 +728,35 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                     slotProps={{
                         paper: {
                             sx: {
-                                borderRadius: '24px',
+                                borderRadius: '20px',
                                 bgcolor: bgColor,
                                 boxShadow: isDark ? '0px 20px 60px rgba(0,0,0,0.5)' : '0px 20px 60px rgba(0,0,0,0.15)',
                             }
                         }
                     }}
                 >
-                    <Box sx={{ p: 3 }}>
-                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                            <Typography variant="h5" fontWeight={700} color={textPrimary}>
+                    <Box sx={{ p: 2.5 }}>
+                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                            <Typography variant="h6" fontWeight={700} color={textPrimary} sx={{ fontSize: '1.125rem' }}>
                                 New Booking
                             </Typography>
-                            <IconButton onClick={() => setNewBookingDialog(false)} sx={{ color: textSecondary }}>
-                                <Close />
+                            <IconButton onClick={() => setNewBookingDialog(false)} size="small" sx={{ color: textSecondary }}>
+                                <Close sx={{ fontSize: 20 }} />
                             </IconButton>
                         </Box>
 
-                        <Box display="flex" flexDirection="column" gap={2.5}>
+                        <Box display="flex" flexDirection="column" gap={1.5}>
                             {/* Date and Time */}
-                            <Box sx={{ bgcolor: headerBgColor, borderRadius: '12px', p: 2 }}>
-                                <Box display="flex" alignItems="center" gap={2} mb={1}>
-                                    <CalendarToday sx={{ color: textSecondary, fontSize: 20 }} />
-                                    <Typography fontWeight={600} color={textPrimary}>
+                            <Box sx={{ bgcolor: headerBgColor, borderRadius: '8px', p: 1.5 }}>
+                                <Box display="flex" alignItems="center" gap={1.5} mb={0.75}>
+                                    <CalendarToday sx={{ color: textSecondary, fontSize: 16 }} />
+                                    <Typography fontWeight={600} color={textPrimary} sx={{ fontSize: '0.875rem' }}>
                                         {format(newBookingData.date, 'EEEE, MMMM d, yyyy')}
                                     </Typography>
                                 </Box>
-                                <Box display="flex" alignItems="center" gap={2}>
-                                    <AccessTime sx={{ color: textSecondary, fontSize: 20 }} />
-                                    <Typography fontWeight={600} color={textPrimary}>
+                                <Box display="flex" alignItems="center" gap={1.5}>
+                                    <AccessTime sx={{ color: textSecondary, fontSize: 16 }} />
+                                    <Typography fontWeight={600} color={textPrimary} sx={{ fontSize: '0.875rem' }}>
                                         {newBookingData.timeSlot}
                                     </Typography>
                                 </Box>
@@ -664,7 +764,7 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
 
                             {/* Client Name */}
                             <Box>
-                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.75rem' }}>
                                     Client Name *
                                 </Typography>
                                 <Box
@@ -674,16 +774,21 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                                     placeholder="Enter client name"
                                     sx={{
                                         width: '100%',
-                                        p: 1.5,
-                                        borderRadius: '12px',
+                                        p: 1,
+                                        borderRadius: '8px',
                                         border: `1px solid ${borderColor}`,
                                         bgcolor: headerBgColor,
                                         color: textPrimary,
-                                        fontSize: '0.95rem',
+                                        fontSize: '0.875rem',
                                         fontFamily: 'inherit',
                                         outline: 'none',
+                                        height: '36px',
                                         '&:focus': {
-                                            borderColor: theme.palette.primary.main
+                                            borderColor: '#ff6b6b'
+                                        },
+                                        '&::placeholder': {
+                                            color: textSecondary,
+                                            opacity: 0.6
                                         }
                                     }}
                                 />
@@ -691,7 +796,7 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
 
                             {/* Client Email */}
                             <Box>
-                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.75rem' }}>
                                     Client Email *
                                 </Typography>
                                 <Box
@@ -702,16 +807,21 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                                     placeholder="client@example.com"
                                     sx={{
                                         width: '100%',
-                                        p: 1.5,
-                                        borderRadius: '12px',
+                                        p: 1,
+                                        borderRadius: '8px',
                                         border: `1px solid ${borderColor}`,
                                         bgcolor: headerBgColor,
                                         color: textPrimary,
-                                        fontSize: '0.95rem',
+                                        fontSize: '0.875rem',
                                         fontFamily: 'inherit',
                                         outline: 'none',
+                                        height: '36px',
                                         '&:focus': {
-                                            borderColor: theme.palette.primary.main
+                                            borderColor: '#ff6b6b'
+                                        },
+                                        '&::placeholder': {
+                                            color: textSecondary,
+                                            opacity: 0.6
                                         }
                                     }}
                                 />
@@ -719,7 +829,7 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
 
                             {/* Client Phone */}
                             <Box>
-                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.75rem' }}>
                                     Client Phone
                                 </Typography>
                                 <Box
@@ -730,16 +840,21 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                                     placeholder="+1 (555) 000-0000"
                                     sx={{
                                         width: '100%',
-                                        p: 1.5,
-                                        borderRadius: '12px',
+                                        p: 1,
+                                        borderRadius: '8px',
                                         border: `1px solid ${borderColor}`,
                                         bgcolor: headerBgColor,
                                         color: textPrimary,
-                                        fontSize: '0.95rem',
+                                        fontSize: '0.875rem',
                                         fontFamily: 'inherit',
                                         outline: 'none',
+                                        height: '36px',
                                         '&:focus': {
-                                            borderColor: theme.palette.primary.main
+                                            borderColor: '#ff6b6b'
+                                        },
+                                        '&::placeholder': {
+                                            color: textSecondary,
+                                            opacity: 0.6
                                         }
                                     }}
                                 />
@@ -747,7 +862,7 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
 
                             {/* Service Type */}
                             <Box>
-                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.75rem' }}>
                                     Service Type *
                                 </Typography>
                                 <Box
@@ -757,16 +872,21 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                                     placeholder="e.g., Consultation, Training"
                                     sx={{
                                         width: '100%',
-                                        p: 1.5,
-                                        borderRadius: '12px',
+                                        p: 1,
+                                        borderRadius: '8px',
                                         border: `1px solid ${borderColor}`,
                                         bgcolor: headerBgColor,
                                         color: textPrimary,
-                                        fontSize: '0.95rem',
+                                        fontSize: '0.875rem',
                                         fontFamily: 'inherit',
                                         outline: 'none',
+                                        height: '36px',
                                         '&:focus': {
-                                            borderColor: theme.palette.primary.main
+                                            borderColor: '#ff6b6b'
+                                        },
+                                        '&::placeholder': {
+                                            color: textSecondary,
+                                            opacity: 0.6
                                         }
                                     }}
                                 />
@@ -774,7 +894,7 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
 
                             {/* Duration */}
                             <Box>
-                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.75rem' }}>
                                     Duration (minutes)
                                 </Typography>
                                 <Box
@@ -783,17 +903,18 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                                     onChange={(e: any) => setNewBookingData({ ...newBookingData, duration: parseInt(e.target.value) })}
                                     sx={{
                                         width: '100%',
-                                        p: 1.5,
-                                        borderRadius: '12px',
+                                        p: 1,
+                                        borderRadius: '8px',
                                         border: `1px solid ${borderColor}`,
                                         bgcolor: headerBgColor,
                                         color: textPrimary,
-                                        fontSize: '0.95rem',
+                                        fontSize: '0.875rem',
                                         fontFamily: 'inherit',
                                         outline: 'none',
                                         cursor: 'pointer',
+                                        height: '36px',
                                         '&:focus': {
-                                            borderColor: theme.palette.primary.main
+                                            borderColor: '#ff6b6b'
                                         }
                                     }}
                                 >
@@ -807,7 +928,7 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
 
                             {/* Notes */}
                             <Box>
-                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.75rem' }}>
                                     Notes
                                 </Typography>
                                 <Box
@@ -815,38 +936,47 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                                     value={newBookingData.notes}
                                     onChange={(e: any) => setNewBookingData({ ...newBookingData, notes: e.target.value })}
                                     placeholder="Add any additional notes..."
-                                    rows={3}
+                                    rows={2}
                                     sx={{
                                         width: '100%',
-                                        p: 1.5,
-                                        borderRadius: '12px',
+                                        p: 1,
+                                        borderRadius: '8px',
                                         border: `1px solid ${borderColor}`,
                                         bgcolor: headerBgColor,
                                         color: textPrimary,
-                                        fontSize: '0.95rem',
+                                        fontSize: '0.875rem',
                                         fontFamily: 'inherit',
                                         outline: 'none',
                                         resize: 'vertical',
                                         '&:focus': {
-                                            borderColor: theme.palette.primary.main
+                                            borderColor: '#ff6b6b'
+                                        },
+                                        '&::placeholder': {
+                                            color: textSecondary,
+                                            opacity: 0.6
                                         }
                                     }}
                                 />
                             </Box>
 
                             {/* Action Buttons */}
-                            <Box display="flex" gap={2} mt={2}>
-                                <Button
-                                    variant="outlined"
-                                    fullWidth
+                            <Box display="flex" gap={1.5} mt={1}>
+                                <Box
                                     onClick={() => setNewBookingDialog(false)}
                                     sx={{
-                                        borderRadius: '12px',
-                                        py: 1.5,
+                                        flex: 1,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        borderRadius: '8px',
+                                        py: 1,
                                         textTransform: 'none',
                                         fontWeight: 600,
-                                        borderColor: borderColor,
+                                        fontSize: '0.875rem',
+                                        border: `1px solid ${borderColor}`,
                                         color: textPrimary,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
                                         '&:hover': {
                                             borderColor: textPrimary,
                                             bgcolor: headerBgColor
@@ -854,39 +984,46 @@ export default function BookingCalendar({ bookings }: { bookings: Booking[] }) {
                                     }}
                                 >
                                     Cancel
-                                </Button>
-                                <Button
-                                    variant="contained"
-                                    fullWidth
-                                    onClick={handleCreateBooking}
-                                    disabled={!newBookingData.clientName || !newBookingData.clientEmail || !newBookingData.serviceType || creating}
+                                </Box>
+                                <Box
+                                    onClick={!newBookingData.clientName || !newBookingData.clientEmail || !newBookingData.serviceType || creating ? undefined : handleCreateBooking}
                                     sx={{
-                                        borderRadius: '12px',
-                                        py: 1.5,
+                                        flex: 1,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        borderRadius: '8px',
+                                        py: 1,
                                         textTransform: 'none',
                                         fontWeight: 700,
-                                        bgcolor: isDark ? '#667eea' : '#111827',
-                                        color: 'white',
-                                        boxShadow: isDark ? '0 4px 14px 0 rgba(102, 126, 234, 0.39)' : '0 4px 14px 0 rgba(17, 24, 39, 0.39)',
+                                        fontSize: '0.875rem',
+                                        bgcolor: (!newBookingData.clientName || !newBookingData.clientEmail || !newBookingData.serviceType || creating) 
+                                            ? (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)')
+                                            : '#ff6b6b',
+                                        color: (!newBookingData.clientName || !newBookingData.clientEmail || !newBookingData.serviceType || creating)
+                                            ? (isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)')
+                                            : 'white',
+                                        cursor: (!newBookingData.clientName || !newBookingData.clientEmail || !newBookingData.serviceType || creating) ? 'not-allowed' : 'pointer',
+                                        boxShadow: (!newBookingData.clientName || !newBookingData.clientEmail || !newBookingData.serviceType || creating) ? 'none' : '0 4px 14px 0 rgba(255, 107, 107, 0.39)',
+                                        transition: 'all 0.2s',
                                         '&:hover': {
-                                            bgcolor: isDark ? '#7c8ef0' : '#000000',
-                                            boxShadow: isDark ? '0 6px 20px rgba(102, 126, 234, 0.5)' : '0 6px 20px rgba(0,0,0,0.23)'
-                                        },
-                                        '&:disabled': {
-                                            bgcolor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-                                            color: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'
+                                            bgcolor: (!newBookingData.clientName || !newBookingData.clientEmail || !newBookingData.serviceType || creating)
+                                                ? (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)')
+                                                : '#ff5252',
+                                            boxShadow: (!newBookingData.clientName || !newBookingData.clientEmail || !newBookingData.serviceType || creating) ? 'none' : '0 6px 20px rgba(255, 107, 107, 0.5)',
+                                            transform: (!newBookingData.clientName || !newBookingData.clientEmail || !newBookingData.serviceType || creating) ? 'none' : 'translateY(-1px)'
                                         }
                                     }}
                                 >
                                     {creating ? (
                                         <Box display="flex" alignItems="center" gap={1}>
-                                            <CircularProgress size={20} sx={{ color: 'white' }} />
+                                            <CircularProgress size={16} sx={{ color: 'white' }} />
                                             <span>Creating...</span>
                                         </Box>
                                     ) : (
                                         'Create Booking'
                                     )}
-                                </Button>
+                                </Box>
                             </Box>
                         </Box>
                     </Box>

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Box, Grid, CircularProgress, Typography, useTheme } from '@mui/material';
 import HotelIcon from '@mui/icons-material/Hotel';
 import PeopleIcon from '@mui/icons-material/People';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import InventoryIcon from '@mui/icons-material/Inventory';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import api from '@/lib/api';
 import RBACGuard from '@/components/dashboard/RBACGuard';
@@ -28,6 +28,7 @@ import WeeklyActivityChart from '@/components/dashboard/widgets/WeeklyActivityCh
 export default function DashboardPage() {
     const router = useRouter();
     const theme = useTheme();
+    const isDark = theme.palette.mode === 'dark';
 
     // Zustand stores
     const {
@@ -175,12 +176,11 @@ export default function DashboardPage() {
             link: '/dashboard/leads'
         },
         {
-            icon: <AttachMoneyIcon sx={{ fontSize: 24 }} />,
-            label: 'Revenue',
-            value: '$2,536',
-            trend: -3,
+            icon: <InventoryIcon sx={{ fontSize: 24 }} />,
+            label: 'Low Stock Items',
+            value: lowStockItems.length,
             color: '#f59e0b',
-            link: '/dashboard/bookings'
+            link: '/dashboard/inventory'
         },
         {
             icon: <LocalHospitalIcon sx={{ fontSize: 24 }} />,
@@ -189,7 +189,7 @@ export default function DashboardPage() {
             color: '#ef4444',
             link: '/dashboard/settings'
         }
-    ], [stats, leadsStats, bookingsStats]);
+    ], [stats, leadsStats, bookingsStats, lowStockItems]);
 
     if (loading) {
         return (
@@ -220,11 +220,11 @@ export default function DashboardPage() {
                 {/* ROW 1: Orange Breakdown Card + Donut */}
                 <Grid container spacing={2} mb={2}>
                     {/* Bookings Breakdown (Orange Card) */}
-                    <Grid size={{ xs: 12, lg: 7 }}>
+                    <Grid size={{ xs: 12, lg: 8 }}>
                         <TotalLikesCard
                             title="Total Bookings"
                             total={bookingsStats.total}
-                            color="#FF6B4A"
+                            color="#ff6b6b"
                             breakdown={[
                                 { label: 'Today', value: bookingsStats.today, color: '#FCD34D' },
                                 { label: 'Upcoming', value: bookingsStats.upcoming, color: '#FFB84D' },
@@ -234,12 +234,12 @@ export default function DashboardPage() {
                     </Grid>
 
                     {/* Leads Overview (Donut) */}
-                    <Grid size={{ xs: 12, lg: 5 }}>
+                    <Grid size={{ xs: 12, lg: 4 }}>
                         <PendingMessagesCard
                             title="Leads Overview"
                             total={leadsStats.total}
                             data={[
-                                { name: 'New', value: leadsStats.new, color: '#3b82f6' },
+                                { name: 'New', value: leadsStats.new, color: isDark ? 'rgba(255,255,255,0.9)' : '#3b82f6' },
                                 { name: 'Contacted', value: leadsStats.contacted, color: '#f59e0b' },
                                 { name: 'Qualified', value: leadsStats.qualified, color: '#10b981' },
                                 { name: 'Closed', value: leadsStats.closed, color: '#6b7280' }
@@ -248,21 +248,11 @@ export default function DashboardPage() {
                     </Grid>
                 </Grid>
 
-                {/* ROW 2: Calendar & Wave Stat */}
+                {/* ROW 2: Calendar - Full Width */}
                 <Grid container spacing={2} mb={2}>
                     {/* Compact Calendar */}
-                    <Grid size={{ xs: 12, md: 7 }}>
+                    <Grid size={{ xs: 12 }}>
                         <CompactCalendar />
-                    </Grid>
-
-                    {/* Wave Chart */}
-                    <Grid size={{ xs: 12, md: 5 }}>
-                        <WaveStatCard
-                            title="Total Interactions"
-                            value={stats?.leads?.openConversations || 0}
-                            color="#7c3aed"
-                            bgColor="#7c3aed"
-                        />
                     </Grid>
                 </Grid>
 

@@ -144,7 +144,7 @@ export default function IntegrationCard({
             sx={{
                 bgcolor: bgColor,
                 borderRadius: '16px',
-                p: 3,
+                p: 2.5,
                 border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                 transition: 'all 0.2s ease',
                 '&:hover': {
@@ -153,7 +153,7 @@ export default function IntegrationCard({
                         ? '0 8px 24px rgba(0,0,0,0.4)'
                         : '0 8px 24px rgba(0,0,0,0.08)',
                     borderColor: integration.status === 'connected'
-                        ? (isDark ? 'rgba(16, 185, 129, 0.3)' : '#86efac')
+                        ? (isDark ? 'rgba(255, 107, 107, 0.3)' : '#fecaca')
                         : (isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1'),
                 }
             }}
@@ -165,7 +165,7 @@ export default function IntegrationCard({
                         height: 48,
                         borderRadius: '12px',
                         bgcolor: integration.status === 'connected'
-                            ? (isDark ? 'rgba(16, 185, 129, 0.15)' : '#d1fae5')
+                            ? (isDark ? 'rgba(255, 107, 107, 0.15)' : '#fee2e2')
                             : (isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9'),
                         display: 'flex',
                         alignItems: 'center',
@@ -176,18 +176,18 @@ export default function IntegrationCard({
                     <Icon
                         sx={{
                             fontSize: 28,
-                            color: integration.status === 'connected' ? '#10b981' : (isDark ? 'rgba(255,255,255,0.3)' : '#94a3b8'),
+                            color: integration.status === 'connected' ? '#ff6b6b' : (isDark ? 'rgba(255,255,255,0.3)' : '#94a3b8'),
                         }}
                     />
                 </Box>
                 <Box flex={1}>
                     <Box display="flex" alignItems="center" gap={1} mb={0.5}>
-                        <Typography variant="h6" fontWeight={700} color={textPrimary}>
+                        <Typography variant="h6" fontWeight={700} color={textPrimary} sx={{ fontSize: '0.95rem' }}>
                             {integration.name}
                         </Typography>
                         {getStatusChip()}
                     </Box>
-                    <Typography variant="body2" color={textSecondary} sx={{ fontSize: '0.875rem' }}>
+                    <Typography variant="body2" color={textSecondary} sx={{ fontSize: '0.8rem' }}>
                         {integration.description}
                     </Typography>
                 </Box>
@@ -198,15 +198,15 @@ export default function IntegrationCard({
                     sx={{
                         bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
                         borderRadius: '8px',
-                        p: 1.5,
-                        mb: 2,
+                        p: 1.25,
+                        mb: 1.5,
                         border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'}`,
                     }}
                 >
-                    <Typography variant="caption" color={textSecondary} sx={{ display: 'block', mb: 0.5 }}>
+                    <Typography variant="caption" color={textSecondary} sx={{ display: 'block', mb: 0.5, fontSize: '0.7rem' }}>
                         Last Synced
                     </Typography>
-                    <Typography variant="body2" fontWeight={600} color={textPrimary}>
+                    <Typography variant="body2" fontWeight={600} color={textPrimary} sx={{ fontSize: '0.8rem' }}>
                         {formatDate(integration.lastSync)}
                     </Typography>
                 </Box>
@@ -216,14 +216,14 @@ export default function IntegrationCard({
                 <Alert
                     severity="error"
                     sx={{
-                        mb: 2,
+                        mb: 1.5,
                         borderRadius: '8px',
                         py: 0.5,
                         bgcolor: isDark ? 'rgba(239, 68, 68, 0.1)' : '#fee2e2',
                         border: `1px solid ${isDark ? 'rgba(239, 68, 68, 0.2)' : '#fecaca'}`,
                     }}
                 >
-                    <Typography variant="caption">{integration.error}</Typography>
+                    <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>{integration.error}</Typography>
                 </Alert>
             )}
 
@@ -231,24 +231,31 @@ export default function IntegrationCard({
                 {integration.status === 'connected' ? (
                     <>
                         {integration.id === 'gmail' && onSync && (
-                            <Button
-                                size="small"
-                                variant="contained"
-                                onClick={() => onSync(integration.id)}
-                                disabled={disabled}
-                                startIcon={<RefreshIcon />}
+                            <Box
+                                onClick={disabled ? undefined : () => onSync(integration.id)}
                                 sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 0.75,
+                                    px: 1.5,
+                                    py: 0.625,
                                     borderRadius: '8px',
-                                    textTransform: 'none',
+                                    bgcolor: '#ffffff',
+                                    color: '#1e293b',
+                                    border: '1px solid #e2e8f0',
                                     fontWeight: 600,
-                                    bgcolor: '#8b5cf6',
-                                    '&:hover': {
-                                        bgcolor: '#7c3aed',
+                                    fontSize: '0.8125rem',
+                                    cursor: disabled ? 'not-allowed' : 'pointer',
+                                    opacity: disabled ? 0.6 : 1,
+                                    transition: 'all 0.2s ease',
+                                    '&:hover': disabled ? {} : {
+                                        bgcolor: '#f8fafc',
                                     }
                                 }}
                             >
+                                <RefreshIcon sx={{ fontSize: 18 }} />
                                 Sync Now
-                            </Button>
+                            </Box>
                         )}
                         <Button
                             size="small"

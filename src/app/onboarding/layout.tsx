@@ -36,13 +36,14 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
                                 background: 'linear-gradient(to right, #FFFFFF, #FF6B4A 100%)',
                                 WebkitBackgroundClip: 'text',
                                 WebkitTextFillColor: 'transparent',
-                                letterSpacing: '-1px' 
+                                letterSpacing: '-1px',
+                                fontSize: '2rem'
                             }}
                         >
                             VELTRO
                         </Typography>
-                        <Typography variant="body2" sx={{ color: '#666', mt: 1, fontSize: '0.85rem' }}>
-                            Set up your business workspace
+                        <Typography variant="body2" sx={{ color: '#888', mt: 1.5, fontSize: '0.95rem', lineHeight: 1.6 }}>
+                            Set up your business workspace in just a few steps
                         </Typography>
                     </Box>
 
@@ -67,15 +68,10 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
                         justifyContent: 'center',
                         alignItems: 'center',
                         position: 'relative',
-                        bgcolor: '#000000',
+                        bgcolor: '#F5F5F5',
                         overflow: 'hidden'
                     }}
                 >
-                    {/* Spline Background for Content Area */}
-                    <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, opacity: 0.8 }}>
-                        <SplineBackground scale="180%" opacity={0.8} />
-                    </Box>
-
                     <Box sx={{ maxWidth: '650px', width: '100%', px: 6, py: 8, position: 'relative', zIndex: 1 }}>
                         {children}
                     </Box>
@@ -93,31 +89,40 @@ function OnboardingStepper() {
             activeStep={activeStep}
             orientation="vertical"
             sx={{
-                '& .MuiStep-root': { mb: 4 },
+                '& .MuiStep-root': { 
+                    mb: 0,
+                },
+                '& .MuiStepLabel-root': {
+                    padding: 0,
+                },
+                '& .MuiStepLabel-iconContainer': {
+                    paddingRight: 2,
+                },
                 '& .MuiStepLabel-label': { 
-                    color: '#444', 
+                    color: '#666', 
                     fontWeight: '500', 
-                    fontSize: '0.9rem', 
-                    ml: 1 
+                    fontSize: '1rem', 
+                    ml: 0
                 },
                 '& .MuiStepLabel-label.Mui-active': { 
                     color: 'white', 
-                    fontWeight: '700' 
+                    fontWeight: '700',
+                    fontSize: '1.05rem'
                 },
                 '& .MuiStepLabel-label.Mui-completed': { 
                     color: '#FF6B4A',
                     fontWeight: '600'
                 },
                 '& .MuiStepIcon-root': {
-                    width: 28,
-                    height: 28,
+                    width: 32,
+                    height: 32,
                     color: '#050505',
-                    border: '1px solid #222',
+                    border: '2px solid #222',
                     borderRadius: '50%',
                     '&.Mui-active': { 
                         color: '#FF6B4A', 
                         border: 'none',
-                        boxShadow: '0 0 12px rgba(255, 107, 74, 0.4)'
+                        boxShadow: '0 0 16px rgba(255, 107, 74, 0.5)'
                     },
                     '&.Mui-completed': { 
                         color: '#FF6B4A', 
@@ -126,12 +131,18 @@ function OnboardingStepper() {
                     '& text': { 
                         fill: 'white',
                         fontWeight: '700',
-                        fontSize: '0.75rem'
+                        fontSize: '0.8rem'
                     }
+                },
+                '& .MuiStepConnector-root': {
+                    marginLeft: '15px',
+                    marginTop: 0,
+                    marginBottom: 0,
                 },
                 '& .MuiStepConnector-line': {
                     borderColor: '#222',
-                    borderLeftWidth: 2
+                    borderLeftWidth: 2,
+                    minHeight: 32,
                 },
                 '& .MuiStepConnector-root.Mui-completed .MuiStepConnector-line': {
                     borderColor: '#FF6B4A'

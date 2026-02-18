@@ -152,6 +152,7 @@ export default function FormSubmissionsPage() {
                         startIcon={<ArrowBackIcon />}
                         sx={{
                             mb: 2,
+                            ml: -1,
                             color: textSecondary,
                             textTransform: 'none',
                             fontWeight: 600,
@@ -163,15 +164,15 @@ export default function FormSubmissionsPage() {
 
                     <Box display="flex" justifyContent="space-between" alignItems="center">
                         <Box>
-                            <Typography variant="h4" fontWeight="800" color={textPrimary} letterSpacing="-0.5px">
+                            <Typography variant="h5" fontWeight="700" color={textPrimary} letterSpacing="-0.5px">
                                 {form.title}
                             </Typography>
-                            <Typography variant="body2" color={textSecondary} mt={0.5}>
+                            <Typography variant="body2" color={textSecondary} mt={0.5} fontSize="0.875rem">
                                 Manage and review form submissions
                             </Typography>
                         </Box>
                         <Button
-                            variant="outlined"
+                            variant="contained"
                             startIcon={<DownloadIcon />}
                             onClick={handleExportCSV}
                             disabled={submissions.length === 0}
@@ -179,12 +180,17 @@ export default function FormSubmissionsPage() {
                                 borderRadius: '10px',
                                 textTransform: 'none',
                                 fontWeight: 600,
-                                borderColor: borderColor,
-                                color: textPrimary,
-                                bgcolor: cardBg,
+                                background: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
+                                color: 'white',
+                                boxShadow: '0 4px 14px 0 rgba(255, 107, 107, 0.39)',
+                                border: 'none',
                                 '&:hover': {
-                                    borderColor: 'primary.main',
-                                    color: 'primary.main'
+                                    background: 'linear-gradient(135deg, #ff5252 0%, #ff7043 100%)',
+                                    boxShadow: '0 6px 20px rgba(255, 107, 107, 0.5)'
+                                },
+                                '&:disabled': {
+                                    background: isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0',
+                                    color: textSecondary
                                 }
                             }}
                         >
@@ -194,11 +200,11 @@ export default function FormSubmissionsPage() {
                 </Box>
 
                 {/* Summary Cards */}
-                <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }} gap={3} mb={3} flexShrink={0}>
+                <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }} gap={2} mb={2.5} flexShrink={0}>
                     <Paper
                         elevation={0}
                         sx={{
-                            p: 3,
+                            p: 2,
                             borderRadius: '16px',
                             bgcolor: cardBg,
                             border: `1px solid ${borderColor}`,
@@ -208,8 +214,8 @@ export default function FormSubmissionsPage() {
                         }}
                     >
                         <Box>
-                            <Typography variant="caption" fontWeight="600" color={textSecondary} textTransform="uppercase">Total Submissions</Typography>
-                            <Typography variant="h4" fontWeight="bold" color={textPrimary} mt={0.5}>{submissions.length}</Typography>
+                            <Typography variant="caption" fontWeight="600" color={textSecondary} textTransform="uppercase" fontSize="0.7rem">Total Submissions</Typography>
+                            <Typography variant="h6" fontWeight="bold" color={textPrimary} mt={0.5}>{submissions.length}</Typography>
                         </Box>
                         <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: isDark ? 'rgba(59, 130, 246, 0.1)' : '#eff6ff', color: '#3b82f6' }}>
                             <Box sx={{ width: 24, height: 24, borderRadius: '50%', border: '2px solid currentColor', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>
@@ -221,7 +227,7 @@ export default function FormSubmissionsPage() {
                     <Paper
                         elevation={0}
                         sx={{
-                            p: 3,
+                            p: 2,
                             borderRadius: '16px',
                             bgcolor: cardBg,
                             border: `1px solid ${borderColor}`,
@@ -231,8 +237,8 @@ export default function FormSubmissionsPage() {
                         }}
                     >
                         <Box>
-                            <Typography variant="caption" fontWeight="600" color={textSecondary} textTransform="uppercase">Latest Submission</Typography>
-                            <Typography variant="h4" fontWeight="bold" color={textPrimary} mt={0.5}>{latestSubmissionDate}</Typography>
+                            <Typography variant="caption" fontWeight="600" color={textSecondary} textTransform="uppercase" fontSize="0.7rem">Latest Submission</Typography>
+                            <Typography variant="h6" fontWeight="bold" color={textPrimary} mt={0.5}>{latestSubmissionDate}</Typography>
                         </Box>
                         <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: isDark ? 'rgba(16, 185, 129, 0.1)' : '#d1fae5', color: '#10b981' }}>
                             <AccessTimeIcon />
@@ -303,9 +309,21 @@ export default function FormSubmissionsPage() {
                                             <TableCell sx={{ borderBottom: `1px solid ${borderColor}`, color: textPrimary }}>
                                                 {new Date(row.createdAt).toLocaleString()}
                                             </TableCell>
-                                            <TableCell sx={{ borderBottom: `1px solid ${borderColor}`, color: textSecondary }}>
-                                                <Typography variant="body2" noWrap sx={{ maxWidth: 300 }}>
-                                                    {Object.values(row.data).slice(0, 3).join(', ')}...
+                                            <TableCell sx={{ borderBottom: `1px solid ${borderColor}`, color: textSecondary, maxWidth: 300 }}>
+                                                <Typography variant="body2" sx={{ 
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 2,
+                                                    WebkitBoxOrient: 'vertical',
+                                                    wordBreak: 'break-word'
+                                                }}>
+                                                    {Object.entries(row.data).map(([key, value]) => {
+                                                        const field = form.fields.find(f => f.id === key);
+                                                        const label = field?.label || key;
+                                                        const displayValue = Array.isArray(value) ? value.join(', ') : value;
+                                                        return `${label}: ${displayValue}`;
+                                                    }).join(' | ')}
                                                 </Typography>
                                             </TableCell>
                                             <TableCell align="right" sx={{ borderBottom: `1px solid ${borderColor}` }}>
@@ -332,7 +350,7 @@ export default function FormSubmissionsPage() {
                 <Dialog
                     open={!!selectedSubmission}
                     onClose={() => setSelectedSubmission(null)}
-                    maxWidth="md"
+                    maxWidth="sm"
                     fullWidth
                     PaperProps={{
                         sx: {
@@ -342,38 +360,38 @@ export default function FormSubmissionsPage() {
                         }
                     }}
                 >
-                    <DialogTitle sx={{ borderBottom: `1px solid ${borderColor}`, p: 3 }}>
-                        <Typography variant="h6" fontWeight="bold">Submission Details</Typography>
+                    <DialogTitle sx={{ borderBottom: `1px solid ${borderColor}`, p: 2, pb: 1.5 }}>
+                        <Typography variant="h6" fontWeight="bold" fontSize="1rem">Submission Details</Typography>
                     </DialogTitle>
-                    <DialogContent sx={{ p: 3 }}>
+                    <DialogContent sx={{ p: 2 }}>
                         {selectedSubmission && (
                             <Box>
-                                <Box display="flex" justifyContent="space-between" mb={4} p={2} sx={{ bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc', borderRadius: '12px', border: `1px solid ${borderColor}` }}>
+                                <Box display="flex" justifyContent="space-between" mb={2} p={1.5} sx={{ bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc', borderRadius: '12px', border: `1px solid ${borderColor}` }}>
                                     <Box>
-                                        <Typography variant="caption" color={textSecondary} fontWeight="600" textTransform="uppercase" display="block" mb={0.5}>Submitter</Typography>
-                                        <Typography variant="subtitle1" fontWeight="bold">{selectedSubmission.contactId?.name || 'Guest'}</Typography>
-                                        <Typography variant="body2" color={textSecondary}>{selectedSubmission.contactId?.email}</Typography>
+                                        <Typography variant="caption" color={textSecondary} fontWeight="600" textTransform="uppercase" display="block" mb={0.5} fontSize="0.65rem">Submitter</Typography>
+                                        <Typography variant="subtitle2" fontWeight="bold" fontSize="0.9rem">{selectedSubmission.contactId?.name || 'Guest'}</Typography>
+                                        <Typography variant="body2" color={textSecondary} fontSize="0.8rem">{selectedSubmission.contactId?.email}</Typography>
                                     </Box>
                                     <Box textAlign="right">
-                                        <Typography variant="caption" color={textSecondary} fontWeight="600" textTransform="uppercase" display="block" mb={0.5}>Date Submitted</Typography>
-                                        <Typography variant="subtitle1" fontWeight="bold">{new Date(selectedSubmission.createdAt).toLocaleDateString()}</Typography>
-                                        <Typography variant="body2" color={textSecondary}>{new Date(selectedSubmission.createdAt).toLocaleTimeString()}</Typography>
+                                        <Typography variant="caption" color={textSecondary} fontWeight="600" textTransform="uppercase" display="block" mb={0.5} fontSize="0.65rem">Date Submitted</Typography>
+                                        <Typography variant="subtitle2" fontWeight="bold" fontSize="0.9rem">{new Date(selectedSubmission.createdAt).toLocaleDateString()}</Typography>
+                                        <Typography variant="body2" color={textSecondary} fontSize="0.8rem">{new Date(selectedSubmission.createdAt).toLocaleTimeString()}</Typography>
                                     </Box>
                                 </Box>
 
-                                <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ mb: 2 }}>Form Responses</Typography>
-                                <Grid container spacing={3}>
+                                <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ mb: 1.5 }} fontSize="0.95rem">Form Responses</Typography>
+                                <Grid container spacing={2}>
                                     {form.fields.map((field) => (
                                         <Grid size={{ xs: 12 }} key={field.id}>
-                                            <Typography variant="subtitle2" color={textSecondary} gutterBottom fontWeight="600">{field.label}</Typography>
+                                            <Typography variant="subtitle2" color={textSecondary} gutterBottom fontWeight="600" fontSize="0.75rem">{field.label}</Typography>
                                             <Box sx={{
-                                                p: 2,
+                                                p: 1.5,
                                                 bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
                                                 borderRadius: '12px',
                                                 border: `1px solid ${borderColor}`,
                                                 color: textPrimary
                                             }}>
-                                                <Typography variant="body1">
+                                                <Typography variant="body2" fontSize="0.85rem">
                                                     {Array.isArray(selectedSubmission.data[field.id])
                                                         ? selectedSubmission.data[field.id].join(', ')
                                                         : selectedSubmission.data[field.id]?.toString() || '(No Response)'}
@@ -385,7 +403,7 @@ export default function FormSubmissionsPage() {
                             </Box>
                         )}
                     </DialogContent>
-                    <DialogActions sx={{ borderTop: `1px solid ${borderColor}`, p: 2 }}>
+                    <DialogActions sx={{ borderTop: `1px solid ${borderColor}`, p: 1.5 }}>
                         <Button
                             onClick={() => setSelectedSubmission(null)}
                             variant="contained"
@@ -393,10 +411,15 @@ export default function FormSubmissionsPage() {
                                 borderRadius: '8px',
                                 textTransform: 'none',
                                 fontWeight: 600,
-                                px: 4,
-                                bgcolor: isDark ? '#667eea' : '#111827',
+                                fontSize: '0.875rem',
+                                px: 3,
+                                py: 0.75,
+                                background: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
+                                color: 'white',
+                                boxShadow: '0 4px 14px 0 rgba(255, 107, 107, 0.39)',
                                 '&:hover': {
-                                    bgcolor: isDark ? '#7c8ef0' : '#000000',
+                                    background: 'linear-gradient(135deg, #ff5252 0%, #ff7043 100%)',
+                                    boxShadow: '0 6px 20px rgba(255, 107, 107, 0.5)'
                                 }
                             }}
                         >

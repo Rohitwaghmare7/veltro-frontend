@@ -112,9 +112,7 @@ export default function ForgotPasswordPage() {
                                         fontWeight="700"
                                         gutterBottom
                                         sx={{
-                                            background: 'linear-gradient(to right, #FFFFFF, #FF6B4A 100%)',
-                                            WebkitBackgroundClip: 'text',
-                                            WebkitTextFillColor: 'transparent',
+                                            color: 'white',
                                             mb: 0.5
                                         }}
                                     >

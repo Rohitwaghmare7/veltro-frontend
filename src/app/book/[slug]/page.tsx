@@ -250,7 +250,7 @@ export default function PublicBookingPage() {
                     bgcolor: '#F3F4F6',
                 }}
             >
-                <CircularProgress sx={{ color: '#667eea' }} size={40} />
+                <CircularProgress sx={{ color: '#ff6b6b' }} size={40} />
             </Box>
         );
     }
@@ -376,7 +376,7 @@ export default function PublicBookingPage() {
                                 variant="body2"
                                 sx={{
                                     fontSize: '0.875rem',
-                                    color: '#667eea',
+                                    color: '#ff6b6b',
                                     textDecoration: 'none',
                                     '&:hover': { textDecoration: 'underline' }
                                 }}
@@ -405,11 +405,11 @@ export default function PublicBookingPage() {
                             fontWeight="800"
                             color="#111827"
                             gutterBottom
-                            sx={{ letterSpacing: '-0.5px', fontSize: { xs: '1.5rem', sm: '1.875rem' } }}
+                            sx={{ letterSpacing: '-0.5px', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}
                         >
                             Book an Appointment
                         </Typography>
-                        <Typography variant="body1" color="#6B7280" sx={{ fontSize: '0.95rem' }}>
+                        <Typography variant="body1" color="#6B7280" sx={{ fontSize: '0.8rem' }}>
                             Choose a service and select your preferred date and time
                         </Typography>
                     </Box>
@@ -422,9 +422,9 @@ export default function PublicBookingPage() {
                             '& .MuiStepLabel-label': {
                                 color: '#9CA3AF',
                                 fontWeight: 600,
-                                fontSize: '0.875rem',
+                                fontSize: '0.75rem',
                                 '&.Mui-active': {
-                                    color: '#667eea',
+                                    color: '#ff6b6b',
                                     fontWeight: 700,
                                 },
                                 '&.Mui-completed': {
@@ -434,7 +434,7 @@ export default function PublicBookingPage() {
                             '& .MuiStepIcon-root': {
                                 color: '#E5E7EB',
                                 '&.Mui-active': {
-                                    color: '#667eea',
+                                    color: '#ff6b6b',
                                 },
                                 '&.Mui-completed': {
                                     color: '#10b981',
@@ -455,7 +455,7 @@ export default function PublicBookingPage() {
                         {/* Step 1: Select Service */}
                         {activeStep === 0 && (
                             <Box>
-                                <Typography variant="h6" fontWeight="700" color="#111827" gutterBottom sx={{ mb: 2, fontSize: '1rem' }}>
+                                <Typography variant="h6" fontWeight="700" color="#111827" gutterBottom sx={{ mb: 2, fontSize: '0.875rem' }}>
                                     Choose a Service
                                 </Typography>
                                 <Grid container spacing={2}>
@@ -533,16 +533,16 @@ export default function PublicBookingPage() {
                         {/* Step 2: Select Date & Time */}
                         {activeStep === 1 && (
                             <Box>
-                                <Typography variant="h6" fontWeight="700" color="#111827" gutterBottom sx={{ mb: 2, fontSize: '1rem' }}>
+                                <Typography variant="h6" fontWeight="700" color="#111827" gutterBottom sx={{ mb: 2, fontSize: '0.875rem' }}>
                                     Select Date
                                 </Typography>
                                 <TextField
                                     type="date"
                                     fullWidth
                                     sx={{
-                                        mb: 4,
+                                        mb: 3,
                                         '& .MuiOutlinedInput-root': {
-                                            borderRadius: '8px',
+                                            borderRadius: '4px',
                                             bgcolor: 'white',
                                             '& fieldset': {
                                                 borderColor: '#E5E7EB',
@@ -551,13 +551,15 @@ export default function PublicBookingPage() {
                                                 borderColor: '#D1D5DB',
                                             },
                                             '&.Mui-focused fieldset': {
-                                                borderColor: '#667eea',
+                                                borderColor: '#ff6b6b',
                                                 borderWidth: '1px',
-                                                boxShadow: '0 0 0 2px rgba(102, 126, 234, 0.2)',
+                                                boxShadow: '0 0 0 2px rgba(255, 107, 107, 0.2)',
                                             },
                                         },
                                         '& .MuiOutlinedInput-input': {
                                             color: '#111827',
+                                            py: 0.8,
+                                            fontSize: '0.75rem',
                                         },
                                     }}
                                     InputLabelProps={{ shrink: true }}
@@ -565,19 +567,19 @@ export default function PublicBookingPage() {
                                     value={selectedDate}
                                 />
 
-                                <Typography variant="h6" fontWeight="700" color="#111827" gutterBottom sx={{ mb: 2, fontSize: '1rem' }}>
+                                <Typography variant="h6" fontWeight="700" color="#111827" gutterBottom sx={{ mb: 2, fontSize: '0.875rem' }}>
                                     Available Times
                                 </Typography>
                                 {timeSlots.length === 0 ? (
                                     <Box
-                                        py={4}
+                                        py={3}
                                         px={2}
                                         textAlign="center"
                                         bgcolor="#F9FAFB"
-                                        borderRadius="12px"
+                                        borderRadius="4px"
                                         border="1px solid #E5E7EB"
                                     >
-                                        <Typography color="#6B7280" variant="body2">
+                                        <Typography color="#6B7280" variant="body2" sx={{ fontSize: '0.75rem' }}>
                                             {selectedDate ? 'No available times for this date. The business may be closed.' : 'Please select a date first.'}
                                         </Typography>
                                     </Box>
@@ -587,29 +589,31 @@ export default function PublicBookingPage() {
                                             const isBooked = bookedSlots.includes(time);
                                             return (
                                                 <Grid size={{ xs: 6, sm: 4 }} key={time}>
-                                                    <Button
-                                                        variant={selectedTime === time ? 'contained' : 'outlined'}
-                                                        fullWidth
+                                                    <Box
+                                                        component="button"
+                                                        type="button"
                                                         onClick={() => !isBooked && setSelectedTime(time)}
                                                         disabled={isBooked}
                                                         sx={{
-                                                            py: 1,
-                                                            borderRadius: '8px',
+                                                            width: '100%',
+                                                            py: 0.8,
+                                                            borderRadius: '4px',
                                                             textTransform: 'none',
                                                             fontWeight: 600,
-                                                            fontSize: '0.875rem',
-                                                            borderColor: isBooked ? '#FCA5A5' : '#E5E7EB',
+                                                            fontSize: '0.75rem',
+                                                            border: `1px solid ${isBooked ? '#FCA5A5' : '#E5E7EB'}`,
                                                             color: isBooked ? '#DC2626' : (selectedTime === time ? 'white' : '#4B5563'),
-                                                            bgcolor: isBooked ? '#FEE2E2' : (selectedTime === time ? '#667eea' : 'white'),
+                                                            background: isBooked ? '#FEE2E2' : (selectedTime === time ? 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)' : 'white'),
                                                             boxShadow: 'none',
                                                             textDecoration: isBooked ? 'line-through' : 'none',
                                                             cursor: isBooked ? 'not-allowed' : 'pointer',
+                                                            transition: 'all 0.2s',
                                                             '&:hover': {
-                                                                borderColor: isBooked ? '#FCA5A5' : '#667eea',
-                                                                bgcolor: isBooked ? '#FEE2E2' : (selectedTime === time ? '#5568d3' : '#F9FAFB'),
-                                                                boxShadow: 'none',
+                                                                borderColor: isBooked ? '#FCA5A5' : '#ff6b6b',
+                                                                bgcolor: isBooked ? '#FEE2E2' : (selectedTime === time ? '' : '#F9FAFB'),
+                                                                opacity: selectedTime === time ? 0.9 : 1,
                                                             },
-                                                            '&.Mui-disabled': {
+                                                            '&:disabled': {
                                                                 borderColor: '#FCA5A5',
                                                                 bgcolor: '#FEE2E2',
                                                                 color: '#DC2626',
@@ -617,7 +621,7 @@ export default function PublicBookingPage() {
                                                         }}
                                                     >
                                                         {time}
-                                                    </Button>
+                                                    </Box>
                                                 </Grid>
                                             );
                                         })}
@@ -629,7 +633,7 @@ export default function PublicBookingPage() {
                         {/* Step 3: Your Details */}
                         {activeStep === 2 && (
                             <Box>
-                                <Typography variant="h6" fontWeight="700" color="#111827" gutterBottom sx={{ mb: 2, fontSize: '1rem' }}>
+                                <Typography variant="h6" fontWeight="700" color="#111827" gutterBottom sx={{ mb: 2, fontSize: '0.875rem' }}>
                                     Enter Your Details
                                 </Typography>
                                 <Grid container spacing={2}>
@@ -642,19 +646,21 @@ export default function PublicBookingPage() {
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
-                                                    borderRadius: '8px',
+                                                    borderRadius: '4px',
                                                     bgcolor: 'white',
                                                     '& fieldset': { borderColor: '#E5E7EB' },
                                                     '&:hover fieldset': { borderColor: '#D1D5DB' },
-                                                    '&.Mui-focused fieldset': { borderColor: '#667eea', borderWidth: '1px', boxShadow: '0 0 0 2px rgba(102, 126, 234, 0.2)' },
+                                                    '&.Mui-focused fieldset': { borderColor: '#ff6b6b', borderWidth: '1px', boxShadow: '0 0 0 2px rgba(255, 107, 107, 0.2)' },
                                                 },
                                                 '& .MuiInputLabel-root': {
                                                     color: '#6B7280',
-                                                    fontSize: '0.875rem',
-                                                    '&.Mui-focused': { color: '#667eea' },
+                                                    fontSize: '0.75rem',
+                                                    '&.Mui-focused': { color: '#ff6b6b' },
                                                 },
                                                 '& .MuiOutlinedInput-input': {
                                                     color: '#111827',
+                                                    py: 0.8,
+                                                    fontSize: '0.75rem',
                                                 },
                                             }}
                                         />
@@ -669,19 +675,21 @@ export default function PublicBookingPage() {
                                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
-                                                    borderRadius: '8px',
+                                                    borderRadius: '4px',
                                                     bgcolor: 'white',
                                                     '& fieldset': { borderColor: '#E5E7EB' },
                                                     '&:hover fieldset': { borderColor: '#D1D5DB' },
-                                                    '&.Mui-focused fieldset': { borderColor: '#667eea', borderWidth: '1px', boxShadow: '0 0 0 2px rgba(102, 126, 234, 0.2)' },
+                                                    '&.Mui-focused fieldset': { borderColor: '#ff6b6b', borderWidth: '1px', boxShadow: '0 0 0 2px rgba(255, 107, 107, 0.2)' },
                                                 },
                                                 '& .MuiInputLabel-root': {
                                                     color: '#6B7280',
-                                                    fontSize: '0.875rem',
-                                                    '&.Mui-focused': { color: '#667eea' },
+                                                    fontSize: '0.75rem',
+                                                    '&.Mui-focused': { color: '#ff6b6b' },
                                                 },
                                                 '& .MuiOutlinedInput-input': {
                                                     color: '#111827',
+                                                    py: 0.8,
+                                                    fontSize: '0.75rem',
                                                 },
                                             }}
                                         />
@@ -695,19 +703,21 @@ export default function PublicBookingPage() {
                                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
-                                                    borderRadius: '8px',
+                                                    borderRadius: '4px',
                                                     bgcolor: 'white',
                                                     '& fieldset': { borderColor: '#E5E7EB' },
                                                     '&:hover fieldset': { borderColor: '#D1D5DB' },
-                                                    '&.Mui-focused fieldset': { borderColor: '#667eea', borderWidth: '1px', boxShadow: '0 0 0 2px rgba(102, 126, 234, 0.2)' },
+                                                    '&.Mui-focused fieldset': { borderColor: '#ff6b6b', borderWidth: '1px', boxShadow: '0 0 0 2px rgba(255, 107, 107, 0.2)' },
                                                 },
                                                 '& .MuiInputLabel-root': {
                                                     color: '#6B7280',
-                                                    fontSize: '0.875rem',
-                                                    '&.Mui-focused': { color: '#667eea' },
+                                                    fontSize: '0.75rem',
+                                                    '&.Mui-focused': { color: '#ff6b6b' },
                                                 },
                                                 '& .MuiOutlinedInput-input': {
                                                     color: '#111827',
+                                                    py: 0.8,
+                                                    fontSize: '0.75rem',
                                                 },
                                             }}
                                         />
@@ -722,19 +732,20 @@ export default function PublicBookingPage() {
                                             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
-                                                    borderRadius: '8px',
+                                                    borderRadius: '4px',
                                                     bgcolor: 'white',
                                                     '& fieldset': { borderColor: '#E5E7EB' },
                                                     '&:hover fieldset': { borderColor: '#D1D5DB' },
-                                                    '&.Mui-focused fieldset': { borderColor: '#667eea', borderWidth: '1px', boxShadow: '0 0 0 2px rgba(102, 126, 234, 0.2)' },
+                                                    '&.Mui-focused fieldset': { borderColor: '#ff6b6b', borderWidth: '1px', boxShadow: '0 0 0 2px rgba(255, 107, 107, 0.2)' },
                                                 },
                                                 '& .MuiInputLabel-root': {
                                                     color: '#6B7280',
-                                                    fontSize: '0.875rem',
-                                                    '&.Mui-focused': { color: '#667eea' },
+                                                    fontSize: '0.75rem',
+                                                    '&.Mui-focused': { color: '#ff6b6b' },
                                                 },
                                                 '& .MuiOutlinedInput-input': {
                                                     color: '#111827',
+                                                    fontSize: '0.75rem',
                                                 },
                                             }}
                                         />
@@ -743,45 +754,45 @@ export default function PublicBookingPage() {
 
                                 {/* Booking Summary */}
                                 <Box
-                                    mt={4}
-                                    p={3}
+                                    mt={3}
+                                    p={2.5}
                                     bgcolor="#f8fafc"
-                                    borderRadius="16px"
+                                    borderRadius="4px"
                                     border="1px solid #e2e8f0"
                                 >
-                                    <Typography variant="subtitle1" fontWeight="700" color="#1e293b" gutterBottom>
+                                    <Typography variant="subtitle1" fontWeight="700" color="#1e293b" gutterBottom sx={{ fontSize: '0.875rem' }}>
                                         Booking Summary
                                     </Typography>
-                                    <Divider sx={{ my: 2, borderColor: '#e2e8f0' }} />
-                                    <Box display="flex" flexDirection="column" gap={1}>
+                                    <Divider sx={{ my: 1.5, borderColor: '#e2e8f0' }} />
+                                    <Box display="flex" flexDirection="column" gap={0.8}>
                                         <Box display="flex" justifyContent="space-between">
-                                            <Typography variant="body2" color="#64748b">Service:</Typography>
-                                            <Typography variant="body2" fontWeight="600" color="#1e293b">
+                                            <Typography variant="body2" color="#64748b" sx={{ fontSize: '0.75rem' }}>Service:</Typography>
+                                            <Typography variant="body2" fontWeight="600" color="#1e293b" sx={{ fontSize: '0.75rem' }}>
                                                 {selectedService?.name}
                                             </Typography>
                                         </Box>
                                         <Box display="flex" justifyContent="space-between">
-                                            <Typography variant="body2" color="#64748b">Date:</Typography>
-                                            <Typography variant="body2" fontWeight="600" color="#1e293b">
+                                            <Typography variant="body2" color="#64748b" sx={{ fontSize: '0.75rem' }}>Date:</Typography>
+                                            <Typography variant="body2" fontWeight="600" color="#1e293b" sx={{ fontSize: '0.75rem' }}>
                                                 {selectedDate}
                                             </Typography>
                                         </Box>
                                         <Box display="flex" justifyContent="space-between">
-                                            <Typography variant="body2" color="#64748b">Time:</Typography>
-                                            <Typography variant="body2" fontWeight="600" color="#1e293b">
+                                            <Typography variant="body2" color="#64748b" sx={{ fontSize: '0.75rem' }}>Time:</Typography>
+                                            <Typography variant="body2" fontWeight="600" color="#1e293b" sx={{ fontSize: '0.75rem' }}>
                                                 {selectedTime}
                                             </Typography>
                                         </Box>
                                         <Box display="flex" justifyContent="space-between">
-                                            <Typography variant="body2" color="#64748b">Duration:</Typography>
-                                            <Typography variant="body2" fontWeight="600" color="#1e293b">
+                                            <Typography variant="body2" color="#64748b" sx={{ fontSize: '0.75rem' }}>Duration:</Typography>
+                                            <Typography variant="body2" fontWeight="600" color="#1e293b" sx={{ fontSize: '0.75rem' }}>
                                                 {selectedService?.duration} minutes
                                             </Typography>
                                         </Box>
-                                        <Divider sx={{ my: 1, borderColor: '#e2e8f0' }} />
+                                        <Divider sx={{ my: 0.8, borderColor: '#e2e8f0' }} />
                                         <Box display="flex" justifyContent="space-between">
-                                            <Typography variant="body1" fontWeight="700" color="#1e293b">Total:</Typography>
-                                            <Typography variant="body1" fontWeight="700" color="#10b981">
+                                            <Typography variant="body1" fontWeight="700" color="#1e293b" sx={{ fontSize: '0.875rem' }}>Total:</Typography>
+                                            <Typography variant="body1" fontWeight="700" color="#10b981" sx={{ fontSize: '0.875rem' }}>
                                                 ${selectedService?.price}
                                             </Typography>
                                         </Box>
@@ -812,8 +823,9 @@ export default function PublicBookingPage() {
                         >
                             Back
                         </Button>
-                        <Button
-                            variant="contained"
+                        <Box
+                            component="button"
+                            type="button"
                             onClick={activeStep === steps.length - 1 ? handleBookingSubmit : handleNext}
                             disabled={
                                 (activeStep === 0 && !selectedServiceId) ||
@@ -822,31 +834,37 @@ export default function PublicBookingPage() {
                                 submitting
                             }
                             sx={{
-                                borderRadius: '8px',
+                                borderRadius: '4px',
                                 textTransform: 'none',
                                 fontWeight: 600,
                                 px: 4,
-                                py: 1.2,
-                                bgcolor: '#7C3AED',
+                                py: 1,
+                                fontSize: '0.875rem',
+                                background: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
+                                color: 'white',
+                                border: 'none',
+                                cursor: submitting || (activeStep === 0 && !selectedServiceId) || (activeStep === 1 && (!selectedDate || !selectedTime)) || (activeStep === 2 && (!formData.name || !formData.email || !formData.phone)) ? 'not-allowed' : 'pointer',
                                 boxShadow: 'none',
+                                opacity: submitting || (activeStep === 0 && !selectedServiceId) || (activeStep === 1 && (!selectedDate || !selectedTime)) || (activeStep === 2 && (!formData.name || !formData.email || !formData.phone)) ? 0.6 : 1,
+                                transition: 'all 0.2s',
                                 '&:hover': {
-                                    bgcolor: '#6D28D9',
-                                    boxShadow: 'none',
+                                    opacity: submitting || (activeStep === 0 && !selectedServiceId) || (activeStep === 1 && (!selectedDate || !selectedTime)) || (activeStep === 2 && (!formData.name || !formData.email || !formData.phone)) ? 0.6 : 0.9,
                                 },
                                 '&:disabled': {
                                     bgcolor: '#E5E7EB',
-                                    color: '#9CA3AF'
+                                    color: '#9CA3AF',
+                                    background: '#E5E7EB',
                                 },
                             }}
                         >
                             {submitting ? (
-                                <CircularProgress size={24} sx={{ color: 'white' }} />
+                                <CircularProgress size={20} sx={{ color: 'white' }} />
                             ) : activeStep === steps.length - 1 ? (
                                 'Confirm Booking'
                             ) : (
                                 'Next'
                             )}
-                        </Button>
+                        </Box>
                     </Box>
 
                     {/* Footer */}

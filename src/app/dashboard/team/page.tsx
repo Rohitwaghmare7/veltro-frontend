@@ -210,12 +210,12 @@ export default function TeamPage() {
                             fontWeight: 700,
                             px: 3,
                             py: 1.5,
-                            bgcolor: '#8b5cf6',
+                            background: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
                             color: 'white',
-                            boxShadow: '0 4px 14px 0 rgba(139, 92, 246, 0.39)',
+                            boxShadow: '0 4px 14px 0 rgba(255, 107, 107, 0.39)',
                             '&:hover': {
-                                bgcolor: '#7c3aed',
-                                boxShadow: '0 6px 20px rgba(139, 92, 246, 0.5)',
+                                background: 'linear-gradient(135deg, #ff5252 0%, #ff7043 100%)',
+                                boxShadow: '0 6px 20px rgba(255, 107, 107, 0.5)'
                             }
                         }}
                     >
@@ -240,14 +240,14 @@ export default function TeamPage() {
                                 width: 120,
                                 height: 120,
                                 borderRadius: '50%',
-                                bgcolor: isDark ? 'rgba(139, 92, 246, 0.15)' : '#ede9fe',
+                                bgcolor: isDark ? 'rgba(255, 107, 107, 0.15)' : '#fee2e2',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 mb: 3,
                             }}
                         >
-                            <GroupIcon sx={{ fontSize: 64, color: '#8b5cf6' }} />
+                            <GroupIcon sx={{ fontSize: 64, color: '#ff6b6b' }} />
                         </Box>
                         <Typography variant="h5" fontWeight={700} color={textPrimary} sx={{ mb: 1 }}>
                             No Team Members Yet
@@ -265,12 +265,12 @@ export default function TeamPage() {
                                 fontWeight: 700,
                                 px: 4,
                                 py: 1.5,
-                                bgcolor: '#8b5cf6',
+                                background: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
                                 color: 'white',
-                                boxShadow: '0 4px 14px 0 rgba(139, 92, 246, 0.39)',
+                                boxShadow: '0 4px 14px 0 rgba(255, 107, 107, 0.39)',
                                 '&:hover': {
-                                    bgcolor: '#7c3aed',
-                                    boxShadow: '0 6px 20px rgba(139, 92, 246, 0.5)',
+                                    background: 'linear-gradient(135deg, #ff5252 0%, #ff7043 100%)',
+                                    boxShadow: '0 6px 20px rgba(255, 107, 107, 0.5)'
                                 }
                             }}
                         >

@@ -19,15 +19,21 @@ import AddIcon from '@mui/icons-material/Add';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import EmailIcon from '@mui/icons-material/Email';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import MicIcon from '@mui/icons-material/Mic';
 import { BusinessData } from '@/types/business';
 import { useOnboarding } from './OnboardingContext';
 import { integrationService, Integration } from '@/lib/services/integration.service';
+import OnboardingModeSelector from '@/components/onboarding/OnboardingModeSelector';
+import LiveKitVoiceFlow from '@/components/onboarding/LiveKitVoiceFlow';
 
 export default function OnboardingPage() {
     const { activeStep, setActiveStep, steps } = useOnboarding();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [savingGmail, setSavingGmail] = useState(false);
+    const [savingCalendar, setSavingCalendar] = useState(false);
     const [integrations, setIntegrations] = useState<Record<string, Integration>>({});
+    const [onboardingMode, setOnboardingMode] = useState<'select' | 'manual' | 'voice'>('select');
     const router = useRouter();
 
     // Business State
@@ -84,23 +90,42 @@ export default function OnboardingPage() {
     }, [router, setActiveStep]);
 
     useEffect(() => {
-        fetchProgress();
+        // Check if returning from OAuth - restore mode from localStorage
+        const params = new URLSearchParams(window.location.search);
+        const isReturningFromOAuth = params.get('gmail') === 'connected' || params.get('calendar') === 'connected';
+        
+        if (isReturningFromOAuth) {
+            // Check if we were in voice mode
+            const savedMode = localStorage.getItem('onboardingMode');
+            if (savedMode === 'voice') {
+                setOnboardingMode('voice');
+                setLoading(false);
+                localStorage.removeItem('onboardingMode'); // Clean up
+                return;
+            } else {
+                // We were in manual mode, stay in manual mode
+                setOnboardingMode('manual');
+                localStorage.removeItem('onboardingMode'); // Clean up
+            }
+        }
+        
+        // Normal flow - only fetch progress in manual mode
+        if (onboardingMode === 'manual') {
+            fetchProgress();
+        } else if (onboardingMode === 'select') {
+            setLoading(false);
+        }
+        
         loadIntegrationStatus();
         
         // Check for Gmail callback status
-        const params = new URLSearchParams(window.location.search);
         if (params.get('gmail') === 'connected') {
-            // Show success message (you can add a snackbar here if needed)
             console.log('Gmail connected successfully!');
-            // Clean up URL
-            window.history.replaceState({}, '', '/onboarding');
-            // Reload integration status
             loadIntegrationStatus();
         } else if (params.get('gmail') === 'error') {
             console.error('Failed to connect Gmail');
-            window.history.replaceState({}, '', '/onboarding');
         }
-    }, [fetchProgress]);
+    }, [fetchProgress, onboardingMode]);
 
     const loadIntegrationStatus = async () => {
         try {
@@ -113,18 +138,25 @@ export default function OnboardingPage() {
 
     const handleConnectGoogleCalendar = async () => {
         try {
-            setSaving(true);
-            const url = await integrationService.getGoogleUrl();
-            window.location.href = url;
+            setSavingCalendar(true);
+            // Save current mode to localStorage before OAuth redirect
+            localStorage.setItem('onboardingMode', 'manual');
+            // Pass return=onboarding parameter
+            const response = await api.get('/integrations/google/connect?return=onboarding', {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            window.location.href = response.data.url;
         } catch (error) {
             console.error('Failed to get Google URL', error);
-            setSaving(false);
+            setSavingCalendar(false);
         }
     };
 
     const handleConnectGmail = async () => {
         try {
-            setSaving(true);
+            setSavingGmail(true);
+            // Save current mode to localStorage before OAuth redirect
+            localStorage.setItem('onboardingMode', 'manual');
             // Pass return parameter in query string
             const response = await api.get('/integrations/gmail/connect?return=onboarding', {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -132,7 +164,7 @@ export default function OnboardingPage() {
             window.location.href = response.data.url;
         } catch (error) {
             console.error('Failed to get Gmail URL', error);
-            setSaving(false);
+            setSavingGmail(false);
         }
     };
 
@@ -140,7 +172,7 @@ export default function OnboardingPage() {
     const isNextDisabled = useMemo(() => {
         switch (activeStep) {
             case 0: // Profile
-                return !businessData.name.trim() || !businessData.category.trim() || !businessData.description.trim();
+                return !businessData.name.trim() || !businessData.customCategory?.trim() || !businessData.description.trim();
             case 1: // Channels
                 return false; // Email connection is optional
             case 2: // Contact Form
@@ -229,6 +261,127 @@ export default function OnboardingPage() {
         setActiveStep(activeStep - 1);
     };
 
+    const getStepTitle = () => {
+        switch (activeStep) {
+            case 0: return 'Welcome to Veltro';
+            case 1: return 'Connect Your Tools';
+            case 2: return 'Set Up Lead Capture';
+            case 3: return 'Define Your Services';
+            case 4: return 'Set Your Availability';
+            case 5: return 'Ready to Launch!';
+            default: return '';
+        }
+    };
+
+    const getStepDescription = () => {
+        switch (activeStep) {
+            case 0: return 'Let\'s start by setting up your business profile. This helps us personalize your workspace and get you started quickly.';
+            case 1: return 'Connect Gmail and Google Calendar to automate your workflow. Manage emails, sync bookings, and never miss an appointment.';
+            case 2: return 'Configure the fields for your contact forms. We\'ll automatically capture leads and notify you when someone reaches out.';
+            case 3: return 'Add the services you offer to your clients. Include pricing and duration so customers can book appointments easily.';
+            case 4: return 'Set your business hours so clients know when you\'re available. You can always adjust these later in settings.';
+            case 5: return 'You\'re all set! Your workspace is ready. Click below to enter your dashboard and start managing your business.';
+            default: return '';
+        }
+    };
+
+    // Show mode selector if not selected yet
+    if (onboardingMode === 'select') {
+        return (
+            <OnboardingModeSelector
+                onSelectMode={(mode) => {
+                    setOnboardingMode(mode);
+                    if (mode === 'manual') {
+                        fetchProgress();
+                    }
+                }}
+            />
+        );
+    }
+
+    // Show LiveKit voice conversation flow if voice mode selected
+    if (onboardingMode === 'voice') {
+        return (
+            <Box 
+                sx={{ 
+                    position: 'fixed',
+                    top: 0,
+                    left: { xs: 0, md: '380px' },
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 100,
+                }}
+            >
+                <LiveKitVoiceFlow
+                    onComplete={async (voiceData) => {
+                        setBusinessData((prev) => ({ ...prev, ...voiceData }));
+                        
+                        try {
+                            // Save all the data collected from voice
+                            // Step 1: Business profile
+                            setActiveStep(0);
+                            await api.put('/onboarding/step/1', {
+                                name: voiceData.name,
+                                category: voiceData.category || 'other',
+                                customCategory: voiceData.customCategory,
+                                description: voiceData.description,
+                                phone: voiceData.phone || '',
+                                email: voiceData.email || '',
+                                website: voiceData.website || '',
+                                address: voiceData.address || { street: '', city: '', state: '', zipCode: '', country: '' },
+                            });
+                            
+                            // Step 2: Email connection (skip - optional)
+                            setActiveStep(1);
+                            await api.put('/onboarding/step/2', { emailConnected: false });
+                            
+                            // Step 3: Contact form fields (use defaults)
+                            setActiveStep(2);
+                            await api.put('/onboarding/step/3', { contactFormFields: ['name', 'email'] });
+                            
+                            // Step 4: Services
+                            setActiveStep(3);
+                            if (voiceData.services && voiceData.services.length > 0) {
+                                await api.put('/onboarding/step/4', { services: voiceData.services });
+                            } else {
+                                // Default service if none provided
+                                await api.put('/onboarding/step/4', { 
+                                    services: [{ name: 'Consultation', duration: 30, price: 0, description: 'Initial meeting' }] 
+                                });
+                            }
+                            
+                            // Step 5: Working hours
+                            setActiveStep(4);
+                            if (voiceData.workingHours && voiceData.workingHours.length > 0) {
+                                await api.put('/onboarding/step/5', { workingHours: voiceData.workingHours });
+                            } else {
+                                // Default working hours if none provided
+                                await api.put('/onboarding/step/5', { 
+                                    workingHours: [
+                                        { day: 'monday', start: '09:00', end: '17:00', isOpen: true },
+                                        { day: 'tuesday', start: '09:00', end: '17:00', isOpen: true },
+                                        { day: 'wednesday', start: '09:00', end: '17:00', isOpen: true },
+                                        { day: 'thursday', start: '09:00', end: '17:00', isOpen: true },
+                                        { day: 'friday', start: '09:00', end: '17:00', isOpen: true },
+                                        { day: 'saturday', start: '10:00', end: '14:00', isOpen: false },
+                                        { day: 'sunday', start: '10:00', end: '14:00', isOpen: false },
+                                    ]
+                                });
+                            }
+                            
+                            // Step 6: Complete onboarding
+                            setActiveStep(5);
+                            await api.post('/onboarding/complete');
+                            window.location.href = '/dashboard';
+                        } catch (error) {
+                            console.error('Failed to save voice onboarding data', error);
+                        }
+                    }}
+                />
+            </Box>
+        );
+    }
+
     if (loading) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
@@ -237,297 +390,245 @@ export default function OnboardingPage() {
         );
     }
 
-    const renderStep1 = () => (
-        <Box
-            sx={{
-                bgcolor: 'rgba(5, 5, 5, 0.0)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: 1,
-                p: 4,
-                boxShadow: '0 0 80px rgba(0, 0, 0, 0.5)'
-            }}
-        >
-            <Stack spacing={3}>
-                <Box>
-                    <Typography
-                        variant="h3"
-                        fontWeight="700"
-                        sx={{
-                            background: 'linear-gradient(to right, #FFFFFF, #FF6B4A 100%)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            mb: 0.5,
-                            letterSpacing: '-0.5px'
-                        }}
-                    >
-                        Business Profile
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>
-                        Tell us about your business to personalize your experience.
-                    </Typography>
-                </Box>
+    const labelStyle = {
+    mb: 1,
+    display: 'block',
+    color: '#888',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    letterSpacing: '1.5px',
+    textTransform: 'uppercase' as const,
+};
 
-                <Box>
-                    <Typography variant="caption" fontWeight="medium" sx={{ mb: 0.5, display: 'block', color: '#888' }}>
-                        Business Name
-                    </Typography>
-                    <TextField
-                        fullWidth
-                        size="small"
-                        placeholder="Enter your business name"
-                        value={businessData.name}
-                        onChange={(e) => setBusinessData({ ...businessData, name: e.target.value })}
-                        sx={{
-                            '& .MuiOutlinedInput-root': {
-                                bgcolor: '#050505',
-                                color: 'white',
-                                borderRadius: 1,
-                                fontSize: '0.9rem',
-                                '& fieldset': { borderColor: '#222' },
-                                '&:hover fieldset': { borderColor: '#444' },
-                                '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
-                            },
-                            '& .MuiInputBase-input::placeholder': { color: '#444', opacity: 1 },
-                        }}
-                    />
-                </Box>
+const inputStyle = {
+    '& .MuiOutlinedInput-root': {
+        bgcolor: 'white',
+        color: '#1A1A1A',
+        borderRadius: 2,
+        fontSize: '0.95rem',
+        fontWeight: 500,
+        boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+        '& fieldset': { borderColor: '#ECECEC', borderWidth: 1.5 },
+        '&:hover fieldset': { borderColor: '#D0D0D0' },
+        '&.Mui-focused fieldset': { borderColor: '#FF6B4A', borderWidth: 2 },
+    },
+    '& .MuiInputBase-input': { py: 1.75, px: 2 },
+    '& .MuiInputBase-input::placeholder': { color: '#BDBDBD', opacity: 1 },
+};
 
-                <Box>
-                    <Typography variant="caption" fontWeight="medium" sx={{ mb: 0.5, display: 'block', color: '#888' }}>
-                        Category
-                    </Typography>
-                    <TextField
-                        fullWidth
-                        size="small"
-                        select
-                        value={businessData.category}
-                        onChange={(e) => setBusinessData({ ...businessData, category: e.target.value })}
-                        sx={{
-                            '& .MuiOutlinedInput-root': {
-                                bgcolor: '#050505',
-                                color: 'white',
-                                borderRadius: 1,
-                                fontSize: '0.9rem',
-                                '& fieldset': { borderColor: '#222' },
-                                '&:hover fieldset': { borderColor: '#444' },
-                                '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
-                            },
-                            '& .MuiSelect-icon': { color: '#444' }
-                        }}
-                        SelectProps={{
-                            MenuProps: {
-                                PaperProps: {
-                                    sx: {
-                                        bgcolor: '#0A0A0A',
-                                        backgroundImage: 'none',
-                                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                                        borderRadius: 1,
-                                        mt: 1,
-                                        '& .MuiMenuItem-root': {
-                                            color: 'rgba(255, 255, 255, 0.7)',
-                                            py: 1.5,
-                                            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.05)', color: 'white' },
-                                            '&.Mui-selected': { bgcolor: 'rgba(255, 255, 255, 0.1)', color: 'white' },
-                                            '&.Mui-selected:hover': { bgcolor: 'rgba(255, 255, 255, 0.15)' }
-                                        }
-                                    }
-                                }
-                            }
-                        }}
-                    >
-                        {['salon', 'spa', 'consulting', 'health', 'fitness', 'education', 'restaurant', 'retail', 'other'].map((opt) => (
-                            <MenuItem key={opt} value={opt}>
-                                {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                    {businessData.category === 'other' && (
-                        <TextField
-                            fullWidth
-                            size="small"
-                            placeholder="Enter custom category"
-                            value={businessData.customCategory || ''}
-                            onChange={(e) => setBusinessData({ ...businessData, customCategory: e.target.value })}
-                            sx={{
-                                mt: 1.5,
-                                '& .MuiOutlinedInput-root': {
-                                    bgcolor: '#050505',
-                                    color: 'white',
-                                    borderRadius: 1,
-                                    fontSize: '0.9rem',
-                                    '& fieldset': { borderColor: '#222' },
-                                    '&:hover fieldset': { borderColor: '#444' },
-                                    '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
-                                },
-                                '& .MuiInputBase-input::placeholder': { color: '#444', opacity: 1 },
-                            }}
-                        />
-                    )}
-                </Box>
+const renderStep1 = () => (
+    <Stack spacing={3.5}>
+        {/* Row: Name + Category */}
+        <Grid container spacing={2.5}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+                <Typography variant="body2" sx={labelStyle}>Business Name</Typography>
+                <TextField
+                    fullWidth
+                    size="medium"
+                    placeholder="e.g., Veltro Studio"
+                    value={businessData.name}
+                    onChange={(e) => setBusinessData({ ...businessData, name: e.target.value })}
+                    sx={inputStyle}
+                />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+                <Typography variant="body2" sx={labelStyle}>Category</Typography>
+                <TextField
+                    fullWidth
+                    size="medium"
+                    placeholder="e.g., Salon, Consulting"
+                    value={businessData.customCategory || ''}
+                    onChange={(e) => setBusinessData({ ...businessData, category: 'other', customCategory: e.target.value })}
+                    sx={inputStyle}
+                />
+            </Grid>
+        </Grid>
 
-                <Box>
-                    <Typography variant="caption" fontWeight="medium" sx={{ mb: 0.5, display: 'block', color: '#888' }}>
-                        Description
-                    </Typography>
-                    <TextField
-                        fullWidth
-                        size="small"
-                        multiline
-                        rows={3}
-                        placeholder="Briefly describe what your business does..."
-                        value={businessData.description}
-                        onChange={(e) => setBusinessData({ ...businessData, description: e.target.value })}
-                        sx={{
-                            '& .MuiOutlinedInput-root': {
-                                bgcolor: '#050505',
-                                color: 'white',
-                                borderRadius: 1,
-                                fontSize: '0.9rem',
-                                '& fieldset': { borderColor: '#222' },
-                                '&:hover fieldset': { borderColor: '#444' },
-                                '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
-                            },
-                            '& .MuiInputBase-input::placeholder': { color: '#444', opacity: 1 },
-                        }}
-                    />
-                </Box>
-            </Stack>
+        {/* Description */}
+        <Box>
+            <Typography variant="body2" sx={labelStyle}>Description</Typography>
+            <TextField
+                fullWidth
+                multiline
+                rows={4}
+                placeholder="Briefly describe what your business does..."
+                value={businessData.description}
+                onChange={(e) => setBusinessData({ ...businessData, description: e.target.value })}
+                sx={inputStyle}
+            />
+            <Typography variant="caption" sx={{ color: '#BDBDBD', mt: 0.75, display: 'block', textAlign: 'right', fontSize: '0.75rem' }}>
+                {businessData.description.length} / 500
+            </Typography>
         </Box>
-    );
+
+        {/* Row: Phone + Email */}
+        <Grid container spacing={2.5}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+                <Typography variant="body2" sx={labelStyle}>Phone <Typography component="span" sx={{ color: '#BDBDBD', fontWeight: 400, fontSize: '0.7rem', ml: 0.5 }}>optional</Typography></Typography>
+                <TextField
+                    fullWidth
+                    size="medium"
+                    placeholder="+1 (555) 000-0000"
+                    value={businessData.phone}
+                    onChange={(e) => setBusinessData({ ...businessData, phone: e.target.value })}
+                    sx={inputStyle}
+                />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+                <Typography variant="body2" sx={labelStyle}>Email <Typography component="span" sx={{ color: '#BDBDBD', fontWeight: 400, fontSize: '0.7rem', ml: 0.5 }}>optional</Typography></Typography>
+                <TextField
+                    fullWidth
+                    size="medium"
+                    placeholder="hello@yourbusiness.com"
+                    value={businessData.email}
+                    onChange={(e) => setBusinessData({ ...businessData, email: e.target.value })}
+                    sx={inputStyle}
+                />
+            </Grid>
+        </Grid>
+
+        {/* Website */}
+        <Box>
+            <Typography variant="body2" sx={labelStyle}>Website <Typography component="span" sx={{ color: '#BDBDBD', fontWeight: 400, fontSize: '0.7rem', ml: 0.5 }}>optional</Typography></Typography>
+            <TextField
+                fullWidth
+                size="medium"
+                placeholder="https://yourbusiness.com"
+                value={businessData.website}
+                onChange={(e) => setBusinessData({ ...businessData, website: e.target.value })}
+                sx={inputStyle}
+            />
+        </Box>
+    </Stack>
+);
 
     const renderStep2 = () => (
         <Stack spacing={4}>
-            <Box>
-                <Typography
-                    variant="h3"
-                    fontWeight="700"
-                    sx={{
-                        background: 'linear-gradient(to right, #FFFFFF, #FF6B4A 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        mb: 0.5,
-                        letterSpacing: '-0.5px'
-                    }}
-                >
-                    Connect Channels
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>
-                    Automate lead notifications and booking summaries via email.
-                </Typography>
-            </Box>
-
             <Box
                 sx={{
                     p: 4,
-                    borderRadius: 1,
-                    bgcolor: '#050505',
-                    border: '1px solid #222',
+                    borderRadius: 2,
+                    bgcolor: '#FAFAFA',
+                    border: '1px solid #E0E0E0',
                     transition: 'all 0.3s ease',
-                    '&:hover': { borderColor: '#444' }
+                    '&:hover': { borderColor: '#BDBDBD', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)' }
                 }}
             >
                 <Stack direction="row" alignItems="center" justifyContent="space-between">
-                    <Box sx={{ display: 'flex', alignItems:"center", gap: 2 }}>
-                        <Box sx={{ p: 1, bgcolor: 'rgba(255, 255, 255, 0.03)', borderRadius: 1, display: 'flex' }}>
-                            <EmailIcon sx={{ color: integrations['gmail']?.status === 'connected' ? 'white' : '#444' }} />
+                    <Box sx={{ display: 'flex', alignItems:"center", gap: 2.5 }}>
+                        <Box sx={{ p: 1.5, bgcolor: 'white', borderRadius: 1.5, display: 'flex', border: '1px solid #E0E0E0' }}>
+                            <EmailIcon sx={{ color: integrations['gmail']?.status === 'connected' ? '#FF6B4A' : '#999', fontSize: 28 }} />
                         </Box>
                         <Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Typography variant="h6" sx={{ color: 'white', fontWeight: '700', fontSize: '1rem' }}>Connect Gmail</Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                <Typography variant="h6" sx={{ color: '#1A1A1A', fontWeight: '700', fontSize: '1.15rem' }}>Connect Gmail</Typography>
                                 {integrations['gmail']?.status === 'connected' && (
-                                    <CheckCircleIcon sx={{ color: '#FF6B4A', fontSize: '1rem' }} />
+                                    <CheckCircleIcon sx={{ color: '#FF6B4A', fontSize: '1.2rem' }} />
                                 )}
                             </Box>
-                            <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>View inbox and send emails from dashboard</Typography>
+                            <Typography variant="body2" sx={{ color: '#666', fontSize: '0.95rem', mt: 0.5 }}>View inbox and send emails from dashboard</Typography>
                         </Box>
                     </Box>
                     <Button
                         variant="contained"
-                        size="small"
+                        size="medium"
                         onClick={handleConnectGmail}
-                        disabled={saving}
+                        disabled={savingGmail}
                         sx={{
                             background: integrations['gmail']?.status === 'connected' 
-                                ? 'rgba(255, 255, 255, 0.1)' 
+                                ? '#E8F5E9' 
                                 : 'linear-gradient(135deg, #FF6B4A 0%, #FF8A4D 100%)',
-                            color: 'white',
-                            border: integrations['gmail']?.status === 'connected' ? '1px solid rgba(255, 255, 255, 0.2)' : 'none',
+                            color: integrations['gmail']?.status === 'connected' ? '#2E7D32' : 'white',
+                            border: integrations['gmail']?.status === 'connected' ? '1px solid #C8E6C9' : 'none',
                             '&:hover': { 
                                 background: integrations['gmail']?.status === 'connected'
-                                    ? 'rgba(255, 255, 255, 0.15)'
+                                    ? '#C8E6C9'
                                     : 'linear-gradient(135deg, #FF8A4D 0%, #FF6B4A 100%)',
                                 boxShadow: integrations['gmail']?.status === 'connected' 
                                     ? 'none' 
                                     : '0 0 15px rgba(255, 107, 74, 0.5)',
                             },
+                            '&.Mui-disabled': {
+                                background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A4D 100%)',
+                                color: 'white',
+                                opacity: 0.7,
+                            },
                             textTransform: 'none',
                             fontWeight: '600',
-                            borderRadius: 1,
-                            px: 3,
+                            borderRadius: 1.5,
+                            px: 4,
+                            py: 1.2,
+                            fontSize: '0.95rem',
                             boxShadow: integrations['gmail']?.status === 'connected' 
                                 ? 'none' 
                                 : '0 4px 12px rgba(255, 107, 74, 0.3)',
                         }}
                     >
-                        {integrations['gmail']?.status === 'connected' ? 'Connected' : 'Connect'}
+                        {savingGmail ? <CircularProgress size={20} sx={{ color: 'white' }} /> : (integrations['gmail']?.status === 'connected' ? 'Connected' : 'Connect')}
                     </Button>
                 </Stack>
             </Box>
             <Box
                 sx={{
                     p: 4,
-                    borderRadius: 1,
-                    bgcolor: '#050505',
-                    border: '1px solid #222',
+                    borderRadius: 2,
+                    bgcolor: '#FAFAFA',
+                    border: '1px solid #E0E0E0',
                     transition: 'all 0.3s ease',
-                    '&:hover': { borderColor: '#444' }
+                    '&:hover': { borderColor: '#BDBDBD', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)' }
                 }}
             >
                 <Stack direction="row" alignItems="center" justifyContent="space-between">
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Box sx={{ p: 1, bgcolor: 'rgba(255, 255, 255, 0.03)', borderRadius: 1, display: 'flex' }}>
-                            <CalendarTodayIcon sx={{ color: integrations['google-calendar']?.status === 'connected' ? 'white' : '#444' }} />
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+                        <Box sx={{ p: 1.5, bgcolor: 'white', borderRadius: 1.5, display: 'flex', border: '1px solid #E0E0E0' }}>
+                            <CalendarTodayIcon sx={{ color: integrations['google-calendar']?.status === 'connected' ? '#FF6B4A' : '#999', fontSize: 28 }} />
                         </Box>
                         <Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Typography variant="h6" sx={{ color: 'white', fontWeight: '700', fontSize: '1rem' }}>Google Calendar</Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                <Typography variant="h6" sx={{ color: '#1A1A1A', fontWeight: '700', fontSize: '1.15rem' }}>Google Calendar</Typography>
                                 {integrations['google-calendar']?.status === 'connected' && (
-                                    <CheckCircleIcon sx={{ color: '#FF6B4A', fontSize: '1rem' }} />
+                                    <CheckCircleIcon sx={{ color: '#FF6B4A', fontSize: '1.2rem' }} />
                                 )}
                             </Box>
-                            <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>Sync your business bookings and availability</Typography>
+                            <Typography variant="body2" sx={{ color: '#666', fontSize: '0.95rem', mt: 0.5 }}>Sync your business bookings and availability</Typography>
                         </Box>
                     </Box>
                     <Button
                         variant="contained"
-                        size="small"
+                        size="medium"
                         onClick={handleConnectGoogleCalendar}
-                        disabled={saving}
+                        disabled={savingCalendar}
                         sx={{
                             background: integrations['google-calendar']?.status === 'connected' 
-                                ? 'rgba(255, 255, 255, 0.1)' 
+                                ? '#E8F5E9' 
                                 : 'linear-gradient(135deg, #FF6B4A 0%, #FF8A4D 100%)',
-                            color: 'white',
-                            border: integrations['google-calendar']?.status === 'connected' ? '1px solid rgba(255, 255, 255, 0.2)' : 'none',
+                            color: integrations['google-calendar']?.status === 'connected' ? '#2E7D32' : 'white',
+                            border: integrations['google-calendar']?.status === 'connected' ? '1px solid #C8E6C9' : 'none',
                             '&:hover': { 
                                 background: integrations['google-calendar']?.status === 'connected'
-                                    ? 'rgba(255, 255, 255, 0.15)'
+                                    ? '#C8E6C9'
                                     : 'linear-gradient(135deg, #FF8A4D 0%, #FF6B4A 100%)',
                                 boxShadow: integrations['google-calendar']?.status === 'connected' 
                                     ? 'none' 
                                     : '0 0 15px rgba(255, 107, 74, 0.5)',
                             },
+                            '&.Mui-disabled': {
+                                background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A4D 100%)',
+                                color: 'white',
+                                opacity: 0.7,
+                            },
                             textTransform: 'none',
                             fontWeight: '600',
-                            borderRadius: 1,
-                            px: 3,
+                            borderRadius: 1.5,
+                            px: 4,
+                            py: 1.2,
+                            fontSize: '0.95rem',
                             boxShadow: integrations['google-calendar']?.status === 'connected' 
                                 ? 'none' 
                                 : '0 4px 12px rgba(255, 107, 74, 0.3)',
                         }}
                     >
-                        {integrations['google-calendar']?.status === 'connected' ? 'Connected' : 'Connect'}
+                        {savingCalendar ? <CircularProgress size={20} sx={{ color: 'white' }} /> : (integrations['google-calendar']?.status === 'connected' ? 'Connected' : 'Connect')}
                     </Button>
                 </Stack>
             </Box>
@@ -536,39 +637,20 @@ export default function OnboardingPage() {
 
     const renderStep3 = () => (
         <Stack spacing={4}>
-            <Box>
-                <Typography
-                    variant="h3"
-                    fontWeight="700"
-                    sx={{
-                        background: 'linear-gradient(to right, #FFFFFF, #FF6B4A 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        mb: 0.5,
-                        letterSpacing: '-0.5px'
-                    }}
-                >
-                    Lead Capture
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>
-                    Configure the fields for your automated lead capture forms.
-                </Typography>
-            </Box>
-
-            <Grid container spacing={2}>
+            <Grid container spacing={2.5}>
                 {['name', 'email'].map((field) => (
                     <Grid size={{ xs: 12, sm: 6 }} key={field}>
                         <Box
                             sx={{
-                                p: 2.5,
-                                borderRadius: 1,
-                                bgcolor: '#050505',
-                                border: '1px solid #222',
+                                p: 3,
+                                borderRadius: 2,
+                                bgcolor: 'white',
+                                border: '2px solid #E0E0E0',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 2,
                                 transition: 'all 0.2s',
-                                '&:hover': { borderColor: '#444' }
+                                '&:hover': { borderColor: '#BDBDBD', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)' }
                             }}
                         >
                             <FormControlLabel
@@ -584,13 +666,14 @@ export default function OnboardingPage() {
                                         }}
                                         disabled={field === 'name' || field === 'email'}
                                         sx={{ 
-                                            color: '#444', 
+                                            color: '#D0D0D0', 
                                             '&.Mui-checked': { color: '#FF6B4A' },
-                                            '&.Mui-disabled': { color: '#222' }
+                                            '&.Mui-disabled': { color: '#E0E0E0' },
+                                            '&.Mui-checked.Mui-disabled': { color: '#FF6B4A' }
                                         }}
                                     />
                                 }
-                                label={<Typography sx={{ color: 'white', fontWeight: '600', fontSize: '0.9rem' }}>{field.charAt(0).toUpperCase() + field.slice(1)}</Typography>}
+                                label={<Typography sx={{ color: '#1A1A1A', fontWeight: '600', fontSize: '1rem' }}>{field.charAt(0).toUpperCase() + field.slice(1)}</Typography>}
                                 sx={{ m: 0, width: '100%' }}
                             />
                         </Box>
@@ -601,281 +684,213 @@ export default function OnboardingPage() {
     );
 
     const renderStep4 = () => (
-        <Box
-            sx={{
-                bgcolor: 'rgba(5, 5, 5, 0.0)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: 1,
-                p: 4,
-                boxShadow: '0 0 80px rgba(0, 0, 0, 0.5)'
-            }}
-        >
-            <Stack spacing={3}>
-                <Box>
-                    <Typography
-                        variant="h3"
-                        fontWeight="700"
-                        sx={{
-                            background: 'linear-gradient(to right, #FFFFFF, #FF6B4A 100%)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            mb: 0.5,
-                            letterSpacing: '-0.5px'
-                        }}
-                    >
-                        Services
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>
-                        Define your service offerings for client bookings.
-                    </Typography>
+        <Stack spacing={3}>
+            {businessData.services.map((service, index) => (
+                <Box 
+                    key={index} 
+                    sx={{ 
+                        p: 3.5, 
+                        borderRadius: 2, 
+                        bgcolor: 'white', 
+                        border: '2px solid #E0E0E0',
+                        transition: 'all 0.2s',
+                        '&:hover': { borderColor: '#BDBDBD', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)' }
+                    }}
+                >
+                    <Grid container spacing={2.5} alignItems="flex-end">
+                        <Grid size={{ xs: 12, sm: 6 }}>
+                            <Typography variant="body2" sx={labelStyle}>
+                                Service Name
+                            </Typography>
+                            <TextField
+                                fullWidth
+                                placeholder="e.g., Haircut, Consultation"
+                                size="medium"
+                                value={service.name}
+                                onChange={(e) => {
+                                    const newServices = [...businessData.services];
+                                    newServices[index].name = e.target.value;
+                                    setBusinessData({ ...businessData, services: newServices });
+                                }}
+                                sx={inputStyle}
+                            />
+                        </Grid>
+                        <Grid size={{ xs: 6, sm: 2.5 }}>
+                            <Typography variant="body2" sx={labelStyle}>
+                                Duration
+                            </Typography>
+                            <TextField
+                                fullWidth
+                                type="number"
+                                placeholder="30"
+                                size="medium"
+                                value={service.duration || ''}
+                                onChange={(e) => {
+                                    const newServices = [...businessData.services];
+                                    newServices[index].duration = e.target.value === '' ? 0 : parseInt(e.target.value) || 0;
+                                    setBusinessData({ ...businessData, services: newServices });
+                                }}
+                                inputProps={{ min: 0 }}
+                                sx={inputStyle}
+                            />
+                        </Grid>
+                        <Grid size={{ xs: 6, sm: 2.5 }}>
+                            <Typography variant="body2" sx={labelStyle}>
+                                Price ($)
+                            </Typography>
+                            <TextField
+                                fullWidth
+                                type="number"
+                                placeholder="50"
+                                size="medium"
+                                value={service.price || ''}
+                                onChange={(e) => {
+                                    const newServices = [...businessData.services];
+                                    newServices[index].price = e.target.value === '' ? 0 : parseInt(e.target.value) || 0;
+                                    setBusinessData({ ...businessData, services: newServices });
+                                }}
+                                inputProps={{ min: 0 }}
+                                sx={inputStyle}
+                            />
+                        </Grid>
+                        <Grid size={{ xs: 12, sm: 1 }} sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'flex-start', sm: 'center' } }}>
+                            <IconButton 
+                                size="medium" 
+                                sx={{ 
+                                    color: '#999', 
+                                    '&:hover': { color: '#ff4d4d', bgcolor: 'rgba(255, 77, 77, 0.08)' } 
+                                }} 
+                                onClick={() => {
+                                    const newServices = businessData.services.filter((_, i) => i !== index);
+                                    setBusinessData({ ...businessData, services: newServices });
+                                }}
+                            >
+                                <DeleteIcon fontSize="medium" />
+                            </IconButton>
+                        </Grid>
+                    </Grid>
                 </Box>
-
-                <Stack spacing={2}>
-                    {businessData.services.map((service, index) => (
-                        <Box key={index} sx={{ p: 3, borderRadius: 1, bgcolor: '#050505', border: '1px solid #222' }}>
-                            <Grid container spacing={2} alignItems="flex-start">
-                                <Grid size={{ xs: 12, sm: 5 }}>
-                                    <Typography variant="caption" fontWeight="medium" sx={{ mb: 0.5, display: 'block', color: '#888' }}>
-                                        Service Name
-                                    </Typography>
-                                    <TextField
-                                        fullWidth
-                                        placeholder="e.g., Haircut, Consultation"
-                                        size="small"
-                                        value={service.name}
-                                        onChange={(e) => {
-                                            const newServices = [...businessData.services];
-                                            newServices[index].name = e.target.value;
-                                            setBusinessData({ ...businessData, services: newServices });
-                                        }}
-                                        sx={{ 
-                                            '& .MuiOutlinedInput-root': { 
-                                                color: 'white', 
-                                                bgcolor: 'rgba(255, 255, 255, 0.02)',
-                                                fontSize: '0.9rem',
-                                                '& fieldset': { borderColor: '#222' },
-                                                '&:hover fieldset': { borderColor: '#444' },
-                                                '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
-                                            },
-                                            '& .MuiInputBase-input::placeholder': { color: '#444', opacity: 1 },
-                                        }}
-                                    />
-                                </Grid>
-                                <Grid size={{ xs: 5, sm: 3 }}>
-                                    <Typography variant="caption" fontWeight="medium" sx={{ mb: 0.5, display: 'block', color: '#888' }}>
-                                        Duration (min)
-                                    </Typography>
-                                    <TextField
-                                        fullWidth
-                                        type="number"
-                                        placeholder="30"
-                                        size="small"
-                                        value={service.duration}
-                                        onChange={(e) => {
-                                            const newServices = [...businessData.services];
-                                            const value = parseInt(e.target.value) || 0;
-                                            newServices[index].duration = value < 15 ? 15 : value;
-                                            setBusinessData({ ...businessData, services: newServices });
-                                        }}
-                                        inputProps={{ min: 15 }}
-                                        sx={{
-                                            '& .MuiOutlinedInput-root': {
-                                                color: 'white',
-                                                bgcolor: 'rgba(255, 255, 255, 0.02)',
-                                                fontSize: '0.9rem',
-                                                '& fieldset': { borderColor: '#222' },
-                                                '&:hover fieldset': { borderColor: '#444' },
-                                                '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
-                                            },
-                                            '& .MuiInputBase-input::placeholder': { color: '#444', opacity: 1 },
-                                        }}
-                                    />
-                                </Grid>
-                                <Grid size={{ xs: 5, sm: 3 }}>
-                                    <Typography variant="caption" fontWeight="medium" sx={{ mb: 0.5, display: 'block', color: '#888' }}>
-                                        Price ($)
-                                    </Typography>
-                                    <TextField
-                                        fullWidth
-                                        type="number"
-                                        placeholder="50"
-                                        size="small"
-                                        value={service.price}
-                                        onChange={(e) => {
-                                            const newServices = [...businessData.services];
-                                            const value = parseInt(e.target.value) || 0;
-                                            newServices[index].price = value < 1 ? 1 : value;
-                                            setBusinessData({ ...businessData, services: newServices });
-                                        }}
-                                        inputProps={{ min: 1 }}
-                                        sx={{
-                                            '& .MuiOutlinedInput-root': {
-                                                color: 'white',
-                                                bgcolor: 'rgba(255, 255, 255, 0.02)',
-                                                fontSize: '0.9rem',
-                                                '& fieldset': { borderColor: '#222' },
-                                                '&:hover fieldset': { borderColor: '#444' },
-                                                '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
-                                            },
-                                            '& .MuiInputBase-input::placeholder': { color: '#444', opacity: 1 },
-                                        }}
-                                    />
-                                </Grid>
-                                <Grid size={{ xs: 2, sm: 1 }} sx={{ textAlign: 'right', pt: 3 }}>
-                                    <IconButton size="small" sx={{ color: '#444', '&:hover': { color: '#ff4d4d' } }} onClick={() => {
-                                        const newServices = businessData.services.filter((_, i) => i !== index);
-                                        setBusinessData({ ...businessData, services: newServices });
-                                    }}>
-                                        <DeleteIcon fontSize="small" />
-                                    </IconButton>
-                                </Grid>
-                            </Grid>
-                        </Box>
-                    ))}
-                    <Button
-                        startIcon={<AddIcon />}
-                        onClick={() => setBusinessData({
-                            ...businessData,
-                            services: [...businessData.services, { name: '', duration: 30, price: 0, description: '' }]
-                        })}
-                        sx={{ color: '#666', alignSelf: 'flex-start', textTransform: 'none', fontWeight: '700', '&:hover': { color: 'white' } }}
-                    >
-                        Add another service
-                    </Button>
-                </Stack>
-            </Stack>
-        </Box>
+            ))}
+            <Button
+                startIcon={<AddIcon />}
+                onClick={() => setBusinessData({
+                    ...businessData,
+                    services: [...businessData.services, { name: '', duration: 30, price: 0, description: '' }]
+                })}
+                sx={{ 
+                    color: '#999', 
+                    alignSelf: 'flex-start', 
+                    textTransform: 'none', 
+                    fontWeight: '700', 
+                    fontSize: '0.95rem',
+                    '&:hover': { color: '#1A1A1A', bgcolor: 'rgba(0, 0, 0, 0.04)' } 
+                }}
+            >
+                Add another service
+            </Button>
+        </Stack>
     );
 
     const renderStep5 = () => (
-        <Box
-            sx={{
-                bgcolor: 'rgba(5, 5, 5, 0.0)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: 1,
-                p: 4,
-                boxShadow: '0 0 80px rgba(0, 0, 0, 0.5)'
-            }}
-        >
-            <Stack spacing={3}>
-                <Box>
-                    <Typography
-                        variant="h3"
-                        fontWeight="700"
-                        sx={{
-                            background: 'linear-gradient(to right, #FFFFFF, #FF6B4A 100%)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            mb: 0.5,
-                            letterSpacing: '-0.5px'
-                        }}
-                    >
-                        Operating Hours
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>
-                        Set your business availability for client bookings.
-                    </Typography>
-                </Box>
-
-                <Stack spacing={1.5}>
-                    {businessData.workingHours.map((wh, index) => (
-                        <Grid container spacing={2} key={wh.day} alignItems="center">
-                            <Grid size={{ xs: 4 }}>
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            size="small"
-                                            checked={wh.isOpen}
-                                            onChange={(e) => {
-                                                const newHours = [...businessData.workingHours];
-                                                newHours[index].isOpen = e.target.checked;
-                                                setBusinessData({ ...businessData, workingHours: newHours });
-                                            }}
-                                            sx={{ color: '#444', '&.Mui-checked': { color: '#FF6B4A' } }}
-                                        />
-                                    }
-                                    label={<Typography sx={{ color: wh.isOpen ? 'white' : '#666', fontWeight: wh.isOpen ? '700' : '400', fontSize: '0.9rem' }}>{wh.day.charAt(0).toUpperCase() + wh.day.slice(1)}</Typography>}
-                                />
-                            </Grid>
-                            {wh.isOpen && (
-                                <>
-                                    <Grid size={{ xs: 3.5 }}>
-                                        <TextField
-                                            type="time"
-                                            size="small"
-                                            fullWidth
-                                            value={wh.start}
-                                            onChange={(e) => {
-                                                const newHours = [...businessData.workingHours];
-                                                newHours[index].start = e.target.value;
-                                                setBusinessData({ ...businessData, workingHours: newHours });
-                                            }}
-                                            sx={{ 
-                                                '& .MuiOutlinedInput-root': { 
-                                                    color: 'white', 
-                                                    bgcolor: '#050505',
-                                                    fontSize: '0.85rem',
-                                                    '& fieldset': { borderColor: '#222' },
-                                                    '&:hover fieldset': { borderColor: '#444' },
-                                                    '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
-                                                } 
-                                            }}
-                                        />
-                                    </Grid>
-                                    <Grid size={{ xs: 1 }}>
-                                        <Typography sx={{ color: '#444', textAlign: 'center' }}>-</Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 3.5 }}>
-                                        <TextField
-                                            type="time"
-                                            size="small"
-                                            fullWidth
-                                            value={wh.end}
-                                            onChange={(e) => {
-                                                const newHours = [...businessData.workingHours];
-                                                newHours[index].end = e.target.value;
-                                                setBusinessData({ ...businessData, workingHours: newHours });
-                                            }}
-                                            sx={{ 
-                                                '& .MuiOutlinedInput-root': { 
-                                                    color: 'white', 
-                                                    bgcolor: '#050505',
-                                                    fontSize: '0.85rem',
-                                                    '& fieldset': { borderColor: '#222' },
-                                                    '&:hover fieldset': { borderColor: '#444' },
-                                                    '&.Mui-focused fieldset': { borderColor: '#FFFFFF' },
-                                                } 
-                                            }}
-                                        />
-                                    </Grid>
-                                </>
-                            )}
+        <Stack spacing={2.5}>
+            {businessData.workingHours.map((wh, index) => (
+                <Box
+                    key={wh.day}
+                    sx={{
+                        p: 3,
+                        borderRadius: 2,
+                        bgcolor: 'white',
+                        border: '2px solid #E0E0E0',
+                        transition: 'all 0.2s',
+                        '&:hover': { borderColor: '#BDBDBD', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)' }
+                    }}
+                >
+                    <Grid container spacing={2.5} alignItems="center">
+                        <Grid size={{ xs: 12, sm: 3 }}>
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        size="medium"
+                                        checked={wh.isOpen}
+                                        onChange={(e) => {
+                                            const newHours = [...businessData.workingHours];
+                                            newHours[index].isOpen = e.target.checked;
+                                            setBusinessData({ ...businessData, workingHours: newHours });
+                                        }}
+                                        sx={{ 
+                                            color: '#D0D0D0', 
+                                            '&.Mui-checked': { color: '#FF6B4A' }
+                                        }}
+                                    />
+                                }
+                                label={
+                                    <Typography sx={{ 
+                                        color: wh.isOpen ? '#1A1A1A' : '#999', 
+                                        fontWeight: wh.isOpen ? '700' : '500', 
+                                        fontSize: '1rem' 
+                                    }}>
+                                        {wh.day.charAt(0).toUpperCase() + wh.day.slice(1)}
+                                    </Typography>
+                                }
+                            />
                         </Grid>
-                    ))}
-                </Stack>
-            </Stack>
-        </Box>
+                        {wh.isOpen && (
+                            <>
+                                <Grid size={{ xs: 5, sm: 4 }}>
+                                    <TextField
+                                        type="time"
+                                        size="medium"
+                                        fullWidth
+                                        value={wh.start}
+                                        onChange={(e) => {
+                                            const newHours = [...businessData.workingHours];
+                                            newHours[index].start = e.target.value;
+                                            setBusinessData({ ...businessData, workingHours: newHours });
+                                        }}
+                                        sx={inputStyle}
+                                    />
+                                </Grid>
+                                <Grid size={{ xs: 2, sm: 1 }} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                    <Typography sx={{ color: '#999', textAlign: 'center', fontSize: '1.1rem', fontWeight: '600' }}>-</Typography>
+                                </Grid>
+                                <Grid size={{ xs: 5, sm: 4 }}>
+                                    <TextField
+                                        type="time"
+                                        size="medium"
+                                        fullWidth
+                                        value={wh.end}
+                                        onChange={(e) => {
+                                            const newHours = [...businessData.workingHours];
+                                            newHours[index].end = e.target.value;
+                                            setBusinessData({ ...businessData, workingHours: newHours });
+                                        }}
+                                        sx={inputStyle}
+                                    />
+                                </Grid>
+                            </>
+                        )}
+                    </Grid>
+                </Box>
+            ))}
+        </Stack>
     );
 
     const renderStep6 = () => (
-        <Box py={4}>
+        <Box py={6}>
             <Typography
                 variant="h2"
                 fontWeight="700"
                 sx={{
-                    background: 'linear-gradient(to right, #FFFFFF, #FF6B4A 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    mb: 2,
-                    letterSpacing: '-1px'
+                    color: '#1A1A1A',
+                    mb: 2.5,
+                    letterSpacing: '-1px',
+                    fontSize: '3rem'
                 }}
             >
-                Launch.
+                You're All Set!
             </Typography>
-            <Typography variant="h5" sx={{ color: '#666', mb: 8, lineHeight: 1.6, fontWeight: '400', fontSize: '1.1rem' }}>
-                Your business ecosystem is ready. Start driving growth from your first automated dashboard.
+            <Typography variant="h5" sx={{ color: '#666', mb: 10, lineHeight: 1.7, fontWeight: '400', fontSize: '1.2rem' }}>
+                Your business workspace is ready. Start managing leads, bookings, and automations from your personalized dashboard.
             </Typography>
             <Button
                 variant="contained"
@@ -886,22 +901,26 @@ export default function OnboardingPage() {
                     background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A4D 100%)',
                     color: 'white',
                     fontWeight: '700',
-                    px: 8,
-                    py: 2.5,
-                    borderRadius: 1,
-                    fontSize: '1.2rem',
+                    px: 10,
+                    py: 3,
+                    borderRadius: 1.5,
+                    fontSize: '1.3rem',
                     textTransform: 'none',
-                    boxShadow: '0 4px 12px rgba(255, 107, 74, 0.3)',
+                    boxShadow: '0 6px 20px rgba(255, 107, 74, 0.4)',
                     '&:hover': {
                         background: 'linear-gradient(135deg, #FF8A4D 0%, #FF6B4A 100%)',
-                        boxShadow: '0 0 15px rgba(255, 107, 74, 0.5)',
+                        boxShadow: '0 8px 30px rgba(255, 107, 74, 0.6)',
                         transform: 'translateY(-2px)',
                     },
-                    '&.Mui-disabled': { background: 'rgba(255, 255, 255, 0.1)', color: 'rgba(255, 255, 255, 0.2)' },
+                    '&.Mui-disabled': { 
+                        background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A4D 100%)',
+                        color: 'white',
+                        opacity: 0.7,
+                    },
                     transition: 'all 0.2s ease-in-out'
                 }}
             >
-                {saving ? 'Finalizing...' : 'Enter Dashboard'}
+                {saving ? 'Launching...' : 'Enter Dashboard'}
             </Button>
         </Box>
     );
@@ -920,20 +939,60 @@ export default function OnboardingPage() {
 
     return (
         <Box sx={{ width: '100%', py: { xs: 4, md: 0 } }}>
+            {/* Onboarding Header - Shows for all steps */}
+       <Box sx={{ mb: 5, textAlign: 'left' }}>
+    {/* Pill badge */}
+    <Box
+        sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 0.75,
+            bgcolor: 'rgba(255, 107, 74, 0.08)',
+            border: '1px solid rgba(255, 107, 74, 0.2)',
+            borderRadius: 10,
+            px: 1.75,
+            py: 0.5,
+            mb: 2,
+        }}
+    >
+        <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#FF6B4A' }} />
+        <Typography sx={{ color: '#FF6B4A', fontWeight: '700', fontSize: '0.72rem', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
+            Step {activeStep + 1} of {steps.length}
+        </Typography>
+    </Box>
+
+    <Typography
+        variant="h4"
+        fontWeight="800"
+        sx={{
+            color: '#111',
+            mb: 1,
+            fontSize: '1.65rem',
+            letterSpacing: '-0.5px',
+            lineHeight: 1.2,
+        }}
+    >
+        {getStepTitle()}
+    </Typography>
+    <Typography variant="body2" sx={{ color: '#999', lineHeight: 1.7, fontSize: '0.9rem', maxWidth: '480px' }}>
+        {getStepDescription()}
+    </Typography>
+</Box>
+
             {renderContent()}
 
             {activeStep < 5 && (
-                <Box sx={{ display: 'flex', flexDirection: 'row', pt: 8, borderTop: '1px solid rgba(255, 255, 255, 0.05)', mt: 8 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'row', pt: 5, mt: 5 }}>
                     <Button
                         color="inherit"
                         disabled={activeStep === 0}
                         onClick={handleBack}
                         sx={{
-                            color: 'rgba(255, 255, 255, 0.4)',
-                            fontWeight: '700',
-                            '&:hover': { color: 'white', bgcolor: 'transparent' },
+                            color: '#999',
+                            fontWeight: '600',
+                            fontSize: '0.95rem',
+                            '&:hover': { color: '#1A1A1A', bgcolor: 'transparent' },
                             textTransform: 'none',
-                            fontSize: '1rem',
                             visibility: activeStep === 0 ? 'hidden' : 'visible'
                         }}
                     >
@@ -949,21 +1008,21 @@ export default function OnboardingPage() {
                             color: 'white',
                             fontWeight: '700',
                             px: 6,
-                            py: 1.8,
-                            borderRadius: 1,
+                            py: 1.5,
+                            borderRadius: 1.5,
                             textTransform: 'none',
-                            fontSize: '1rem',
-                            boxShadow: isNextDisabled ? 'none' : '0 4px 12px rgba(255, 107, 74, 0.3)',
+                            fontSize: '0.95rem',
+                            boxShadow: isNextDisabled ? 'none' : '0 2px 8px rgba(255, 107, 74, 0.3)',
                             '&:hover': { 
                                 background: 'linear-gradient(135deg, #FF8A4D 0%, #FF6B4A 100%)',
-                                boxShadow: '0 0 15px rgba(255, 107, 74, 0.5)',
+                                boxShadow: '0 4px 12px rgba(255, 107, 74, 0.4)',
                                 transform: 'translateY(-1px)' 
                             },
-                            '&.Mui-disabled': { background: 'rgba(255, 255, 255, 0.05)', color: 'rgba(255, 255, 255, 0.2)' },
+                            '&.Mui-disabled': { background: '#E0E0E0', color: '#999' },
                             transition: 'all 0.2s ease-in-out'
                         }}
                     >
-                        {saving ? <CircularProgress size={24} sx={{ color: 'white' }} /> : (activeStep === steps.length - 2 ? 'Complete Setup' : 'Next Step')}
+                        {saving ? <CircularProgress size={20} sx={{ color: 'white' }} /> : (activeStep === steps.length - 2 ? 'Complete Setup' : 'Next Step')}
                     </Button>
                 </Box>
             )}

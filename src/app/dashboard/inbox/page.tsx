@@ -2,6 +2,8 @@
 
 import { useEffect, useCallback, useState } from 'react';
 import { Box, Typography, Alert, CircularProgress, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Snackbar } from '@mui/material';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import AddIcon from '@mui/icons-material/Add';
 import { inboxService } from '@/lib/services/inbox.service';
 import { initializeSocket, onNewMessage, onConversationUpdate, offNewMessage, offConversationUpdate } from '@/lib/socket';
 import RBACGuard from '@/components/dashboard/RBACGuard';
@@ -332,7 +334,7 @@ export default function InboxPage() {
     return (
         <RBACGuard permission="canViewInbox">
             <Box sx={{
-                p: { xs: 2, sm: 3 },
+                p: { xs: 1.5, sm: 2 },
                 height: '100vh',
                 display: 'flex',
                 flexDirection: 'column',
@@ -340,19 +342,21 @@ export default function InboxPage() {
                 bgcolor: pageBgColor,
                 boxSizing: 'border-box',
                 width: '100%',
-                maxWidth: 'calc(100vw - 300px)' // Subtract sidebar width
+                maxWidth: '100%'
             }}>
-                <Box sx={{ display: 'flex', gap: 2, flexGrow: 1, overflow: 'hidden', width: '100%', maxWidth: '100%' }}>
+                <Box sx={{ display: 'flex', gap: 1, flexGrow: 1, overflow: 'hidden', width: '100%', maxWidth: '100%' }}>
 
                     {/* Left: Conversation List - Full width when nothing selected, fixed width when selected */}
                     <Box sx={{ 
-                        width: selectedConversation ? { xs: '100%', md: '360px' } : '100%',
-                        maxWidth: selectedConversation ? { xs: '100%', md: '360px' } : '100%',
+                        width: selectedConversation ? { xs: '100%', md: '30%', lg: '25%' } : { xs: '100%', md: '900px' },
+                        minWidth: selectedConversation ? { xs: '100%', md: '280px' } : 0,
+                        maxWidth: selectedConversation ? { xs: '100%', md: '340px' } : { xs: '100%', md: '340px' },
                         flexShrink: 0, 
                         height: '100%', 
                         display: { xs: selectedConversation ? 'none' : 'block', md: 'block' },
                         transition: 'width 0.3s ease',
-                        overflow: 'hidden'
+                        overflow: 'hidden',
+                        boxSizing: 'border-box'
                     }}>
                         <ConversationList
                             conversations={conversations}
@@ -426,34 +430,26 @@ export default function InboxPage() {
                         />
                     </Box>
 
-                    {/* Middle: Chat Window - Only show when conversation is selected */}
-                    {selectedConversation && (
-                        <Box sx={{ flex: 1, minWidth: 0, height: '100%' }}>
-                            <ChatWindow
-                                conversation={selectedConversation}
-                                messages={messages}
-                                onSendMessage={handleSend}
-                                sending={sending}
-                                onResolve={handleResolve}
-                                onReopen={handleReopen}
-                                onResumeAutomation={handleResumeAutomation}
-                            />
-                        </Box>
-                    )}
-
-                    {/* Right: Contact Details - Only show when conversation is selected */}
-                    {selectedConversation && (
-                        <Box sx={{ width: '320px', flexShrink: 0, height: '100%', display: { xs: 'none', lg: 'block' } }}>
-                            <ContactDetails
-                                conversation={selectedConversation}
-                                businessSlug={businessSlug}
-                                onResolve={handleResolve}
-                                onReopen={handleReopen}
-                                onSendBookingLink={handleSendBookingLink}
-                                onFormSent={fetchMessages}
-                            />
-                        </Box>
-                    )}
+                    <Box sx={{ 
+                        flex: 1, 
+                        minWidth: 0, 
+                        height: '100%', 
+                        overflow: 'hidden',
+                        display: { xs: selectedConversation ? 'block' : 'none', md: 'block' }
+                    }}>
+                        <ChatWindow
+                            conversation={selectedConversation}
+                            messages={messages}
+                            onSendMessage={handleSend}
+                            sending={sending}
+                            onResolve={handleResolve}
+                            onReopen={handleReopen}
+                            onResumeAutomation={handleResumeAutomation}
+                            businessSlug={businessSlug}
+                            onSendBookingLink={handleSendBookingLink}
+                            onNewConversation={() => setNewConversationDialog(true)}
+                        />
+                    </Box>
 
                 </Box>
             </Box>
@@ -485,6 +481,37 @@ export default function InboxPage() {
                             onChange={(e) => setNewContactEmail(e.target.value)}
                             placeholder="contact@example.com"
                             autoFocus
+                            size="small"
+                            sx={{
+                                '& .MuiInputBase-root': {
+                                    fontSize: '0.875rem',
+                                    borderRadius: '4px'
+                                },
+                                '& .MuiInputLabel-root': {
+                                    fontSize: '0.875rem',
+                                    color: '#000000'
+                                },
+                                '& .MuiInputLabel-root.Mui-focused': {
+                                    color: '#000000'
+                                },
+                                '& .MuiOutlinedInput-root': {
+                                    '& fieldset': {
+                                        borderColor: '#000000',
+                                        borderRadius: '4px'
+                                    },
+                                    '&:hover fieldset': {
+                                        borderColor: '#000000'
+                                    },
+                                    '&.Mui-focused fieldset': {
+                                        borderColor: '#000000'
+                                    }
+                                },
+                                '& .MuiInputBase-input::placeholder': {
+                                    color: '#9ca3af',
+                                    opacity: 1,
+                                    fontSize: '0.8rem'
+                                }
+                            }}
                         />
                         <TextField
                             fullWidth
@@ -492,8 +519,39 @@ export default function InboxPage() {
                             value={newContactName}
                             onChange={(e) => setNewContactName(e.target.value)}
                             placeholder="John Doe"
+                            size="small"
+                            sx={{
+                                '& .MuiInputBase-root': {
+                                    fontSize: '0.875rem',
+                                    borderRadius: '4px'
+                                },
+                                '& .MuiInputLabel-root': {
+                                    fontSize: '0.875rem',
+                                    color: '#000000'
+                                },
+                                '& .MuiInputLabel-root.Mui-focused': {
+                                    color: '#000000'
+                                },
+                                '& .MuiOutlinedInput-root': {
+                                    '& fieldset': {
+                                        borderColor: '#000000',
+                                        borderRadius: '4px'
+                                    },
+                                    '&:hover fieldset': {
+                                        borderColor: '#000000'
+                                    },
+                                    '&.Mui-focused fieldset': {
+                                        borderColor: '#000000'
+                                    }
+                                },
+                                '& .MuiInputBase-input::placeholder': {
+                                    color: '#9ca3af',
+                                    opacity: 1,
+                                    fontSize: '0.8rem'
+                                }
+                            }}
                         />
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography variant="caption" sx={{ color: '#9ca3af', fontSize: '0.75rem' }}>
                             If the contact doesn't exist, a new one will be created.
                         </Typography>
                     </Box>
@@ -502,23 +560,34 @@ export default function InboxPage() {
                     <Button
                         onClick={() => setNewConversationDialog(false)}
                         disabled={creatingConversation}
-                        sx={{ textTransform: 'none', fontWeight: 600 }}
+                        sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.875rem' }}
                     >
                         Cancel
                     </Button>
-                    <Button
-                        onClick={handleCreateConversation}
-                        variant="contained"
-                        disabled={creatingConversation || !newContactEmail.trim()}
+                    <Box
+                        onClick={!creatingConversation && newContactEmail.trim() ? handleCreateConversation : undefined}
                         sx={{
-                            textTransform: 'none',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            bgcolor: creatingConversation || !newContactEmail.trim() ? '#d1d5db' : '#ff6b6b',
+                            color: '#ffffff',
+                            px: 2.5,
+                            py: 1,
+                            borderRadius: '8px',
                             fontWeight: 600,
-                            bgcolor: '#7c3aed',
-                            '&:hover': { bgcolor: '#6d28d9' }
+                            fontSize: '0.875rem',
+                            cursor: creatingConversation || !newContactEmail.trim() ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.2s',
+                            opacity: creatingConversation || !newContactEmail.trim() ? 0.6 : 1,
+                            '&:hover': {
+                                bgcolor: creatingConversation || !newContactEmail.trim() ? '#d1d5db' : '#ff5252',
+                                transform: creatingConversation || !newContactEmail.trim() ? 'none' : 'translateY(-1px)',
+                                boxShadow: creatingConversation || !newContactEmail.trim() ? 'none' : '0 4px 12px rgba(255, 107, 107, 0.3)'
+                            }
                         }}
                     >
                         {creatingConversation ? 'Creating...' : 'Create'}
-                    </Button>
+                    </Box>
                 </DialogActions>
             </Dialog>
 

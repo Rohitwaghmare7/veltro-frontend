@@ -152,9 +152,7 @@ function RegisterForm() {
                                 fontWeight="700"
                                 gutterBottom
                                 sx={{
-                                    background: 'linear-gradient(to right, #FFFFFF, #FF6B4A 100%)',
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent',
+                                    color: 'white',
                                     mb: 0.5
                                 }}
                             >
@@ -363,8 +361,9 @@ function RegisterForm() {
                                             transform: 'translateY(-1px)'
                                         },
                                         '&.Mui-disabled': {
-                                            background: 'linear-gradient(180deg, #EEEEEE 0%, #CCCCCC 100%)',
-                                            color: 'rgba(0, 0, 0, 0.5)',
+                                            background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A4D 100%)',
+                                            color: 'white',
+                                            opacity: 0.7,
                                         },
                                         transition: 'all 0.2s ease-in-out'
                                     }}
@@ -372,7 +371,7 @@ function RegisterForm() {
                                     disabled={loading}
                                 >
                                     {loading ? (
-                                        <CircularProgress size={20} sx={{ color: 'rgba(255, 255, 255, 0.8)' }} />
+                                        <CircularProgress size={20} sx={{ color: 'white' }} />
                                     ) : (
                                         'Create account'
                                     )}

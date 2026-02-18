@@ -190,104 +190,113 @@ export default function SettingsPage() {
                     </Typography>
                 </Box>
 
-                {/* Main Content with Sidebar */}
-                <Box display="flex" gap={2} flexDirection={{ xs: 'column', md: 'row' }}>
-                    {/* Sidebar Navigation */}
+                {/* Top Navigation */}
+                <Paper
+                    sx={{
+                        borderRadius: '16px',
+                        bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
+                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
+                        overflow: 'hidden',
+                        mb: 2,
+                        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.2)' : '0 4px 20px rgba(0,0,0,0.05)',
+                    }}
+                >
                     <Box
                         sx={{
-                            width: { xs: '100%', md: 240 },
-                            flexShrink: 0,
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            gap: 1,
+                            p: 0.5,
+                            overflowX: 'auto',
+                            '&::-webkit-scrollbar': {
+                                display: 'none',
+                            },
+                            msOverflowStyle: 'none',
+                            scrollbarWidth: 'none',
                         }}
                     >
-                        <Paper
-                            sx={{
-                                borderRadius: '24px',
-                                bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
-                                border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
-                                overflow: 'hidden',
-                                position: { xs: 'relative', md: 'sticky' },
-                                top: { md: 20 },
-                                boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.2)' : '0 4px 20px rgba(0,0,0,0.05)',
-                            }}
-                        >
-                            <List sx={{ p: 0.5 }}>
-                                {menuItems.map((item) => {
-                                    const Icon = item.icon;
-                                    const isActive = activeSection === item.id;
+                        {menuItems.map((item) => {
+                            const Icon = item.icon;
+                            const isActive = activeSection === item.id;
 
-                                    return (
-                                        <ListItemButton
-                                            key={item.id}
-                                            onClick={() => setActiveSection(item.id)}
-                                            sx={{
-                                                borderRadius: '16px',
-                                                mb: 0.5,
-                                                py: 1,
-                                                bgcolor: isActive
-                                                    ? (isDark ? 'rgba(139, 92, 246, 0.15)' : '#ede9fe')
-                                                    : 'transparent',
-                                                '&:hover': {
-                                                    bgcolor: isActive
-                                                        ? (isDark ? 'rgba(139, 92, 246, 0.2)' : '#ddd6fe')
-                                                        : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'),
-                                                },
-                                                transition: 'all 0.2s ease',
-                                            }}
-                                        >
-                                            <ListItemIcon sx={{ minWidth: 36 }}>
-                                                <Icon
-                                                    sx={{
-                                                        fontSize: 22,
-                                                        color: isActive
-                                                            ? '#8b5cf6'
-                                                            : textSecondary,
-                                                    }}
-                                                />
-                                            </ListItemIcon>
-                                            <ListItemText
-                                                primary={item.label}
-                                                primaryTypographyProps={{
-                                                    fontWeight: isActive ? 700 : 600,
-                                                    fontSize: '0.95rem',
-                                                    color: isActive
-                                                        ? '#8b5cf6'
-                                                        : textPrimary,
-                                                }}
-                                            />
-                                        </ListItemButton>
-                                    );
-                                })}
-                            </List>
-                        </Paper>
+                            return (
+                                <Box
+                                    key={item.id}
+                                    onClick={() => setActiveSection(item.id)}
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 1,
+                                        borderRadius: '12px',
+                                        py: 0.875,
+                                        px: 1.5,
+                                        flex: 1,
+                                        minWidth: 'auto',
+                                        whiteSpace: 'nowrap',
+                                        bgcolor: isActive
+                                            ? (isDark ? 'rgba(255, 107, 107, 0.15)' : '#fee2e2')
+                                            : 'transparent',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        '&:hover': {
+                                            bgcolor: isActive
+                                                ? (isDark ? 'rgba(255, 107, 107, 0.2)' : '#fecaca')
+                                                : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'),
+                                        },
+                                    }}
+                                >
+                                    <Icon
+                                        sx={{
+                                            fontSize: 20,
+                                            color: isActive
+                                                ? '#ff6b6b'
+                                                : textSecondary,
+                                        }}
+                                    />
+                                    <Typography
+                                        sx={{
+                                            fontWeight: isActive ? 700 : 600,
+                                            fontSize: '0.85rem',
+                                            color: isActive
+                                                ? '#ff6b6b'
+                                                : textPrimary,
+                                        }}
+                                    >
+                                        {item.label}
+                                    </Typography>
+                                </Box>
+                            );
+                        })}
                     </Box>
+                </Paper>
 
-                    {/* Content Area */}
-                    <Box flex={1}>
-                        <Paper
-                            sx={{
-                                borderRadius: '24px',
-                                bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
-                                border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
-                                p: 3,
-                                minHeight: 500,
-                                boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.2)' : '0 4px 20px rgba(0,0,0,0.05)',
-                            }}
-                        >
+                {/* Content Area - Full Width */}
+                <Paper
+                    sx={{
+                        borderRadius: '16px',
+                        bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
+                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
+                        p: 2.5,
+                        py: 3,
+                        minHeight: 500,
+                        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.2)' : '0 4px 20px rgba(0,0,0,0.05)',
+                    }}
+                >
                             {/* Business Profile Section */}
                             {activeSection === 'profile' && (
                                 <Box>
-                                    <Box mb={2}>
-                                        <Typography variant="h5" fontWeight={700} color={textPrimary} sx={{ mb: 1 }}>
-                                            Business Profile
-                                        </Typography>
-                                        <Typography variant="body2" color={textSecondary}>
-                                            Update your business information and contact details
-                                        </Typography>
-                                    </Box>
+                        
 
-                                    <Box display="flex" flexDirection="column" gap={2}>
+                                    <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }} gap={3} alignItems="start">
+                                        {/* Left Column - Business Profile */}
+                                        <Box display="flex" flexDirection="column" gap={1.75}>
+                                            <Typography variant="h6" fontWeight={700} color={textPrimary} sx={{ mb: 0.5, fontSize: '1.05rem', minHeight: '28px' }}>
+                                                Business Information
+                                            </Typography>
                                         <Box>
-                                            <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                            <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.7rem' }}>
                                                 Business Name
                                             </Typography>
                                             <Box
@@ -297,12 +306,12 @@ export default function SettingsPage() {
                                                 placeholder="Enter business name"
                                                 sx={{
                                                     width: '100%',
-                                                    p: 1,
+                                                    p: 1.25,
                                                     borderRadius: '12px',
                                                     border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                     bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#F3F4F6',
                                                     color: textPrimary,
-                                                    fontSize: '0.95rem',
+                                                    fontSize: '0.875rem',
                                                     fontFamily: 'inherit',
                                                     outline: 'none',
                                                     '&:focus': {
@@ -315,7 +324,7 @@ export default function SettingsPage() {
 
                                         <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr' }} gap={1.5}>
                                             <Box>
-                                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.7rem' }}>
                                                     Category
                                                 </Typography>
                                                 <Box
@@ -324,12 +333,12 @@ export default function SettingsPage() {
                                                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setProfileData({ ...profileData, category: e.target.value })}
                                                     sx={{
                                                         width: '100%',
-                                                        p: 1.5,
+                                                        p: 1.25,
                                                         borderRadius: '12px',
                                                         border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                         bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#F3F4F6',
                                                         color: textPrimary,
-                                                        fontSize: '0.95rem',
+                                                        fontSize: '0.875rem',
                                                         fontFamily: 'inherit',
                                                         outline: 'none',
                                                         cursor: 'pointer',
@@ -346,7 +355,7 @@ export default function SettingsPage() {
                                             </Box>
 
                                             <Box>
-                                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.7rem' }}>
                                                     Phone
                                                 </Typography>
                                                 <Box
@@ -356,12 +365,12 @@ export default function SettingsPage() {
                                                     placeholder="Enter phone number"
                                                     sx={{
                                                         width: '100%',
-                                                        p: 1.5,
+                                                        p: 1.25,
                                                         borderRadius: '12px',
                                                         border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                         bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#F3F4F6',
                                                         color: textPrimary,
-                                                        fontSize: '0.95rem',
+                                                        fontSize: '0.875rem',
                                                         fontFamily: 'inherit',
                                                         outline: 'none',
                                                         '&:focus': {
@@ -373,9 +382,9 @@ export default function SettingsPage() {
                                             </Box>
                                         </Box>
 
-                                        <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr' }} gap={2}>
+                                        <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr' }} gap={1.5}>
                                             <Box>
-                                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.7rem' }}>
                                                     Email
                                                 </Typography>
                                                 <Box
@@ -386,12 +395,12 @@ export default function SettingsPage() {
                                                     placeholder="Enter email address"
                                                     sx={{
                                                         width: '100%',
-                                                        p: 1.5,
+                                                        p: 1.25,
                                                         borderRadius: '12px',
                                                         border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                         bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#F3F4F6',
                                                         color: textPrimary,
-                                                        fontSize: '0.95rem',
+                                                        fontSize: '0.875rem',
                                                         fontFamily: 'inherit',
                                                         outline: 'none',
                                                         '&:focus': {
@@ -403,7 +412,7 @@ export default function SettingsPage() {
                                             </Box>
 
                                             <Box>
-                                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.7rem' }}>
                                                     Website
                                                 </Typography>
                                                 <Box
@@ -413,12 +422,12 @@ export default function SettingsPage() {
                                                     placeholder="https://example.com"
                                                     sx={{
                                                         width: '100%',
-                                                        p: 1.5,
+                                                        p: 1.25,
                                                         borderRadius: '12px',
                                                         border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                         bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#F3F4F6',
                                                         color: textPrimary,
-                                                        fontSize: '0.95rem',
+                                                        fontSize: '0.875rem',
                                                         fontFamily: 'inherit',
                                                         outline: 'none',
                                                         '&:focus': {
@@ -431,7 +440,7 @@ export default function SettingsPage() {
                                         </Box>
 
                                         <Box>
-                                            <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                            <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.7rem' }}>
                                                 Description
                                             </Typography>
                                             <Box
@@ -442,12 +451,12 @@ export default function SettingsPage() {
                                                 placeholder="Brief description of your business"
                                                 sx={{
                                                     width: '100%',
-                                                    p: 1.5,
+                                                    p: 1.25,
                                                     borderRadius: '12px',
                                                     border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                     bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#F3F4F6',
                                                     color: textPrimary,
-                                                    fontSize: '0.95rem',
+                                                    fontSize: '0.875rem',
                                                     fontFamily: 'inherit',
                                                     outline: 'none',
                                                     resize: 'vertical',
@@ -457,19 +466,20 @@ export default function SettingsPage() {
                                                     }
                                                 }}
                                             />
-                                            <Typography variant="caption" color={textSecondary} sx={{ mt: 0.5, display: 'block', textAlign: 'right' }}>
+                                            <Typography variant="caption" color={textSecondary} sx={{ mt: 0.5, display: 'block', textAlign: 'right', fontSize: '0.7rem' }}>
                                                 {profileData.description.length}/500
                                             </Typography>
                                         </Box>
+                                    </Box>
 
-                                        <Divider sx={{ my: 1.5 }} />
-
-                                        <Typography variant="h6" fontWeight={700} color={textPrimary} sx={{ mb: 1 }}>
+                                    {/* Right Column - Address */}
+                                    <Box display="flex" flexDirection="column" gap={1.75}>
+                                        <Typography variant="h6" fontWeight={700} color={textPrimary} sx={{ mb: 0.5, fontSize: '1.05rem', minHeight: '28px' }}>
                                             Address
                                         </Typography>
 
                                         <Box>
-                                            <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                            <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.7rem' }}>
                                                 Street Address
                                             </Typography>
                                             <Box
@@ -482,12 +492,12 @@ export default function SettingsPage() {
                                                 placeholder="Street address"
                                                 sx={{
                                                     width: '100%',
-                                                    p: 1.5,
+                                                    p: 1.25,
                                                     borderRadius: '12px',
                                                     border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                     bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#F3F4F6',
                                                     color: textPrimary,
-                                                    fontSize: '0.95rem',
+                                                    fontSize: '0.875rem',
                                                     fontFamily: 'inherit',
                                                     outline: 'none',
                                                     '&:focus': {
@@ -498,9 +508,9 @@ export default function SettingsPage() {
                                             />
                                         </Box>
 
-                                        <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr' }} gap={2}>
+                                        <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr' }} gap={1.5}>
                                             <Box>
-                                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.7rem' }}>
                                                     City
                                                 </Typography>
                                                 <Box
@@ -513,12 +523,12 @@ export default function SettingsPage() {
                                                     placeholder="City"
                                                     sx={{
                                                         width: '100%',
-                                                        p: 1.5,
+                                                        p: 1.25,
                                                         borderRadius: '12px',
                                                         border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                         bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#F3F4F6',
                                                         color: textPrimary,
-                                                        fontSize: '0.95rem',
+                                                        fontSize: '0.875rem',
                                                         fontFamily: 'inherit',
                                                         outline: 'none',
                                                         '&:focus': {
@@ -530,7 +540,7 @@ export default function SettingsPage() {
                                             </Box>
 
                                             <Box>
-                                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.7rem' }}>
                                                     State
                                                 </Typography>
                                                 <Box
@@ -543,12 +553,12 @@ export default function SettingsPage() {
                                                     placeholder="State"
                                                     sx={{
                                                         width: '100%',
-                                                        p: 1.5,
+                                                        p: 1.25,
                                                         borderRadius: '12px',
                                                         border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                         bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#F3F4F6',
                                                         color: textPrimary,
-                                                        fontSize: '0.95rem',
+                                                        fontSize: '0.875rem',
                                                         fontFamily: 'inherit',
                                                         outline: 'none',
                                                         '&:focus': {
@@ -560,9 +570,9 @@ export default function SettingsPage() {
                                             </Box>
                                         </Box>
 
-                                        <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr' }} gap={2}>
+                                        <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr' }} gap={1.5}>
                                             <Box>
-                                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.7rem' }}>
                                                     ZIP Code
                                                 </Typography>
                                                 <Box
@@ -575,12 +585,12 @@ export default function SettingsPage() {
                                                     placeholder="ZIP Code"
                                                     sx={{
                                                         width: '100%',
-                                                        p: 1.5,
+                                                        p: 1.25,
                                                         borderRadius: '12px',
                                                         border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                         bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#F3F4F6',
                                                         color: textPrimary,
-                                                        fontSize: '0.95rem',
+                                                        fontSize: '0.875rem',
                                                         fontFamily: 'inherit',
                                                         outline: 'none',
                                                         '&:focus': {
@@ -592,7 +602,7 @@ export default function SettingsPage() {
                                             </Box>
 
                                             <Box>
-                                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.7rem' }}>
                                                     Country
                                                 </Typography>
                                                 <Box
@@ -605,12 +615,12 @@ export default function SettingsPage() {
                                                     placeholder="Country"
                                                     sx={{
                                                         width: '100%',
-                                                        p: 1.5,
+                                                        p: 1.25,
                                                         borderRadius: '12px',
                                                         border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                         bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#F3F4F6',
                                                         color: textPrimary,
-                                                        fontSize: '0.95rem',
+                                                        fontSize: '0.875rem',
                                                         fontFamily: 'inherit',
                                                         outline: 'none',
                                                         '&:focus': {
@@ -621,27 +631,34 @@ export default function SettingsPage() {
                                                 />
                                             </Box>
                                         </Box>
+                                    </Box>
+                                </Box>
 
-                                        <Box display="flex" gap={2} mt={1.5}>
-                                            <Button
-                                                variant="contained"
-                                                onClick={handleSaveProfile}
-                                                disabled={processing}
-                                                sx={{
-                                                    borderRadius: '12px',
-                                                    textTransform: 'none',
-                                                    fontWeight: 700,
-                                                    px: 4,
-                                                    bgcolor: '#8b5cf6',
-                                                    boxShadow: '0 4px 14px 0 rgba(139, 92, 246, 0.39)',
-                                                    '&:hover': {
-                                                        bgcolor: '#7c3aed',
-                                                        boxShadow: '0 6px 20px rgba(139, 92, 246, 0.5)',
-                                                    }
-                                                }}
-                                            >
-                                                {processing ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'Save Changes'}
-                                            </Button>
+                                <Box display="flex" gap={2} mt={2}>
+                                    <Box
+                                        onClick={processing ? undefined : handleSaveProfile}
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            px: 4,
+                                            py: 1,
+                                            borderRadius: '12px',
+                                            background: processing ? '#9ca3af' : 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
+                                            color: '#ffffff',
+                                            fontWeight: 700,
+                                            fontSize: '0.875rem',
+                                            cursor: processing ? 'not-allowed' : 'pointer',
+                                            opacity: processing ? 0.6 : 1,
+                                            transition: 'all 0.2s ease',
+                                            '&:hover': processing ? {} : {
+                                                transform: 'translateY(-1px)',
+                                                boxShadow: '0 6px 20px rgba(255, 107, 107, 0.4)',
+                                            }
+                                        }}
+                                    >
+                                        {processing ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'Save Changes'}
+                                    </Box>
                                             <Button
                                                 variant="outlined"
                                                 onClick={fetchSettings}
@@ -661,7 +678,6 @@ export default function SettingsPage() {
                                             </Button>
                                         </Box>
                                     </Box>
-                                </Box>
                             )}
 
                             {/* Services Section */}
@@ -669,31 +685,37 @@ export default function SettingsPage() {
                                 <Box>
                                     <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
                                         <Box>
-                                            <Typography variant="h5" fontWeight={700} color={textPrimary} sx={{ mb: 1 }}>
+                                            <Typography variant="h5" fontWeight={700} color={textPrimary} sx={{ mb: 0.5, fontSize: '1.25rem' }}>
                                                 Services Management
                                             </Typography>
-                                            <Typography variant="body2" color={textSecondary}>
+                                            <Typography variant="body2" color={textSecondary} sx={{ fontSize: '0.875rem' }}>
                                                 Add and manage the services you offer to customers
                                             </Typography>
                                         </Box>
-                                        <Button
-                                            variant="contained"
-                                            startIcon={<AddIcon />}
+                                        <Box
                                             onClick={handleAddService}
                                             sx={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 0.75,
+                                                px: 2.5,
+                                                py: 0.875,
                                                 borderRadius: '12px',
-                                                textTransform: 'none',
+                                                background: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
+                                                color: '#ffffff',
                                                 fontWeight: 700,
-                                                bgcolor: '#8b5cf6',
-                                                boxShadow: '0 4px 14px 0 rgba(139, 92, 246, 0.39)',
+                                                fontSize: '0.875rem',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s ease',
                                                 '&:hover': {
-                                                    bgcolor: '#7c3aed',
-                                                    boxShadow: '0 6px 20px rgba(139, 92, 246, 0.5)',
+                                                    transform: 'translateY(-1px)',
+                                                    boxShadow: '0 6px 20px rgba(255, 107, 107, 0.4)',
                                                 }
                                             }}
                                         >
+                                            <AddIcon sx={{ fontSize: 18 }} />
                                             Add Service
-                                        </Button>
+                                        </Box>
                                     </Box>
 
                                     {services.length === 0 ? (
@@ -702,53 +724,60 @@ export default function SettingsPage() {
                                             flexDirection="column"
                                             alignItems="center"
                                             justifyContent="center"
-                                            py={4}
+                                            py={3}
                                         >
                                             <Box
                                                 sx={{
-                                                    width: 60,
-                                                    height: 60,
+                                                    width: 56,
+                                                    height: 56,
                                                     borderRadius: '50%',
-                                                    bgcolor: isDark ? 'rgba(139, 92, 246, 0.15)' : '#ede9fe',
+                                                    bgcolor: isDark ? 'rgba(255, 107, 107, 0.15)' : '#fee2e2',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
-                                                    mb: 3,
+                                                    mb: 2,
                                                 }}
                                             >
-                                                <DesignServicesIcon sx={{ fontSize: 32, color: '#8b5cf6' }} />
+                                                <DesignServicesIcon sx={{ fontSize: 28, color: '#ff6b6b' }} />
                                             </Box>
-                                            <Typography variant="h6" fontWeight={700} color={textPrimary} sx={{ mb: 1 }}>
+                                            <Typography variant="h6" fontWeight={700} color={textPrimary} sx={{ mb: 0.5, fontSize: '1.05rem' }}>
                                                 No services added yet
                                             </Typography>
-                                            <Typography variant="body2" color={textSecondary} sx={{ mb: 3 }}>
+                                            <Typography variant="body2" color={textSecondary} sx={{ mb: 2.5, fontSize: '0.9rem' }}>
                                                 Add your first service to start accepting bookings
                                             </Typography>
-                                            <Button
-                                                variant="contained"
-                                                startIcon={<AddIcon />}
+                                            <Box
                                                 onClick={handleAddService}
                                                 sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 0.75,
+                                                    px: 3,
+                                                    py: 1,
                                                     borderRadius: '12px',
-                                                    textTransform: 'none',
+                                                    background: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
+                                                    color: '#ffffff',
                                                     fontWeight: 700,
-                                                    bgcolor: '#8b5cf6',
-                                                    boxShadow: '0 4px 14px 0 rgba(139, 92, 246, 0.39)',
+                                                    fontSize: '0.875rem',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s ease',
                                                     '&:hover': {
-                                                        bgcolor: '#7c3aed',
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 6px 20px rgba(255, 107, 107, 0.4)',
                                                     }
                                                 }}
                                             >
+                                                <AddIcon sx={{ fontSize: 18 }} />
                                                 Add Your First Service
-                                            </Button>
+                                            </Box>
                                         </Box>
                                     ) : (
-                                        <Stack spacing={2}>
+                                        <Stack spacing={1.5}>
                                             {services.map((service, index) => (
                                                 <Card
                                                     key={index}
                                                     sx={{
-                                                        borderRadius: '24px',
+                                                        borderRadius: '16px',
                                                         bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
                                                         border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                         transition: 'all 0.2s ease',
@@ -759,11 +788,11 @@ export default function SettingsPage() {
                                                         }
                                                     }}
                                                 >
-                                                    <CardContent sx={{ p: 2 }}>
-                                                        <Box display="flex" flexDirection="column" gap={2}>
-                                                            <Box display="flex" gap={2} alignItems="flex-start" flexDirection={{ xs: 'column', sm: 'row' }}>
+                                                    <CardContent sx={{ p: 1.75 }}>
+                                                        <Box display="flex" flexDirection="column" gap={1.5}>
+                                                            <Box display="flex" gap={1.5} alignItems="flex-start" flexDirection={{ xs: 'column', sm: 'row' }}>
                                                                 <Box flex={1} width="100%">
-                                                                    <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                                                    <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.75rem' }}>
                                                                         Service Name
                                                                     </Typography>
                                                                     <Box
@@ -778,7 +807,7 @@ export default function SettingsPage() {
                                                                             border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                                             bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#ffffff',
                                                                             color: textPrimary,
-                                                                            fontSize: '0.95rem',
+                                                                            fontSize: '0.9rem',
                                                                             fontFamily: 'inherit',
                                                                             outline: 'none',
                                                                             '&:focus': {
@@ -789,8 +818,8 @@ export default function SettingsPage() {
                                                                     />
                                                                 </Box>
 
-                                                                <Box width={{ xs: '100%', sm: 140 }}>
-                                                                    <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                                                <Box width={{ xs: '100%', sm: 130 }}>
+                                                                    <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.75rem' }}>
                                                                         Duration (min)
                                                                     </Typography>
                                                                     <Box
@@ -805,7 +834,7 @@ export default function SettingsPage() {
                                                                             border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                                             bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#ffffff',
                                                                             color: textPrimary,
-                                                                            fontSize: '0.95rem',
+                                                                            fontSize: '0.9rem',
                                                                             fontFamily: 'inherit',
                                                                             outline: 'none',
                                                                             '&:focus': {
@@ -816,8 +845,8 @@ export default function SettingsPage() {
                                                                     />
                                                                 </Box>
 
-                                                                <Box width={{ xs: '100%', sm: 120 }}>
-                                                                    <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                                                <Box width={{ xs: '100%', sm: 110 }}>
+                                                                    <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.75rem' }}>
                                                                         Price ($)
                                                                     </Typography>
                                                                     <Box
@@ -832,7 +861,7 @@ export default function SettingsPage() {
                                                                             border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                                             bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#ffffff',
                                                                             color: textPrimary,
-                                                                            fontSize: '0.95rem',
+                                                                            fontSize: '0.9rem',
                                                                             fontFamily: 'inherit',
                                                                             outline: 'none',
                                                                             '&:focus': {
@@ -845,6 +874,7 @@ export default function SettingsPage() {
 
                                                                 <IconButton
                                                                     onClick={() => handleRemoveService(index)}
+                                                                    size="small"
                                                                     sx={{
                                                                         color: '#ef4444',
                                                                         mt: { xs: 0, sm: 3 },
@@ -853,12 +883,12 @@ export default function SettingsPage() {
                                                                         }
                                                                     }}
                                                                 >
-                                                                    <DeleteIcon />
+                                                                    <DeleteIcon sx={{ fontSize: 20 }} />
                                                                 </IconButton>
                                                             </Box>
 
                                                             <Box>
-                                                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                                                <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.75rem' }}>
                                                                     Description
                                                                 </Typography>
                                                                 <Box
@@ -869,12 +899,12 @@ export default function SettingsPage() {
                                                                     placeholder="Brief description of the service"
                                                                     sx={{
                                                                         width: '100%',
-                                                                        p: 1.5,
+                                                                        p: 1,
                                                                         borderRadius: '12px',
                                                                         border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                                         bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#ffffff',
                                                                         color: textPrimary,
-                                                                        fontSize: '0.95rem',
+                                                                        fontSize: '0.9rem',
                                                                         fontFamily: 'inherit',
                                                                         outline: 'none',
                                                                         resize: 'vertical',
@@ -890,26 +920,31 @@ export default function SettingsPage() {
                                                 </Card>
                                             ))}
 
-                                            <Box display="flex" gap={2} mt={1.5}>
-                                                <Button
-                                                    variant="contained"
-                                                    onClick={handleSaveServices}
-                                                    disabled={processing}
+                                            <Box display="flex" gap={2}>
+                                                <Box
+                                                    onClick={processing ? undefined : handleSaveServices}
                                                     sx={{
-                                                        borderRadius: '12px',
-                                                        textTransform: 'none',
-                                                        fontWeight: 700,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
                                                         px: 4,
-                                                        bgcolor: '#8b5cf6',
-                                                        boxShadow: '0 4px 14px 0 rgba(139, 92, 246, 0.39)',
-                                                        '&:hover': {
-                                                            bgcolor: '#7c3aed',
-                                                            boxShadow: '0 6px 20px rgba(139, 92, 246, 0.5)',
+                                                        py: 1,
+                                                        borderRadius: '12px',
+                                                        background: processing ? '#9ca3af' : 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
+                                                        color: '#ffffff',
+                                                        fontWeight: 700,
+                                                        fontSize: '0.875rem',
+                                                        cursor: processing ? 'not-allowed' : 'pointer',
+                                                        opacity: processing ? 0.6 : 1,
+                                                        transition: 'all 0.2s ease',
+                                                        '&:hover': processing ? {} : {
+                                                            transform: 'translateY(-1px)',
+                                                            boxShadow: '0 6px 20px rgba(255, 107, 107, 0.4)',
                                                         }
                                                     }}
                                                 >
                                                     {processing ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'Save Services'}
-                                                </Button>
+                                                </Box>
                                                 <Button
                                                     variant="outlined"
                                                     onClick={fetchSettings}
@@ -917,8 +952,13 @@ export default function SettingsPage() {
                                                         borderRadius: '12px',
                                                         textTransform: 'none',
                                                         fontWeight: 600,
+                                                        fontSize: '0.875rem',
                                                         borderColor: isDark ? 'rgba(255,255,255,0.2)' : '#e2e8f0',
                                                         color: textPrimary,
+                                                        '&:hover': {
+                                                            borderColor: isDark ? 'rgba(255,255,255,0.3)' : '#cbd5e1',
+                                                            bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc',
+                                                        }
                                                     }}
                                                 >
                                                     Cancel
@@ -932,21 +972,21 @@ export default function SettingsPage() {
                             {/* Working Hours Section */}
                             {activeSection === 'hours' && (
                                 <Box>
-                                    <Box mb={2}>
-                                        <Typography variant="h5" fontWeight={700} color={textPrimary} sx={{ mb: 1 }}>
+                                    <Box mb={1.5}>
+                                        <Typography variant="h5" fontWeight={700} color={textPrimary} sx={{ mb: 0.5, fontSize: '1.25rem' }}>
                                             Working Hours
                                         </Typography>
-                                        <Typography variant="body2" color={textSecondary}>
+                                        <Typography variant="body2" color={textSecondary} sx={{ fontSize: '0.875rem' }}>
                                             Set your business hours for each day of the week
                                         </Typography>
                                     </Box>
 
-                                    <Stack spacing={1.5}>
+                                    <Stack spacing={1.25}>
                                         {workingHours.map((hours, index) => (
                                             <Card
                                                 key={hours.day}
                                                 sx={{
-                                                    borderRadius: '24px',
+                                                    borderRadius: '16px',
                                                     bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
                                                     border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                     transition: 'all 0.2s ease',
@@ -957,8 +997,8 @@ export default function SettingsPage() {
                                                     }
                                                 }}
                                             >
-                                                <CardContent sx={{ p: 2 }}>
-                                                    <Box display="flex" alignItems="center" gap={3} flexWrap="wrap">
+                                                <CardContent sx={{ p: 1.75 }}>
+                                                    <Box display="flex" alignItems="center" gap={2.5} flexWrap="wrap">
                                                         <FormControlLabel
                                                             control={
                                                                 <Switch
@@ -966,29 +1006,29 @@ export default function SettingsPage() {
                                                                     onChange={(e) => handleWorkingHoursChange(index, 'isOpen', e.target.checked)}
                                                                     sx={{
                                                                         '& .MuiSwitch-switchBase.Mui-checked': {
-                                                                            color: '#8b5cf6',
+                                                                            color: '#ff6b6b',
                                                                         },
                                                                         '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                                                            bgcolor: '#8b5cf6',
+                                                                            bgcolor: '#ff6b6b',
                                                                         },
                                                                     }}
                                                                 />
                                                             }
                                                             label={dayLabels[hours.day]}
                                                             sx={{
-                                                                minWidth: 160,
+                                                                minWidth: 140,
                                                                 '& .MuiFormControlLabel-label': {
                                                                     fontWeight: 700,
-                                                                    fontSize: '1rem',
+                                                                    fontSize: '0.95rem',
                                                                     color: textPrimary
                                                                 }
                                                             }}
                                                         />
 
                                                         {hours.isOpen ? (
-                                                            <Box display="flex" alignItems="center" gap={2} flex={1}>
+                                                            <Box display="flex" alignItems="center" gap={1.75} flex={1}>
                                                                 <Box flex={1}>
-                                                                    <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                                                    <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.75rem' }}>
                                                                         Start Time
                                                                     </Typography>
                                                                     <Box
@@ -1003,7 +1043,7 @@ export default function SettingsPage() {
                                                                             border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                                             bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#ffffff',
                                                                             color: textPrimary,
-                                                                            fontSize: '0.95rem',
+                                                                            fontSize: '0.9rem',
                                                                             fontFamily: 'inherit',
                                                                             outline: 'none',
                                                                             '&:focus': {
@@ -1013,9 +1053,9 @@ export default function SettingsPage() {
                                                                         }}
                                                                     />
                                                                 </Box>
-                                                                <Typography color={textSecondary} fontWeight={600} sx={{ mt: 3 }}>to</Typography>
+                                                                <Typography color={textSecondary} fontWeight={600} sx={{ mt: 3, fontSize: '0.875rem' }}>to</Typography>
                                                                 <Box flex={1}>
-                                                                    <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                                                    <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.75rem' }}>
                                                                         End Time
                                                                     </Typography>
                                                                     <Box
@@ -1030,7 +1070,7 @@ export default function SettingsPage() {
                                                                             border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                                             bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#ffffff',
                                                                             color: textPrimary,
-                                                                            fontSize: '0.95rem',
+                                                                            fontSize: '0.9rem',
                                                                             fontFamily: 'inherit',
                                                                             outline: 'none',
                                                                             '&:focus': {
@@ -1042,7 +1082,7 @@ export default function SettingsPage() {
                                                                 </Box>
                                                             </Box>
                                                         ) : (
-                                                            <Typography color={textSecondary} fontWeight={600} fontSize="1rem">
+                                                            <Typography color={textSecondary} fontWeight={600} fontSize="0.95rem">
                                                                 Closed
                                                             </Typography>
                                                         )}
@@ -1051,26 +1091,31 @@ export default function SettingsPage() {
                                             </Card>
                                         ))}
 
-                                        <Box display="flex" gap={2} mt={2}>
-                                            <Button
-                                                variant="contained"
-                                                onClick={handleSaveWorkingHours}
-                                                disabled={processing}
+                                        <Box display="flex" gap={2}>
+                                            <Box
+                                                onClick={processing ? undefined : handleSaveWorkingHours}
                                                 sx={{
-                                                    borderRadius: '12px',
-                                                    textTransform: 'none',
-                                                    fontWeight: 700,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
                                                     px: 4,
-                                                    bgcolor: '#8b5cf6',
-                                                    boxShadow: '0 4px 14px 0 rgba(139, 92, 246, 0.39)',
-                                                    '&:hover': {
-                                                        bgcolor: '#7c3aed',
-                                                        boxShadow: '0 6px 20px rgba(139, 92, 246, 0.5)',
+                                                    py: 1,
+                                                    borderRadius: '12px',
+                                                    background: processing ? '#9ca3af' : 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
+                                                    color: '#ffffff',
+                                                    fontWeight: 700,
+                                                    fontSize: '0.875rem',
+                                                    cursor: processing ? 'not-allowed' : 'pointer',
+                                                    opacity: processing ? 0.6 : 1,
+                                                    transition: 'all 0.2s ease',
+                                                    '&:hover': processing ? {} : {
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 6px 20px rgba(255, 107, 107, 0.4)',
                                                     }
                                                 }}
                                             >
                                                 {processing ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'Save Working Hours'}
-                                            </Button>
+                                            </Box>
                                             <Button
                                                 variant="outlined"
                                                 onClick={fetchSettings}
@@ -1078,6 +1123,7 @@ export default function SettingsPage() {
                                                     borderRadius: '12px',
                                                     textTransform: 'none',
                                                     fontWeight: 600,
+                                                    fontSize: '0.875rem',
                                                     borderColor: isDark ? 'rgba(255,255,255,0.2)' : '#e2e8f0',
                                                     color: textPrimary,
                                                     '&:hover': {
@@ -1096,18 +1142,18 @@ export default function SettingsPage() {
                             {/* Public Links Section */}
                             {activeSection === 'links' && (
                                 <Box>
-                                    <Box mb={2}>
-                                        <Typography variant="h5" fontWeight={700} color={textPrimary} sx={{ mb: 1 }}>
+                                    <Box mb={1.5}>
+                                        <Typography variant="h5" fontWeight={700} color={textPrimary} sx={{ mb: 0.5, fontSize: '1.25rem' }}>
                                             Public Links
                                         </Typography>
-                                        <Typography variant="body2" color={textSecondary}>
+                                        <Typography variant="body2" color={textSecondary} sx={{ fontSize: '0.875rem' }}>
                                             Share your booking page and manage public URLs
                                         </Typography>
                                     </Box>
 
-                                    <Stack spacing={3}>
+                                    <Stack spacing={2}>
                                         <Box>
-                                            <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                            <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.75rem' }}>
                                                 Public Booking Page
                                             </Typography>
                                             <Box
@@ -1132,37 +1178,39 @@ export default function SettingsPage() {
                                                         bg: 'transparent',
                                                         bgcolor: 'transparent',
                                                         color: textPrimary,
-                                                        fontSize: '0.95rem',
+                                                        fontSize: '0.875rem',
                                                         fontFamily: 'inherit',
                                                         outline: 'none',
                                                     }}
                                                 />
                                                 <IconButton
                                                     onClick={copyToClipboard}
+                                                    size="small"
                                                     sx={{
-                                                        color: '#8b5cf6',
+                                                        color: '#ff6b6b',
                                                         '&:hover': {
-                                                            bgcolor: isDark ? 'rgba(139, 92, 246, 0.1)' : '#ede9fe',
+                                                            bgcolor: isDark ? 'rgba(255, 107, 107, 0.1)' : '#fee2e2',
                                                         }
                                                     }}
                                                 >
-                                                    <ContentCopyIcon />
+                                                    <ContentCopyIcon sx={{ fontSize: 20 }} />
                                                 </IconButton>
                                                 <IconButton
                                                     component="a"
                                                     href={bookingUrl}
                                                     target="_blank"
+                                                    size="small"
                                                     sx={{
-                                                        color: '#8b5cf6',
+                                                        color: '#ff6b6b',
                                                         '&:hover': {
-                                                            bgcolor: isDark ? 'rgba(139, 92, 246, 0.1)' : '#ede9fe',
+                                                            bgcolor: isDark ? 'rgba(255, 107, 107, 0.1)' : '#fee2e2',
                                                         }
                                                     }}
                                                 >
-                                                    <LaunchIcon />
+                                                    <LaunchIcon sx={{ fontSize: 20 }} />
                                                 </IconButton>
                                             </Box>
-                                            <Typography variant="caption" color={textSecondary} sx={{ mt: 0.5, display: 'block' }}>
+                                            <Typography variant="caption" color={textSecondary} sx={{ mt: 0.5, display: 'block', fontSize: '0.7rem' }}>
                                                 Share this link with your customers to accept bookings
                                             </Typography>
                                         </Box>
@@ -1170,7 +1218,7 @@ export default function SettingsPage() {
                                         <Divider />
 
                                         <Box>
-                                            <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
+                                            <Typography variant="caption" color={textSecondary} sx={{ mb: 0.5, display: 'block', fontWeight: 600, fontSize: '0.75rem' }}>
                                                 Business Slug
                                             </Typography>
                                             <Box
@@ -1185,21 +1233,19 @@ export default function SettingsPage() {
                                                     border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
                                                     bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#F3F4F6',
                                                     color: textSecondary,
-                                                    fontSize: '0.95rem',
+                                                    fontSize: '0.875rem',
                                                     fontFamily: 'inherit',
                                                     outline: 'none',
                                                 }}
                                             />
-                                            <Typography variant="caption" color={textSecondary} sx={{ mt: 0.5, display: 'block' }}>
+                                            <Typography variant="caption" color={textSecondary} sx={{ mt: 0.5, display: 'block', fontSize: '0.7rem' }}>
                                                 This is your unique business identifier used in public URLs
                                             </Typography>
                                         </Box>
                                     </Stack>
                                 </Box>
                             )}
-                        </Paper>
-                    </Box>
-                </Box>
+                </Paper>
 
                 {/* Toast Notifications */}
                 <Snackbar

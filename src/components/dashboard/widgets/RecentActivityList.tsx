@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Paper, Typography, IconButton, Avatar, Chip } from '@mui/material';
+import { Box, Paper, Typography, IconButton, Avatar, Chip, useTheme } from '@mui/material';
 import MessageIcon from '@mui/icons-material/Message';
 import EventIcon from '@mui/icons-material/Event';
 import InventoryIcon from '@mui/icons-material/Inventory';
@@ -33,9 +33,9 @@ const getIcon = (type: string) => {
     }
 };
 
-const getColor = (type: string) => {
+const getColor = (type: string, isDark: boolean) => {
     switch (type) {
-        case 'message': return '#3b82f6';
+        case 'message': return isDark ? 'rgba(255,255,255,0.9)' : '#3b82f6';
         case 'booking': return '#22c55e';
         case 'inventory': return '#f59e0b';
         case 'form': return '#8b5cf6';
@@ -44,6 +44,9 @@ const getColor = (type: string) => {
 };
 
 export default function RecentActivityList({ title = "Recent Updates", items = [] }: RecentActivityListProps) {
+    const theme = useTheme();
+    const isDark = theme.palette.mode === 'dark';
+    
     return (
         <Paper sx={{
             p: 3,
@@ -55,7 +58,7 @@ export default function RecentActivityList({ title = "Recent Updates", items = [
             maxHeight: 500
         }}>
             <Box sx={{ display: 'flex', gap: 3, mb: 3, borderBottom: '1px solid', borderColor: 'divider', pb: 1 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, borderBottom: '2px solid', borderColor: 'text.primary', pb: 1, mb: -1.1 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, borderBottom: '2px solid', borderColor: '#ff6b6b', pb: 1, mb: -1.1 }}>
                     {title}
                 </Typography>
             </Box>
@@ -75,8 +78,8 @@ export default function RecentActivityList({ title = "Recent Updates", items = [
                                     width: 48,
                                     height: 48,
                                     borderRadius: '12px',
-                                    bgcolor: `${getColor(item.type)}20`, // 20% opacity
-                                    color: getColor(item.type)
+                                    bgcolor: `${getColor(item.type, isDark)}20`, // 20% opacity
+                                    color: getColor(item.type, isDark)
                                 }}
                             >
                                 {getIcon(item.type)}
@@ -85,7 +88,7 @@ export default function RecentActivityList({ title = "Recent Updates", items = [
                                 <Typography variant="body1" noWrap sx={{ fontWeight: 600, lineHeight: 1.2 }}>
                                     {item.title}
                                 </Typography>
-                                <Typography variant="caption" noWrap sx={{ color: 'text.secondary', display: 'block' }}>
+                                <Typography variant="caption" noWrap sx={{ color: '#9ca3af', display: 'block' }}>
                                     {item.description}
                                 </Typography>
                             </Box>
@@ -99,7 +102,7 @@ export default function RecentActivityList({ title = "Recent Updates", items = [
                                     size="small"
                                     component={Link}
                                     href={item.link}
-                                    sx={{ cursor: 'pointer', bgcolor: 'rgba(0,0,0,0.05)' }}
+                                    sx={{ cursor: 'pointer', bgcolor: 'rgba(255,107,107,0.1)', color: '#ff6b6b', fontWeight: 500 }}
                                 />
                             )}
                         </Box>

@@ -11,16 +11,28 @@ import {
     Chip,
     CircularProgress,
     Tooltip,
-    Alert
+    Alert,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemText
 } from '@mui/material';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import AttachFileOutlinedIcon from '@mui/icons-material/AttachFileOutlined';
-import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
-import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline';
+import LinkIcon from '@mui/icons-material/Link';
+import DescriptionIcon from '@mui/icons-material/Description';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import AddIcon from '@mui/icons-material/Add';
 import { Conversation, Message } from '@/lib/services/inbox.service';
 import { useState, useRef, useEffect } from 'react';
+import { formService, Form } from '@/lib/services/form.service';
+import api from '@/lib/api';
 
 interface ChatWindowProps {
     conversation: Conversation | null;
@@ -30,8 +42,10 @@ interface ChatWindowProps {
     onResolve: () => void;
     onReopen: () => void;
     onResumeAutomation: () => void;
+    businessSlug: string | null;
+    onSendBookingLink: () => void;
+    onNewConversation?: () => void;
 }
-
 export default function ChatWindow({
     conversation,
     messages,
@@ -39,12 +53,19 @@ export default function ChatWindow({
     sending,
     onResolve,
     onReopen,
-    onResumeAutomation
+    onResumeAutomation,
+    businessSlug,
+    onSendBookingLink,
+    onNewConversation
 }: ChatWindowProps) {
     const [input, setInput] = useState('');
     const [attachments, setAttachments] = useState<File[]>([]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [formDialogOpen, setFormDialogOpen] = useState(false);
+    const [forms, setForms] = useState<Form[]>([]);
+    const [loadingForms, setLoadingForms] = useState(false);
+    const [sendingForm, setSendingForm] = useState(false);
 
     const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
     const MAX_TOTAL_SIZE = 25 * 1024 * 1024; // 25MB total
@@ -100,6 +121,48 @@ export default function ChatWindow({
         return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 
+    const fetchForms = async () => {
+        setLoadingForms(true);
+        try {
+            const response = await formService.getForms();
+            if (response.success) {
+                setForms(response.data.filter((f: Form) => f.isActive));
+            }
+        } catch (error) {
+            console.error('Failed to fetch forms:', error);
+        } finally {
+            setLoadingForms(false);
+        }
+    };
+
+    const handleSendForm = async (formId: string) => {
+        if (!conversation?.contactId?.email) return;
+
+        setSendingForm(true);
+        try {
+            const response = await api.post('/inbox/send-form', {
+                conversationId: conversation._id,
+                contactEmail: conversation.contactId.email,
+                contactName: conversation.contactId.name,
+                formId
+            });
+
+            if (response.data.success) {
+                setFormDialogOpen(false);
+            }
+        } catch (error: any) {
+            console.error('Failed to send form:', error);
+        } finally {
+            setSendingForm(false);
+        }
+    };
+
+    useEffect(() => {
+        if (formDialogOpen) {
+            fetchForms();
+        }
+    }, [formDialogOpen]);
+
     if (!conversation) {
         return (
             <Paper sx={{
@@ -107,19 +170,72 @@ export default function ChatWindow({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderRadius: '24px',
+                borderRadius: 1,
                 bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1a1d29' : '#fff',
                 border: '1px solid',
                 borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
                 boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
             }}>
-                <Box textAlign="center">
-                    <Typography variant="h6" color="text.secondary" gutterBottom>
-                        Select a conversation
+                <Box textAlign="center" sx={{ maxWidth: 500, px: 4 }}>
+                    {/* Icon */}
+                    <Box sx={{
+                        width: 120,
+                        height: 120,
+                        borderRadius: '50%',
+                        bgcolor: 'rgba(255, 107, 107, 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 32px'
+                    }}>
+                        <ChatBubbleOutlineIcon sx={{ fontSize: 56, color: '#ff6b6b' }} />
+                    </Box>
+
+                    {/* Heading */}
+                    <Typography variant="h4" sx={{ 
+                        fontWeight: 700, 
+                        mb: 2,
+                        color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#000'
+                    }}>
+                        Start a Conversation
                     </Typography>
-                    <Typography variant="body2" color="text.disabled">
-                        Choose a contact from the list to start messaging
+
+                    {/* Description */}
+                    <Typography variant="body1" sx={{ 
+                        color: '#9ca3af',
+                        mb: 4,
+                        fontSize: '1rem',
+                        lineHeight: 1.6
+                    }}>
+                        Select a conversation from the list or create a new one to get started
                     </Typography>
+
+                    {/* New Conversation Button */}
+                    <Box
+                        onClick={onNewConversation}
+                        sx={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            bgcolor: '#ff6b6b',
+                            color: '#ffffff',
+                            px: 4,
+                            py: 1.5,
+                            borderRadius: '12px',
+                            fontWeight: 600,
+                            fontSize: '1rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            '&:hover': {
+                                bgcolor: '#ff5252',
+                                transform: 'translateY(-2px)',
+                                boxShadow: '0 8px 20px rgba(255, 107, 107, 0.3)'
+                            }
+                        }}
+                    >
+                        <AddIcon sx={{ fontSize: 20 }} />
+                        New Conversation
+                    </Box>
                 </Box>
             </Paper>
         );
@@ -130,7 +246,7 @@ export default function ChatWindow({
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
-            borderRadius: '24px',
+            borderRadius: 1,
             bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1a1d29' : '#fff',
             border: '1px solid',
             borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
@@ -149,16 +265,16 @@ export default function ChatWindow({
             }}>
                 <Box display="flex" alignItems="center" gap={2}>
                     <Avatar sx={{
-                        bgcolor: '#7c3aed',
+                        bgcolor: '#ff6b6b',
                         fontWeight: 600,
-                        boxShadow: '0 0 10px rgba(124, 58, 237, 0.4)'
+                        boxShadow: '0 0 10px rgba(255, 107, 107, 0.4)'
                     }}>
-                        {conversation.contactId.name.charAt(0).toUpperCase()}
+                        {conversation.contactId?.name?.charAt(0).toUpperCase() || '?'}
                     </Avatar>
                     <Box>
                         <Box display="flex" alignItems="center" gap={1}>
                             <Typography variant="subtitle1" fontWeight={600}>
-                                {conversation.contactId.name}
+                                {conversation.contactId?.name || 'Unknown Contact'}
                             </Typography>
                             {conversation.metadata?.gmailThreadId && (
                                 <Chip
@@ -169,8 +285,8 @@ export default function ChatWindow({
                                 />
                             )}
                         </Box>
-                        <Typography variant="caption" color="text.secondary">
-                            {conversation.contactId.email}
+                        <Typography variant="caption" sx={{ color: '#9ca3af', display: 'block', mt: 0.25 }}>
+                            {conversation.contactId?.email || 'No email'}
                         </Typography>
                     </Box>
                 </Box>
@@ -209,37 +325,19 @@ export default function ChatWindow({
                                 }}
                             >
                                 <Paper sx={{
-                                    p: msg.content.trim().toLowerCase().startsWith('<!doctype') || msg.content.trim().toLowerCase().startsWith('<html') ? 0 : 2,
-                                    borderRadius: '16px',
-                                    borderTopRightRadius: isOutbound ? '4px' : '16px',
-                                    borderTopLeftRadius: !isOutbound ? '4px' : '16px',
+                                    p: msg.content.trim().toLowerCase().startsWith('<!doctype') || msg.content.trim().toLowerCase().startsWith('<html') ? 0 : 1.5,
+                                    borderRadius: '4px',
                                     bgcolor: isOutbound
-                                        ? (msg.type === 'automated' ? 'rgba(124, 58, 237, 0.1)' : '#7c3aed')
-                                        : (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f3f4f6',
+                                        ? (msg.type === 'automated' ? 'rgba(255, 107, 107, 0.15)' : '#ff6b6b')
+                                        : (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : '#f5f5f5',
                                     color: isOutbound && msg.type !== 'automated' ? '#fff' : 'text.primary',
-                                    border: msg.type === 'automated' ? '1px dashed rgba(124, 58, 237, 0.4)' : 'none',
+                                    border: 'none',
                                     position: 'relative',
                                     boxShadow: 'none',
                                     overflow: 'hidden',
                                     minWidth: msg.content.trim().toLowerCase().startsWith('<!doctype') || msg.content.trim().toLowerCase().startsWith('<html') ? '300px' : 'auto',
                                     width: msg.content.trim().toLowerCase().startsWith('<!doctype') || msg.content.trim().toLowerCase().startsWith('<html') ? '100%' : 'auto'
                                 }}>
-                                    {msg.type === 'automated' && (
-                                        <Tooltip title="Automated Message">
-                                            <SmartToyOutlinedIcon sx={{
-                                                position: 'absolute',
-                                                top: -10,
-                                                right: -5,
-                                                bgcolor: 'background.paper',
-                                                borderRadius: '50%',
-                                                fontSize: 18,
-                                                color: 'primary.main',
-                                                border: '1px solid',
-                                                borderColor: 'divider',
-                                                zIndex: 1
-                                            }} />
-                                        </Tooltip>
-                                    )}
                                     {msg.content.trim().toLowerCase().startsWith('<!doctype') || msg.content.trim().toLowerCase().startsWith('<html') ? (
                                         <Box sx={{ width: '100%', height: '400px', bgcolor: '#fff' }}>
                                             <iframe
@@ -257,9 +355,10 @@ export default function ChatWindow({
                                     ) : (
                                         <Typography variant="body2" sx={{
                                             whiteSpace: 'pre-wrap',
-                                            lineHeight: 1.6,
+                                            lineHeight: 1.5,
                                             wordBreak: 'break-word',
-                                            overflowWrap: 'anywhere'
+                                            overflowWrap: 'anywhere',
+                                            fontSize: '0.875rem'
                                         }}>
                                             {msg.content}
                                         </Typography>
@@ -293,6 +392,7 @@ export default function ChatWindow({
                                 size="small"
                                 sx={{
                                     maxWidth: '200px',
+                                    fontSize: '0.75rem',
                                     '& .MuiChip-label': {
                                         overflow: 'hidden',
                                         textOverflow: 'ellipsis'
@@ -305,12 +405,13 @@ export default function ChatWindow({
                 
                 <Box sx={{
                     display: 'flex',
-                    gap: 1,
+                    gap: 0.5,
                     p: 0.5,
                     bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#fff',
-                    borderRadius: '16px',
+                    borderRadius: '12px',
                     border: '1px solid',
-                    borderColor: 'divider'
+                    borderColor: 'divider',
+                    alignItems: 'flex-end'
                 }}>
                     <input
                         ref={fileInputRef}
@@ -320,52 +421,164 @@ export default function ChatWindow({
                         style={{ display: 'none' }}
                         accept="*/*"
                     />
-                    <Tooltip title="Attach files (max 25MB total)">
+                    <Tooltip title="Attach files">
                         <IconButton
-                            sx={{ color: 'text.secondary', alignSelf: 'flex-end', mb: 0.5 }}
+                            size="small"
+                            sx={{ color: '#9ca3af' }}
                             onClick={() => fileInputRef.current?.click()}
-                            disabled={sending || conversation.status === 'resolved'}
+                            disabled={sending || conversation?.status === 'resolved'}
                         >
-                            <AttachFileOutlinedIcon />
+                            <AttachFileOutlinedIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Send booking link">
+                        <IconButton
+                            size="small"
+                            sx={{ color: '#9ca3af' }}
+                            onClick={onSendBookingLink}
+                            disabled={sending || conversation?.status === 'resolved' || !businessSlug}
+                        >
+                            <LinkIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Send form">
+                        <IconButton
+                            size="small"
+                            sx={{ color: '#9ca3af' }}
+                            onClick={() => setFormDialogOpen(true)}
+                            disabled={sending || conversation?.status === 'resolved'}
+                        >
+                            <DescriptionIcon sx={{ fontSize: 18 }} />
                         </IconButton>
                     </Tooltip>
                     <TextField
                         fullWidth
                         multiline
-                        maxRows={4}
+                        maxRows={3}
                         placeholder="Type a message..."
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        onKeyPress={(e) => {
+                        onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
                                 handleSend();
                             }
                         }}
-                        disabled={sending || conversation.status === 'resolved'}
+                        disabled={sending || conversation?.status === 'resolved'}
                         sx={{
                             '& .MuiOutlinedInput-root': {
-                                p: 1.5,
-                                '& fieldset': { border: 'none' }
+                                p: 1,
+                                fontSize: '0.875rem',
+                                '& fieldset': { border: 'none' },
+                                '& textarea': {
+                                    fontSize: '0.875rem'
+                                }
+                            },
+                            '& .MuiInputBase-input::placeholder': {
+                                fontSize: '0.875rem',
+                                color: '#9ca3af'
                             }
                         }}
                     />
                     <IconButton
+                        size="small"
                         onClick={handleSend}
-                        disabled={!input.trim() || sending || conversation.status === 'resolved'}
+                        disabled={!input.trim() || sending || conversation?.status === 'resolved'}
                         sx={{
-                            alignSelf: 'flex-end',
-                            mb: 0.5,
-                            bgcolor: '#7c3aed',
+                            bgcolor: '#ff6b6b',
                             color: 'white',
-                            '&:hover': { bgcolor: '#6d28d9' },
-                            '&.Mui-disabled': { bgcolor: 'action.disabledBackground' }
+                            '&:hover': { bgcolor: '#ff5252' },
+                            '&.Mui-disabled': { bgcolor: '#d1d5db', color: '#9ca3af' }
                         }}
                     >
-                        {sending ? <CircularProgress size={24} color="inherit" /> : <SendOutlinedIcon />}
+                        {sending ? <CircularProgress size={18} color="inherit" /> : <SendOutlinedIcon sx={{ fontSize: 18 }} />}
                     </IconButton>
                 </Box>
             </Box>
+
+            {/* Send Form Dialog */}
+            <Dialog
+                open={formDialogOpen}
+                onClose={() => !sendingForm && setFormDialogOpen(false)}
+                maxWidth="sm"
+                fullWidth
+                slotProps={{
+                    paper: {
+                        sx: {
+                            borderRadius: '16px',
+                            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1a1d29' : '#fff'
+                        }
+                    }
+                }}
+            >
+                <DialogTitle sx={{ fontWeight: 700, fontSize: '1.125rem', pb: 1 }}>
+                    Send Form to {conversation?.contactId?.name}
+                </DialogTitle>
+                <DialogContent sx={{ pt: 1 }}>
+                    {loadingForms ? (
+                        <Box display="flex" justifyContent="center" py={4}>
+                            <CircularProgress size={32} />
+                        </Box>
+                    ) : forms.length === 0 ? (
+                        <Typography sx={{ color: '#9ca3af', fontSize: '0.875rem' }} textAlign="center" py={4}>
+                            No active forms available
+                        </Typography>
+                    ) : (
+                        <List sx={{ pt: 0 }}>
+                            {forms.map((form) => (
+                                <ListItem key={form._id} disablePadding sx={{ mb: 0.75 }}>
+                                    <ListItemButton
+                                        onClick={() => handleSendForm(form._id)}
+                                        disabled={sendingForm}
+                                        sx={{
+                                            borderRadius: '8px',
+                                            py: 1,
+                                            px: 1.5,
+                                            border: '1px solid',
+                                            borderColor: 'divider',
+                                            '&:hover': {
+                                                borderColor: '#ff6b6b',
+                                                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 107, 107, 0.1)' : 'rgba(255, 107, 107, 0.05)'
+                                            }
+                                        }}
+                                    >
+                                        <DescriptionIcon sx={{ mr: 1.5, color: '#ff6b6b', fontSize: 20 }} />
+                                        <ListItemText
+                                            primary={form.title}
+                                            secondary={form.description}
+                                            primaryTypographyProps={{ 
+                                                fontWeight: 600,
+                                                fontSize: '0.875rem'
+                                            }}
+                                            secondaryTypographyProps={{
+                                                sx: { 
+                                                    color: '#9ca3af',
+                                                    fontSize: '0.75rem',
+                                                    mt: 0.25
+                                                }
+                                            }}
+                                        />
+                                    </ListItemButton>
+                                </ListItem>
+                            ))}
+                        </List>
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2 }}>
+                    <Button
+                        onClick={() => setFormDialogOpen(false)}
+                        disabled={sendingForm}
+                        sx={{ 
+                            textTransform: 'none', 
+                            fontWeight: 600,
+                            color: '#000000',
+                            fontSize: '0.875rem'
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Paper>
     );
 }

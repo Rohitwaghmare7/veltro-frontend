@@ -31,39 +31,28 @@ export default function PendingMessagesCard({
             display: 'flex',
             flexDirection: 'column'
         }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>
-                    {title}
-                </Typography>
-                <IconButton size="small">
+            {/* Header Section */}
+            <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '1rem', color: (theme) => theme.palette.mode === 'dark' ? 'text.secondary' : '#000000' }}>
+                        {title}
+                    </Typography>
+                    <IconButton size="small">
 
-                </IconButton>
+                    </IconButton>
+                </Box>
             </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, gap: 2 }}>
-                <Box>
-                    <Typography variant="h3" sx={{ fontWeight: 700, mb: 2 }}>
-                        {total}
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        {data.map((entry, index) => (
-                            <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: entry.color }} />
-                                <Typography variant="caption" color="text.secondary">
-                                    {entry.name} <b>{entry.value}</b>
-                                </Typography>
-                            </Box>
-                        ))}
-                    </Box>
-                </Box>
-
-                <Box sx={{ width: 120, height: 120, position: 'relative' }}>
+            {/* Chart and Legend Section */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexGrow: 1 }}>
+                {/* Chart */}
+                <Box sx={{ width: 140, height: 140, position: 'relative', flexShrink: 0 }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                             <Pie
                                 data={data}
-                                innerRadius={40}
-                                outerRadius={55}
+                                innerRadius={45}
+                                outerRadius={65}
                                 paddingAngle={5}
                                 dataKey="value"
                                 cornerRadius={4}
@@ -91,6 +80,23 @@ export default function PendingMessagesCard({
                             transform: 'rotate(45deg)'
                         }} />
                     </Box>
+                </Box>
+
+                {/* Legend */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
+                    {data.map((entry, index) => (
+                        <Box key={index} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: entry.color }} />
+                                <Typography variant="body2" color="text.primary" sx={{ fontSize: '0.9rem' }}>
+                                    {entry.name}
+                                </Typography>
+                            </Box>
+                            <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.9rem' }}>
+                                {entry.value}
+                            </Typography>
+                        </Box>
+                    ))}
                 </Box>
             </Box>
         </Paper>

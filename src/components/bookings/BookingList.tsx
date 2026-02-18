@@ -57,7 +57,7 @@ export default function BookingList({ bookings }: BookingListProps) {
 
     // Theme-aware colors
     const bgColor = isDark ? 'rgba(255,255,255,0.05)' : '#ffffff';
-    const borderColor = isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6';
+    const borderColor = isDark ? 'rgba(255,255,255,0.08)' : '#E5E7EB';
     const textPrimary = isDark ? 'rgba(255,255,255,0.9)' : '#111827';
     const textSecondary = isDark ? 'rgba(255,255,255,0.6)' : '#6B7280';
     const hoverBg = isDark ? 'rgba(255,255,255,0.08)' : '#F9FAFB';
@@ -168,9 +168,10 @@ export default function BookingList({ bookings }: BookingListProps) {
                                 fontSize: '0.9rem',
                                 boxShadow: isDark ? '0 2px 6px rgba(0,0,0,0.3)' : '0 2px 6px rgba(0,0,0,0.02)',
                                 color: textPrimary,
-                                '& fieldset': { borderColor: 'transparent' },
-                                '&:hover fieldset': { borderColor: 'transparent' },
-                                '&.Mui-focused fieldset': { borderColor: theme.palette.primary.main },
+                                border: isDark ? 'none' : `1px solid ${borderColor}`,
+                                '& fieldset': { borderColor: isDark ? 'rgba(255,255,255,0.1)' : borderColor },
+                                '&:hover fieldset': { borderColor: isDark ? 'rgba(255,255,255,0.2)' : '#D1D5DB' },
+                                '&.Mui-focused fieldset': { borderColor: '#ff6b6b' },
                             }
                         }}
                         InputProps={{
@@ -188,15 +189,18 @@ export default function BookingList({ bookings }: BookingListProps) {
                             bgcolor: isDark ? 'rgba(255,255,255,0.1)' : inputBg,
                             borderRadius: '12px',
                             boxShadow: isDark ? '0 2px 6px rgba(0,0,0,0.3)' : '0 2px 6px rgba(0,0,0,0.02)',
-                            minWidth: 140,
+                            border: isDark ? 'none' : `1px solid ${borderColor}`,
+                            minWidth: 180,
                             height: 40,
                             color: textPrimary,
                             textTransform: 'none',
                             fontWeight: 600,
                             fontSize: '0.9rem',
                             px: 2,
+                            whiteSpace: 'nowrap',
                             '&:hover': {
-                                bgcolor: isDark ? 'rgba(255,255,255,0.15)' : hoverBg
+                                bgcolor: isDark ? 'rgba(255,255,255,0.15)' : hoverBg,
+                                borderColor: isDark ? 'rgba(255,255,255,0.2)' : '#D1D5DB'
                             }
                         }}
                     >
@@ -217,7 +221,7 @@ export default function BookingList({ bookings }: BookingListProps) {
                         sx: {
                             borderRadius: '16px',
                             boxShadow: isDark ? '0 10px 40px rgba(0,0,0,0.5)' : '0 10px 40px rgba(0,0,0,0.1)',
-                            minWidth: 200,
+                            minWidth: 220,
                             mt: 1,
                             border: `1px solid ${borderColor}`,
                             bgcolor: isDark ? '#1a1d29' : bgColor
@@ -233,6 +237,7 @@ export default function BookingList({ bookings }: BookingListProps) {
                         fontSize: '0.9rem', 
                         fontWeight: 500, 
                         color: textPrimary,
+                        whiteSpace: 'nowrap',
                         '&.Mui-selected': {
                             bgcolor: isDark ? 'rgba(102, 126, 234, 0.15)' : 'rgba(102, 126, 234, 0.1)',
                             '&:hover': {
@@ -251,6 +256,7 @@ export default function BookingList({ bookings }: BookingListProps) {
                         fontSize: '0.9rem', 
                         fontWeight: 500, 
                         color: textPrimary,
+                        whiteSpace: 'nowrap',
                         '&.Mui-selected': {
                             bgcolor: isDark ? 'rgba(102, 126, 234, 0.15)' : 'rgba(102, 126, 234, 0.1)',
                             '&:hover': {
@@ -269,6 +275,7 @@ export default function BookingList({ bookings }: BookingListProps) {
                         fontSize: '0.9rem', 
                         fontWeight: 500, 
                         color: textPrimary,
+                        whiteSpace: 'nowrap',
                         '&.Mui-selected': {
                             bgcolor: isDark ? 'rgba(102, 126, 234, 0.15)' : 'rgba(102, 126, 234, 0.1)',
                             '&:hover': {
@@ -287,6 +294,7 @@ export default function BookingList({ bookings }: BookingListProps) {
                         fontSize: '0.9rem', 
                         fontWeight: 500, 
                         color: textPrimary,
+                        whiteSpace: 'nowrap',
                         '&.Mui-selected': {
                             bgcolor: isDark ? 'rgba(102, 126, 234, 0.15)' : 'rgba(102, 126, 234, 0.1)',
                             '&:hover': {
@@ -309,7 +317,8 @@ export default function BookingList({ bookings }: BookingListProps) {
                     bgcolor: bgColor,
                     flex: 1,
                     boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,0,0,0.02)',
-                    maxHeight: 'calc(100vh - 300px)' // Ensure it doesn't overflow the viewport
+                    border: `1px solid ${borderColor}`,
+                    maxHeight: 'calc(100vh - 240px)' // Reduced empty space below table
                 }}
             >
                 <Table sx={{ minWidth: 800 }}>
@@ -471,7 +480,7 @@ export default function BookingList({ bookings }: BookingListProps) {
                         sx: {
                             borderRadius: '16px',
                             boxShadow: isDark ? '0 10px 40px rgba(0,0,0,0.5)' : '0 10px 40px rgba(0,0,0,0.1)',
-                            minWidth: 220,
+                            minWidth: 320,
                             mt: 1,
                             border: `1px solid ${borderColor}`,
                             bgcolor: bgColor

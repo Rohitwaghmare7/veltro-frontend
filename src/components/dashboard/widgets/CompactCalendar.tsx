@@ -10,6 +10,7 @@ import { useBookingsStore } from '@/store/bookingsStore';
 
 export default function CompactCalendar() {
     const theme = useTheme();
+    const isDark = theme.palette.mode === 'dark';
     const [currentDate, setCurrentDate] = useState(new Date());
     const [hoveredDate, setHoveredDate] = useState<string | null>(null);
     
@@ -53,7 +54,7 @@ export default function CompactCalendar() {
         start.setDate(start.getDate() - start.getDay() + 1); // Start from Monday
         
         const days = [];
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < 14; i++) {
             const day = new Date(start);
             day.setDate(start.getDate() + i);
             days.push(day);
@@ -73,7 +74,7 @@ export default function CompactCalendar() {
     const getBookingColor = (count: number) => {
         if (count === 0) return 'transparent';
         if (count <= 2) return '#fbbf24'; // Yellow
-        if (count <= 4) return '#60a5fa'; // Blue
+        if (count <= 4) return isDark ? 'rgba(255,255,255,0.7)' : '#60a5fa'; // White in dark mode, Blue in light mode
         return '#f87171'; // Red
     };
 
@@ -82,31 +83,30 @@ export default function CompactCalendar() {
         return date.toDateString() === today.toDateString();
     };
 
-    const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const days = getDaysInWeek();
 
     const handlePrevWeek = () => {
         const newDate = new Date(currentDate);
-        newDate.setDate(newDate.getDate() - 7);
+        newDate.setDate(newDate.getDate() - 14);
         setCurrentDate(newDate);
     };
 
     const handleNextWeek = () => {
         const newDate = new Date(currentDate);
-        newDate.setDate(newDate.getDate() + 7);
+        newDate.setDate(newDate.getDate() + 14);
         setCurrentDate(newDate);
     };
 
     const getDateRange = () => {
         const start = days[0];
-        const end = days[6];
+        const end = days[13];
         return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
     };
 
     return (
         <Paper sx={{
             p: 2.5,
-            borderRadius: '20px',
+            borderRadius: '24px',
             bgcolor: theme.palette.mode === 'dark' ? '#1a1d29' : '#ffffff',
             boxShadow: theme.palette.mode === 'dark' ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,0,0,0.05)',
             height: '100%',
@@ -124,7 +124,7 @@ export default function CompactCalendar() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     bgcolor: 'rgba(255,255,255,0.8)',
-                    borderRadius: '20px',
+                    borderRadius: '24px',
                     zIndex: 10
                 }}>
                     <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -169,24 +169,24 @@ export default function CompactCalendar() {
             </Box>
 
             {/* Calendar Grid */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
-                {weekDays.map((day, index) => {
-                    const date = days[index];
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(14, 1fr)', gap: 1.5 }}>
+                {days.map((date, index) => {
                     const dateStr = date.toISOString().split('T')[0];
                     const count = getBookingCount(date);
                     const today = isToday(date);
                     const isHovered = hoveredDate === dateStr;
+                    const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
 
                     return (
-                        <Box key={day} sx={{ textAlign: 'center', position: 'relative' }}>
+                        <Box key={dateStr} sx={{ textAlign: 'center', position: 'relative' }}>
                             <Typography variant="caption" sx={{ 
-                                color: 'text.secondary', 
+                                color: theme.palette.mode === 'dark' ? 'text.secondary' : '#000000',
                                 fontSize: '0.75rem',
                                 fontWeight: 500,
                                 display: 'block',
                                 mb: 1
                             }}>
-                                {day}
+                                {dayName}
                             </Typography>
                             <Box
                                 component={Link}
@@ -265,23 +265,6 @@ export default function CompactCalendar() {
                         </Box>
                     );
                 })}
-            </Box>
-
-            {/* View Month Button */}
-            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-                <IconButton
-                    component={Link}
-                    href="/dashboard/bookings"
-                    size="small"
-                    sx={{
-                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-                        '&:hover': {
-                            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
-                        }
-                    }}
-                >
-                    <CalendarMonthIcon sx={{ fontSize: 18 }} />
-                </IconButton>
             </Box>
         </Paper>
     );

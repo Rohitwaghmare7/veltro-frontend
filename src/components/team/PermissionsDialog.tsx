@@ -85,7 +85,7 @@ export default function PermissionsDialog({ open, onClose, member, onUpdate, pro
         <Dialog
             open={open}
             onClose={onClose}
-            maxWidth="md"
+            maxWidth="sm"
             fullWidth
             slotProps={{
                 paper: {
@@ -97,39 +97,39 @@ export default function PermissionsDialog({ open, onClose, member, onUpdate, pro
                 }
             }}
         >
-            <DialogTitle sx={{ pb: 2 }}>
-                <Box display="flex" alignItems="center" gap={2}>
+            <DialogTitle sx={{ pb: 1.5, pt: 2, px: 3 }}>
+                <Box display="flex" alignItems="center" gap={1.5}>
                     <Box
                         sx={{
-                            width: 48,
-                            height: 48,
+                            width: 40,
+                            height: 40,
                             borderRadius: '12px',
-                            bgcolor: isDark ? 'rgba(139, 92, 246, 0.15)' : '#ede9fe',
+                            bgcolor: isDark ? 'rgba(255, 107, 107, 0.15)' : '#fee2e2',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                         }}
                     >
-                        <SecurityIcon sx={{ color: '#8b5cf6', fontSize: 28 }} />
+                        <SecurityIcon sx={{ color: '#ff6b6b', fontSize: 24 }} />
                     </Box>
                     <Box>
-                        <Typography variant="h6" fontWeight={700} color={textPrimary}>
+                        <Typography variant="h6" fontWeight={700} color={textPrimary} fontSize="1.1rem">
                             Edit Permissions
                         </Typography>
-                        <Typography variant="caption" color={textSecondary}>
+                        <Typography variant="caption" color={textSecondary} fontSize="0.75rem">
                             {member.name} • {member.email}
                         </Typography>
                     </Box>
                 </Box>
             </DialogTitle>
-            <DialogContent>
-                <Box display="flex" flexDirection="column" gap={3} mt={1}>
+            <DialogContent sx={{ px: 3, py: 2 }}>
+                <Box display="flex" flexDirection="column" gap={2}>
                     {permissionGroups.map((group) => (
                         <Box key={group.title}>
-                            <Typography variant="subtitle2" fontWeight={600} color={textPrimary} sx={{ mb: 1.5 }}>
+                            <Typography variant="subtitle2" fontWeight={600} color={textPrimary} sx={{ mb: 1 }} fontSize="0.85rem">
                                 {group.title}
                             </Typography>
-                            <Box display="flex" flexDirection="column" gap={1.5}>
+                            <Box display="flex" flexDirection="column" gap={1}>
                                 {group.permissions.map((perm) => (
                                     <Box
                                         key={perm.key}
@@ -139,15 +139,15 @@ export default function PermissionsDialog({ open, onClose, member, onUpdate, pro
                                         sx={{
                                             bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
                                             borderRadius: '12px',
-                                            p: 2,
+                                            p: 1.5,
                                             border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'}`,
                                         }}
                                     >
                                         <Box>
-                                            <Typography variant="body2" fontWeight={600} color={textPrimary}>
+                                            <Typography variant="body2" fontWeight={600} color={textPrimary} fontSize="0.85rem">
                                                 {perm.label}
                                             </Typography>
-                                            <Typography variant="caption" color={textSecondary}>
+                                            <Typography variant="caption" color={textSecondary} fontSize="0.7rem">
                                                 {perm.description}
                                             </Typography>
                                         </Box>
@@ -162,10 +162,10 @@ export default function PermissionsDialog({ open, onClose, member, onUpdate, pro
                                             disabled={member.status === 'deactivated'}
                                             sx={{
                                                 '& .MuiSwitch-switchBase.Mui-checked': {
-                                                    color: '#8b5cf6',
+                                                    color: '#ff6b6b',
                                                 },
                                                 '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                                    bgcolor: '#8b5cf6',
+                                                    bgcolor: '#ff6b6b',
                                                 },
                                             }}
                                         />
@@ -176,7 +176,7 @@ export default function PermissionsDialog({ open, onClose, member, onUpdate, pro
                     ))}
                 </Box>
             </DialogContent>
-            <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+            <DialogActions sx={{ px: 3, pb: 2, pt: 1.5, gap: 1 }}>
                 <Button
                     onClick={onClose}
                     variant="outlined"
@@ -205,12 +205,17 @@ export default function PermissionsDialog({ open, onClose, member, onUpdate, pro
                         textTransform: 'none',
                         fontWeight: 700,
                         px: 3,
-                        bgcolor: '#8b5cf6',
+                        background: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
                         color: 'white',
-                        boxShadow: '0 4px 14px 0 rgba(139, 92, 246, 0.39)',
+                        boxShadow: '0 4px 14px 0 rgba(255, 107, 107, 0.39)',
                         '&:hover': {
-                            bgcolor: '#7c3aed',
-                            boxShadow: '0 6px 20px rgba(139, 92, 246, 0.5)',
+                            background: 'linear-gradient(135deg, #ff5252 0%, #ff7043 100%)',
+                            boxShadow: '0 6px 20px rgba(255, 107, 107, 0.5)'
+                        },
+                        '&:disabled': {
+                            bgcolor: isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0',
+                            color: isDark ? 'rgba(255,255,255,0.3)' : '#94a3b8',
+                            background: 'none'
                         }
                     }}
                 >

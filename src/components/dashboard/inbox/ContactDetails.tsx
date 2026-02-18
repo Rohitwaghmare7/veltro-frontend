@@ -142,7 +142,7 @@ export default function ContactDetails({
         <Paper sx={{
             height: '100%',
             p: 3,
-            borderRadius: '24px',
+            borderRadius: 1,
             bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1a1d29' : '#fff',
             border: '1px solid',
             borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',

@@ -94,7 +94,7 @@ export default function PublicFormPage() {
                     bgcolor: '#F3F4F6',
                 }}
             >
-                <CircularProgress sx={{ color: '#667eea' }} size={40} />
+                <CircularProgress sx={{ color: '#ff6b6b' }} size={40} />
             </Box>
         );
     }
@@ -221,7 +221,7 @@ export default function PublicFormPage() {
                                     variant="body2"
                                     sx={{
                                         fontSize: '0.875rem',
-                                        color: '#667eea',
+                                        color: '#ff6b6b',
                                         textDecoration: 'none',
                                         '&:hover': { textDecoration: 'underline' }
                                     }}
@@ -251,19 +251,19 @@ export default function PublicFormPage() {
                             fontWeight="800"
                             color="#111827"
                             gutterBottom
-                            sx={{ letterSpacing: '-0.5px', fontSize: { xs: '1.5rem', sm: '1.875rem' } }}
+                            sx={{ letterSpacing: '-0.5px', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}
                         >
                             {form.title}
                         </Typography>
                         {form.description && (
-                            <Typography variant="body1" color="#6B7280" sx={{ mt: 1, lineHeight: 1.6, fontSize: '0.95rem' }}>
+                            <Typography variant="body1" color="#6B7280" sx={{ mt: 1, lineHeight: 1.6, fontSize: '0.8rem' }}>
                                 {form.description}
                             </Typography>
                         )}
                     </Box>
 
                     {/* Form Fields */}
-                    <Box component="form" display="flex" flexDirection="column" gap={2.5}>
+                    <Box component="form" display="flex" flexDirection="column" gap={2}>
                         {form.fields.map((field, index) => (
                             <Box key={field.id}>
                                 {field.type === 'text' || field.type === 'email' || field.type === 'phone' || field.type === 'number' || field.type === 'date' ? (
@@ -274,7 +274,7 @@ export default function PublicFormPage() {
                                                 mb: 0.5,
                                                 color: '#374151',
                                                 fontWeight: 600,
-                                                fontSize: '0.875rem',
+                                                fontSize: '0.75rem',
                                                 transform: 'none',
                                                 position: 'static'
                                             }}
@@ -293,7 +293,7 @@ export default function PublicFormPage() {
                                             }}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
-                                                    borderRadius: '8px',
+                                                    borderRadius: '4px',
                                                     bgcolor: 'white',
                                                     '& fieldset': {
                                                         borderColor: '#E5E7EB',
@@ -302,15 +302,15 @@ export default function PublicFormPage() {
                                                         borderColor: '#D1D5DB',
                                                     },
                                                     '&.Mui-focused fieldset': {
-                                                        borderColor: '#667eea',
+                                                        borderColor: '#ff6b6b',
                                                         borderWidth: '1px',
-                                                        boxShadow: '0 0 0 2px rgba(102, 126, 234, 0.2)',
+                                                        boxShadow: '0 0 0 2px rgba(255, 107, 107, 0.2)',
                                                     },
                                                 },
                                                 '& .MuiOutlinedInput-input': {
-                                                    py: 1.2,
+                                                    py: 0.8,
                                                     px: 1.5,
-                                                    fontSize: '0.875rem',
+                                                    fontSize: '0.75rem',
                                                     color: '#111827 !important',
                                                     WebkitTextFillColor: '#111827 !important',
                                                 },
@@ -328,7 +328,7 @@ export default function PublicFormPage() {
                                                 mb: 0.5,
                                                 color: '#374151',
                                                 fontWeight: 600,
-                                                fontSize: '0.875rem',
+                                                fontSize: '0.75rem',
                                                 transform: 'none',
                                                 position: 'static'
                                             }}
@@ -345,7 +345,7 @@ export default function PublicFormPage() {
                                             onChange={(e) => handleAnswerChange(field.id, e.target.value)}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
-                                                    borderRadius: '8px',
+                                                    borderRadius: '4px',
                                                     bgcolor: 'white',
                                                     '& fieldset': {
                                                         borderColor: '#E5E7EB',
@@ -354,13 +354,14 @@ export default function PublicFormPage() {
                                                         borderColor: '#D1D5DB',
                                                     },
                                                     '&.Mui-focused fieldset': {
-                                                        borderColor: '#667eea',
+                                                        borderColor: '#ff6b6b',
                                                         borderWidth: '1px',
-                                                        boxShadow: '0 0 0 2px rgba(102, 126, 234, 0.2)',
+                                                        boxShadow: '0 0 0 2px rgba(255, 107, 107, 0.2)',
                                                     },
                                                     '& textarea': {
-                                                        fontSize: '0.875rem',
+                                                        fontSize: '0.75rem',
                                                         color: '#111827',
+                                                        py: 0.8,
                                                     }
                                                 },
                                             }}
@@ -374,7 +375,7 @@ export default function PublicFormPage() {
                                                 mb: 0.5,
                                                 color: '#374151',
                                                 fontWeight: 600,
-                                                fontSize: '0.875rem',
+                                                fontSize: '0.75rem',
                                                 transform: 'none',
                                                 position: 'static'
                                             }}
@@ -384,15 +385,15 @@ export default function PublicFormPage() {
                                         <Select
                                             fullWidth
                                             displayEmpty
+                                            defaultValue=""
                                             onChange={(e) => handleAnswerChange(field.id, e.target.value)}
                                             sx={{
-                                                borderRadius: '8px',
+                                                borderRadius: '4px',
                                                 bgcolor: 'white',
-                                                fontSize: '0.875rem',
+                                                fontSize: '0.75rem',
                                                 color: '#111827',
                                                 '& .MuiSelect-select': {
-                                                    color: '#111827 !important',
-                                                    WebkitTextFillColor: '#111827 !important',
+                                                    py: 0.8,
                                                 },
                                                 '& .MuiOutlinedInput-notchedOutline': {
                                                     borderColor: '#E5E7EB',
@@ -401,20 +402,37 @@ export default function PublicFormPage() {
                                                     borderColor: '#D1D5DB',
                                                 },
                                                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                                    borderColor: '#667eea',
+                                                    borderColor: '#ff6b6b',
                                                     borderWidth: '1px',
-                                                    boxShadow: '0 0 0 2px rgba(102, 126, 234, 0.2)',
+                                                    boxShadow: '0 0 0 2px rgba(255, 107, 107, 0.2)',
                                                 },
                                                 '& .MuiSvgIcon-root': {
                                                     color: '#6B7280',
                                                 },
                                             }}
+                                            MenuProps={{
+                                                PaperProps: {
+                                                    sx: {
+                                                        bgcolor: 'white',
+                                                        '& .MuiMenuItem-root': {
+                                                            fontSize: '0.75rem',
+                                                            color: '#111827',
+                                                        },
+                                                    },
+                                                },
+                                            }}
+                                            renderValue={(value) => {
+                                                if (!value) {
+                                                    return <Typography sx={{ color: '#9CA3AF', fontSize: '0.75rem' }}>Select an option</Typography>;
+                                                }
+                                                return value;
+                                            }}
                                         >
                                             <MenuItem disabled value="">
-                                                <Typography color="#9CA3AF" fontSize="0.875rem">Select an option</Typography>
+                                                <Typography color="#9CA3AF" fontSize="0.75rem">Select an option</Typography>
                                             </MenuItem>
                                             {field.options?.map(opt => (
-                                                <MenuItem key={opt} value={opt} sx={{ fontSize: '0.875rem', color: '#111827' }}>{opt}</MenuItem>
+                                                <MenuItem key={opt} value={opt} sx={{ fontSize: '0.75rem', color: '#111827' }}>{opt}</MenuItem>
                                             ))}
                                         </Select>
                                     </Box>
@@ -426,7 +444,7 @@ export default function PublicFormPage() {
                                                 mb: 0.5,
                                                 color: '#374151',
                                                 fontWeight: 600,
-                                                fontSize: '0.875rem',
+                                                fontSize: '0.75rem',
                                                 transform: 'none',
                                                 position: 'static'
                                             }}
@@ -443,8 +461,9 @@ export default function PublicFormPage() {
                                                     placeholder={field.placeholder || 'Select options'}
                                                     sx={{
                                                         '& .MuiOutlinedInput-root': {
-                                                            borderRadius: '8px',
+                                                            borderRadius: '4px',
                                                             bgcolor: 'white',
+                                                            py: 0.3,
                                                             '& fieldset': {
                                                                 borderColor: '#E5E7EB',
                                                             },
@@ -452,13 +471,13 @@ export default function PublicFormPage() {
                                                                 borderColor: '#D1D5DB',
                                                             },
                                                             '&.Mui-focused fieldset': {
-                                                                borderColor: '#667eea',
+                                                                borderColor: '#ff6b6b',
                                                                 borderWidth: '1px',
-                                                                boxShadow: '0 0 0 2px rgba(102, 126, 234, 0.2)',
+                                                                boxShadow: '0 0 0 2px rgba(255, 107, 107, 0.2)',
                                                             },
                                                         },
                                                         '& .MuiOutlinedInput-input': {
-                                                            fontSize: '0.875rem',
+                                                            fontSize: '0.75rem',
                                                             color: '#111827 !important',
                                                             WebkitTextFillColor: '#111827 !important',
                                                         },
@@ -473,23 +492,44 @@ export default function PublicFormPage() {
                                                         label={option}
                                                         size="small"
                                                         sx={{
-                                                            bgcolor: '#eff6ff',
-                                                            color: '#1e40af',
-                                                            fontSize: '0.75rem',
+                                                            bgcolor: '#fee2e2',
+                                                            color: '#991b1b',
+                                                            fontSize: '0.65rem',
+                                                            height: '20px',
                                                             '& .MuiChip-deleteIcon': {
-                                                                color: '#60a5fa',
+                                                                color: '#f87171',
+                                                                fontSize: '0.875rem',
                                                                 '&:hover': {
-                                                                    color: '#1e40af',
+                                                                    color: '#991b1b',
                                                                 },
                                                             },
                                                         }}
                                                     />
                                                 ))
                                             }
+                                            slotProps={{
+                                                paper: {
+                                                    sx: {
+                                                        bgcolor: 'white',
+                                                        '& .MuiAutocomplete-option': {
+                                                            fontSize: '0.75rem',
+                                                            color: '#111827',
+                                                            bgcolor: 'white',
+                                                            '&:hover': {
+                                                                bgcolor: '#f3f4f6',
+                                                            },
+                                                            '&[aria-selected="true"]': {
+                                                                bgcolor: '#fee2e2',
+                                                                color: '#991b1b',
+                                                            },
+                                                        },
+                                                    },
+                                                },
+                                            }}
                                             sx={{
                                                 '& .MuiAutocomplete-tag': {
-                                                    bgcolor: '#eff6ff',
-                                                    color: '#1e40af',
+                                                    bgcolor: '#fee2e2',
+                                                    color: '#991b1b',
                                                 },
                                             }}
                                         />
@@ -502,7 +542,7 @@ export default function PublicFormPage() {
                                                 color: '#374151',
                                                 fontWeight: 600,
                                                 mb: 1,
-                                                fontSize: '0.875rem',
+                                                fontSize: '0.75rem',
                                                 '&.Mui-focused': {
                                                     color: '#374151',
                                                 },
@@ -518,12 +558,12 @@ export default function PublicFormPage() {
                                                         sx={{
                                                             color: '#D1D5DB',
                                                             '&.Mui-checked': {
-                                                                color: '#667eea',
+                                                                color: '#ff6b6b',
                                                             },
                                                         }}
                                                     />
                                                 }
-                                                label={<Typography sx={{ fontSize: '0.875rem', color: '#4B5563' }}>{field.placeholder || 'Yes, I agree'}</Typography>}
+                                                label={<Typography sx={{ fontSize: '0.75rem', color: '#4B5563' }}>{field.placeholder || 'Yes, I agree'}</Typography>}
                                             />
                                         </FormGroup>
                                     </FormControl>
@@ -531,33 +571,39 @@ export default function PublicFormPage() {
                             </Box>
                         ))}
 
-                        <Button
-                            variant="contained"
-                            fullWidth
+                        <Box
+                            component="button"
+                            type="button"
                             disabled={submitting}
                             onClick={handleSubmit}
                             sx={{
                                 mt: 2,
-                                py: 1.5,
-                                borderRadius: '8px',
+                                py: 1.2,
+                                px: 2,
+                                width: '100%',
+                                borderRadius: '4px',
                                 textTransform: 'none',
-                                fontSize: '1rem',
+                                fontSize: '0.875rem',
                                 fontWeight: 600,
-                                bgcolor: '#7C3AED', // Deeper purple for button
+                                background: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
+                                color: 'white',
+                                border: 'none',
+                                cursor: submitting ? 'not-allowed' : 'pointer',
                                 boxShadow: 'none',
+                                opacity: submitting ? 0.6 : 1,
+                                transition: 'all 0.2s ease',
                                 '&:hover': {
-                                    bgcolor: '#6D28D9',
-                                    boxShadow: 'none',
+                                    opacity: submitting ? 0.6 : 0.9,
                                 },
                                 '&:disabled': {
                                     bgcolor: '#E5E7EB',
-                                    color: '#9CA3AF'
+                                    color: '#9CA3AF',
+                                    background: '#E5E7EB',
                                 },
-                                transition: 'all 0.2s ease',
                             }}
                         >
-                            {submitting ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Submit'}
-                        </Button>
+                            {submitting ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'Submit'}
+                        </Box>
                     </Box>
 
                     {/* Footer */}
